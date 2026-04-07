@@ -1,0 +1,58 @@
+# ─── dependencies ──────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ─── Expo ──────────────────────────────────────────────────────
+.expo/
+.expo-shared/
+dist/
+web-build/
+expo-env.d.ts
+
+# ─── native build outputs (we use Expo Go in V1; iOS/Android dirs
+#     would only appear if someone runs `expo prebuild`) ────────
+/ios/
+/android/
+app/ios/
+app/android/
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# ─── auto-generated files (re-created by scripts/sync-data.sh) ─
+app/src/lib/prompt-template.generated.ts
+
+# ─── Metro / bundler ───────────────────────────────────────────
+.metro-health-check*
+
+# ─── logs ──────────────────────────────────────────────────────
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# ─── env files ─────────────────────────────────────────────────
+.env
+.env.local
+.env*.local
+
+# ─── TypeScript ────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ─── editor / OS ───────────────────────────────────────────────
+.DS_Store
+*.pem
+.idea/
+*.swp
+*.swo
+.vscode/*.local.*
+
+# ─── Claude Code local settings (machine-specific permissions) ─
+.claude/settings.local.json
+
+# ─── misc ──────────────────────────────────────────────────────
+app-example/
