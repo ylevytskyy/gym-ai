@@ -5,7 +5,7 @@ import { Card } from "./Card";
 import { Button } from "./Button";
 import { useTheme } from "@src/theme/ThemeProvider";
 import type { Session } from "@src/types";
-import { SESSION_TYPE_LABELS } from "@src/types";
+import { useTranslation } from "react-i18next";
 import { formatTimeWindow } from "@src/lib/dates";
 import type { NextUpResult } from "@src/lib/session-picker";
 
@@ -17,6 +17,7 @@ interface UpNextCardProps {
 
 export function UpNextCard({ nextUp, onStart, onPostpone }: UpNextCardProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { session, reason, minutesUntilStart } = nextUp;
 
   const status =
@@ -39,7 +40,7 @@ export function UpNextCard({ nextUp, onStart, onPostpone }: UpNextCardProps) {
           { color: theme.colors.text, marginTop: theme.spacing.xs },
         ]}
       >
-        {SESSION_TYPE_LABELS[session.type]}
+        {t(`enums:sessionTypes.${session.type}`)}
       </Text>
       <View style={styles.metaRow}>
         <Meta

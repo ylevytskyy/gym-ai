@@ -7,7 +7,7 @@ import { Platform } from "react-native";
 
 import type { Session, WorkoutPlan } from "@src/types";
 import { timeOnDay } from "./dates";
-import { SESSION_TYPE_LABELS } from "@src/types";
+import { i18n } from "@src/i18n";
 
 const NOTIF_MAP_KEY = "@fitness/notification-map";
 const CHANNEL_ID = "fitness-reminders";
@@ -81,13 +81,17 @@ async function scheduleOne({
   const fireAt = timeOnDay(dayDate, session.time_window.earliest);
   if (fireAt.getTime() <= Date.now() + 5_000) return null;
 
-  const typeLabel = SESSION_TYPE_LABELS[session.type];
+  const typeLabel = i18n.t(`enums:sessionTypes.${session.type}`);
   const kcal = Math.round(session.estimated_calories_total);
-  const body = `${session.duration_minutes} min · ~${kcal} kcal · window closes ${session.time_window.latest}`;
+  const body = i18n.t('notifications.body', {
+    duration: session.duration_minutes,
+    kcal,
+    windowClose: session.time_window.latest,
+  });
 
   const id = await Notifications.scheduleNotificationAsync({
     content: {
-      title: `Time for your ${typeLabel.toLowerCase()}`,
+      title: i18n.t('notifications.title', { sessionType: typeLabel }),
       body,
       data: { sessionId: session.session_id, planId },
       sound: "default",

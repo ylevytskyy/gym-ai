@@ -15,15 +15,15 @@ import { useProfileStore } from "@src/store/profileStore";
 import {
   ALL_FITNESS_LEVELS,
   ALL_GOALS,
-  FITNESS_LEVEL_LABELS,
-  GOAL_LABELS,
   type FitnessLevel,
   type Goal,
 } from "@src/types";
+import { useTranslation } from "react-i18next";
 import { savePhotoToAppStorage } from "@src/lib/storage";
 
 export default function ProfileEdit() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const profile = useProfileStore((s) => s.profile);
   const setProfile = useProfileStore((s) => s.setProfile);
 
@@ -195,7 +195,7 @@ export default function ProfileEdit() {
           {ALL_FITNESS_LEVELS.map((f) => (
             <Chip
               key={f}
-              label={FITNESS_LEVEL_LABELS[f]}
+              label={t(`enums:fitnessLevels.${f}`)}
               selected={fitnessLevel === f}
               onPress={() => setFitnessLevel(f)}
             />
@@ -217,7 +217,7 @@ export default function ProfileEdit() {
           {ALL_GOALS.map((g) => (
             <Chip
               key={g}
-              label={GOAL_LABELS[g]}
+              label={t(`enums:goals.${g}`)}
               selected={goals.includes(g)}
               onPress={() => toggleGoal(g)}
             />

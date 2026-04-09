@@ -7,13 +7,15 @@ import { WizardFooter } from "@src/components/WizardFooter";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { useOnboardingStore } from "@src/store/onboardingStore";
 import { useProfileStore } from "@src/store/profileStore";
-import { ALL_GOALS, GOAL_LABELS, type Goal } from "@src/types";
+import { ALL_GOALS, type Goal } from "@src/types";
+import { useTranslation } from "react-i18next";
 
 const STEP = 5;
 const TOTAL = 6;
 
 export default function GoalsStep() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const draft = useOnboardingStore((s) => s.draft);
   const setDraft = useOnboardingStore((s) => s.setDraft);
   const toProfile = useOnboardingStore((s) => s.toProfile);
@@ -71,7 +73,7 @@ export default function GoalsStep() {
           {ALL_GOALS.map((goal) => (
             <Chip
               key={goal}
-              label={GOAL_LABELS[goal]}
+              label={t(`enums:goals.${goal}`)}
               selected={draft.primary_goals.includes(goal)}
               onPress={() => toggle(goal)}
             />

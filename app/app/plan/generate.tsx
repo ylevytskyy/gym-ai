@@ -24,18 +24,18 @@ import { useProfileStore } from "@src/store/profileStore";
 import {
   ALL_LIMITATIONS,
   ALL_MEETING_DENSITIES,
-  LIMITATION_LABELS,
-  MEETING_DENSITY_LABELS,
   type Limitation,
   type MeetingDensity,
   type PeriodType,
 } from "@src/types";
+import { useTranslation } from "react-i18next";
 import { buildPrompt, type PeriodChoice } from "@src/lib/prompt";
 import { todayYYYYMMDD } from "@src/lib/dates";
 import { getCatalog } from "@src/lib/catalog";
 
 export default function GeneratePlan() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const profile = useProfileStore((s) => s.profile);
   const updateProfile = useProfileStore((s) => s.updateProfile);
 
@@ -277,7 +277,7 @@ export default function GeneratePlan() {
           {ALL_MEETING_DENSITIES.map((d) => (
             <Chip
               key={d}
-              label={MEETING_DENSITY_LABELS[d]}
+              label={t(`enums:meetingDensity.${d}`)}
               selected={meetingDensity === d}
               onPress={() => setMeetingDensity(d)}
             />
@@ -364,7 +364,7 @@ export default function GeneratePlan() {
           {ALL_LIMITATIONS.filter((l) => l !== "none").map((l) => (
             <Chip
               key={l}
-              label={LIMITATION_LABELS[l]}
+              label={t(`enums:limitations.${l}`)}
               selected={limitations.includes(l)}
               onPress={() =>
                 setLimitations((curr) =>

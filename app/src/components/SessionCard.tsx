@@ -4,7 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { formatTimeWindow } from "@src/lib/dates";
 import type { Session, SessionType } from "@src/types";
-import { PRIORITY_LABELS, SESSION_TYPE_LABELS } from "@src/types";
+import { useTranslation } from "react-i18next";
 
 interface SessionCardProps {
   session: Session;
@@ -20,6 +20,7 @@ const ICON_BY_TYPE: Record<SessionType, keyof typeof Ionicons.glyphMap> = {
 
 export function SessionCard({ session, onPress }: SessionCardProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   const priorityColor =
     session.priority === "required"
@@ -65,7 +66,7 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
         <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={[styles.title, { color: theme.colors.text }]}>
-              {SESSION_TYPE_LABELS[session.type]}
+              {t(`enums:sessionTypes.${session.type}`)}
             </Text>
             {done ? (
               <Ionicons
@@ -94,7 +95,7 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
           ]}
         >
           <Text style={[styles.pillText, { color: priorityColor }]}>
-            {PRIORITY_LABELS[session.priority]}
+            {t(`enums:priorities.${session.priority}`)}
           </Text>
         </View>
       </View>

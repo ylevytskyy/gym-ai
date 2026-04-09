@@ -5,19 +5,15 @@ import { Screen } from "@src/components/Screen";
 import { WizardFooter } from "@src/components/WizardFooter";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { useOnboardingStore } from "@src/store/onboardingStore";
-import { ALL_FITNESS_LEVELS, FITNESS_LEVEL_LABELS } from "@src/types";
+import { ALL_FITNESS_LEVELS } from "@src/types";
+import { useTranslation } from "react-i18next";
 
 const STEP = 4;
 const TOTAL = 6;
 
-const DESCRIPTIONS: Record<string, string> = {
-  beginner: "New to exercise, or returning after a long break.",
-  intermediate: "Exercise a few times a week and know the basics.",
-  advanced: "Regular, structured training; confident with form.",
-};
-
 export default function FitnessLevelStep() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const draft = useOnboardingStore((s) => s.draft);
   const setDraft = useOnboardingStore((s) => s.setDraft);
 
@@ -78,7 +74,7 @@ export default function FitnessLevelStep() {
                     color: theme.colors.text,
                   }}
                 >
-                  {FITNESS_LEVEL_LABELS[level]}
+                  {t(`enums:fitnessLevels.${level}`)}
                 </Text>
                 <Text
                   style={{
@@ -87,7 +83,7 @@ export default function FitnessLevelStep() {
                     marginTop: 4,
                   }}
                 >
-                  {DESCRIPTIONS[level]}
+                  {t(`enums:fitnessLevelDescriptions.${level}`)}
                 </Text>
               </Pressable>
             );

@@ -9,15 +9,13 @@ import { useTheme } from "@src/theme/ThemeProvider";
 import { usePlanStore } from "@src/store/planStore";
 import { findSessionInPlan } from "@src/lib/session-picker";
 import { exerciseById } from "@src/lib/catalog";
-import {
-  PRIORITY_LABELS,
-  SESSION_TYPE_LABELS,
-  type PlannedExercise,
-} from "@src/types";
+import { type PlannedExercise } from "@src/types";
+import { useTranslation } from "react-i18next";
 import { formatTimeWindow } from "@src/lib/dates";
 
 export default function SessionPreview() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
   const plan = usePlanStore((s) => s.plan);
 
@@ -54,7 +52,7 @@ export default function SessionPreview() {
   return (
     <Screen scrollable>
       <Text style={[styles.title, { color: theme.colors.text }]}>
-        {SESSION_TYPE_LABELS[session.type]}
+        {t(`enums:sessionTypes.${session.type}`)}
       </Text>
       <View style={[styles.metaRow, { marginTop: 4 }]}>
         <View
@@ -67,7 +65,7 @@ export default function SessionPreview() {
           ]}
         >
           <Text style={{ color: priorityColor, fontWeight: "700", fontSize: 11 }}>
-            {PRIORITY_LABELS[session.priority].toUpperCase()}
+            {t(`enums:priorities.${session.priority}`).toUpperCase()}
           </Text>
         </View>
         <Text style={{ color: theme.colors.textMuted, marginLeft: 8 }}>
