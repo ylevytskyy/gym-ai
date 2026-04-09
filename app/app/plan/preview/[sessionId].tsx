@@ -8,7 +8,7 @@ import { Button } from "@src/components/Button";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { usePlanStore } from "@src/store/planStore";
 import { findSessionInPlan } from "@src/lib/session-picker";
-import { exerciseById } from "@src/lib/catalog";
+import { exerciseById, exerciseText } from "@src/lib/catalog";
 import { type PlannedExercise } from "@src/types";
 import { useTranslation } from "react-i18next";
 import { formatTimeWindow } from "@src/lib/dates";
@@ -124,6 +124,7 @@ function ExerciseRow({
   const theme = useTheme();
   const { t } = useTranslation();
   const catEx = exerciseById(ex.exercise_id);
+  const txt = exerciseText(ex.exercise_id);
   const [open, setOpen] = useState(false);
   if (!catEx) {
     return (
@@ -159,7 +160,7 @@ function ExerciseRow({
               fontWeight: "600",
             }}
           >
-            {catEx.name}
+            {txt.name}
           </Text>
           <Text
             style={{
@@ -191,7 +192,7 @@ function ExerciseRow({
             paddingLeft: 10,
           }}
         >
-          {catEx.instructions.map((step, i) => (
+          {txt.instructions.map((step, i) => (
             <Text
               key={i}
               style={{
@@ -204,7 +205,7 @@ function ExerciseRow({
               {i + 1}. {step}
             </Text>
           ))}
-          {catEx.common_mistakes.length > 0 ? (
+          {txt.common_mistakes.length > 0 ? (
             <Text
               style={{
                 color: theme.colors.warning,
@@ -213,7 +214,7 @@ function ExerciseRow({
                 fontStyle: "italic",
               }}
             >
-              {t('plan.preview.watchOut', { mistakes: catEx.common_mistakes.join(", ") })}
+              {t('plan.preview.watchOut', { mistakes: txt.common_mistakes.join(", ") })}
             </Text>
           ) : null}
         </View>

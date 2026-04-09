@@ -3,9 +3,10 @@
 
 import type { PeriodType, UserProfile } from "@src/types";
 import { PROMPT_TEMPLATE } from "./prompt-template.generated";
-// JSON imports — bundled by Metro.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-import exercisesJson from "../../assets/data/exercises.json";
+import exercisesStructural from "../../assets/data/exercises.json";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+import exercisesTextEn from "../i18n/locales/en/exercises.json";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import planSchemaJson from "../../assets/data/workout-plan.schema.json";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -19,6 +20,29 @@ export interface PeriodChoice {
 
 function asJsonString(v: unknown): string {
   return JSON.stringify(v, null, 2);
+}
+
+type ExerciseTextEntry = {
+  name: string;
+  instructions: string[];
+  common_mistakes: string[];
+  modifications: { easier: string; harder: string };
+  notes: string | null;
+};
+
+// Merges the structural catalog with the English exercise-text dictionary so
+// the LLM receives the same full-text shape it always has. The LLM keeps
+// emitting English exercise ids regardless of the app's current language.
+function mergedCatalogForPrompt(): object {
+  const textMap = exercisesTextEn as unknown as Record<string, ExerciseTextEntry>;
+  const structural = exercisesStructural as { exercises: Array<{ id: string }> };
+  return {
+    ...exercisesStructural,
+    exercises: structural.exercises.map((e) => ({
+      ...e,
+      ...(textMap[e.id] ?? {}),
+    })),
+  };
 }
 
 export function buildPrompt(
@@ -60,8 +84,7 @@ export function buildPrompt(
     out = out.split(k).join(v);
   }
 
-  // Large embedded blocks — do these last to avoid interfering with placeholders.
-  out = out.split("<<EXERCISES_JSON>>").join(asJsonString(exercisesJson));
+  out = out.split("<<EXERCISES_JSON>>").join(asJsonString(mergedCatalogForPrompt()));
   out = out
     .split("<<WORKOUT_PLAN_SCHEMA_JSON>>")
     .join(asJsonString(planSchemaJson));

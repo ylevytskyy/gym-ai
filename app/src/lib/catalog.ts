@@ -51,3 +51,25 @@ export function exercisesForAlternative(
       e.equipment.some((eq) => equipment.has(eq)),
   );
 }
+
+import { i18n } from "@src/i18n";
+import type { ExerciseText } from "@src/i18n/types";
+
+/**
+ * Returns the current-locale text for an exercise. Falls back to the
+ * exercise id if the translation key is missing so the UI never shows
+ * an empty string.
+ */
+export function exerciseText(id: string): ExerciseText {
+  const value = i18n.t(`exercises:${id}`, { returnObjects: true }) as unknown;
+  if (!value || typeof value !== "object" || !("name" in value)) {
+    return {
+      name: id,
+      instructions: [],
+      common_mistakes: [],
+      modifications: { easier: "", harder: "" },
+      notes: null,
+    };
+  }
+  return value as ExerciseText;
+}

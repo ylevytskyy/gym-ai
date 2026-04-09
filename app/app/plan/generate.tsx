@@ -31,7 +31,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { buildPrompt, type PeriodChoice } from "@src/lib/prompt";
 import { todayYYYYMMDD } from "@src/lib/dates";
-import { getCatalog } from "@src/lib/catalog";
+import { getCatalog, exerciseText } from "@src/lib/catalog";
 
 export default function GeneratePlan() {
   const theme = useTheme();
@@ -395,7 +395,7 @@ export default function GeneratePlan() {
           {catalog.exercises.slice(0, 40).map((ex) => (
             <Chip
               key={ex.id}
-              label={ex.id}
+              label={exerciseText(ex.id).name}
               selected={dislikedIds.includes(ex.id)}
               onPress={() =>
                 setDislikedIds((curr) =>

@@ -2,7 +2,7 @@
 // UI can just walk through an array instead of juggling nested indices.
 
 import type { Session } from "@src/types";
-import { exerciseById } from "./catalog";
+import { exerciseText } from "./catalog";
 
 export type RunnerStep =
   | {
@@ -46,10 +46,10 @@ export function buildRunnerSteps(session: Session): RunnerStep[] {
     for (let r = 0; r < block.rounds; r++) {
       for (let ei = 0; ei < block.exercises.length; ei++) {
         const pe = block.exercises[ei];
-        const cat = exerciseById(pe.exercise_id);
-        const exName = cat?.name ?? pe.exercise_id;
-        const instructions = cat?.instructions ?? [];
-        const mistakes = cat?.common_mistakes ?? [];
+        const text = exerciseText(pe.exercise_id);
+        const exName = text.name;
+        const instructions = text.instructions;
+        const mistakes = text.common_mistakes;
 
         // Countdown only before the FIRST set of this exercise in this round
         steps.push({
@@ -92,16 +92,13 @@ export function buildRunnerSteps(session: Session): RunnerStep[] {
             // Compute next exercise name to show on the rest screen
             let nextName: string | null = null;
             if (isLastSetOfExercise && !isLastExInBlock) {
-              nextName =
-                exerciseById(block.exercises[ei + 1].exercise_id)?.name ?? null;
+              nextName = exerciseText(block.exercises[ei + 1].exercise_id).name;
             } else if (isLastSetOfExercise && !isLastRound) {
               // loop back to the first exercise of this block
-              nextName =
-                exerciseById(block.exercises[0].exercise_id)?.name ?? null;
+              nextName = exerciseText(block.exercises[0].exercise_id).name;
             } else if (isLastSetOfExercise && !isLastBlock) {
               const nb = blocks[bi + 1];
-              nextName =
-                exerciseById(nb.exercises[0].exercise_id)?.name ?? null;
+              nextName = exerciseText(nb.exercises[0].exercise_id).name;
             }
             steps.push({
               kind: "rest",

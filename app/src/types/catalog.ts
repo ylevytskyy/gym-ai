@@ -4,14 +4,8 @@ import type { DefaultUnit, ExerciseCategory, NoiseLevel } from "./enums";
 
 export type Equipment = "none" | "chair" | "wall" | "stairs" | "doorway";
 
-export interface ExerciseModifications {
-  easier: string;
-  harder: string;
-}
-
 export interface Exercise {
   id: string;
-  name: string;
   category: ExerciseCategory;
   body_parts: string[];
   equipment: Equipment[];
@@ -22,13 +16,9 @@ export interface Exercise {
   default_rest_seconds: number;
   met_value: number;
   seconds_per_rep: number | null;
-  instructions: string[];
-  common_mistakes: string[];
-  modifications: ExerciseModifications;
   contraindications: string[];
   desk_friendly: boolean;
   noise_level: NoiseLevel;
-  notes: string | null;
 }
 
 export interface CalorieModel {
