@@ -237,7 +237,7 @@ export default function GeneratePlan() {
           {[15, 20, 25, 30, 45, 60].map((m) => (
             <Chip
               key={m}
-              label={`${m} min`}
+              label={t('plan.generate.timeBudgetMinutes', { count: m })}
               selected={availableMinutes === m}
               onPress={() => setAvailableMinutes(m)}
             />
