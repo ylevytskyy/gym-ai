@@ -28,10 +28,10 @@ export default function SessionPreview() {
     return (
       <Screen>
         <Text style={{ color: theme.colors.text, fontSize: 18 }}>
-          Session not found.
+          {t('plan.preview.notFound')}
         </Text>
         <Button
-          label="Back"
+          label={t('plan.preview.back')}
           variant="ghost"
           onPress={() => router.back()}
           fullWidth={false}
@@ -86,8 +86,7 @@ export default function SessionPreview() {
               marginBottom: 6,
             }}
           >
-            {block.block_type.toUpperCase()} · {block.rounds}{" "}
-            {block.rounds === 1 ? "round" : "rounds"}
+            {t(`enums:blockTypes.${block.block_type}`).toUpperCase()} · {t('plan.preview.rounds', { count: block.rounds })}
           </Text>
           <Card>
             {block.exercises.map((ex, eIdx) => (
@@ -103,7 +102,7 @@ export default function SessionPreview() {
 
       <View style={{ marginTop: 24, marginBottom: 24 }}>
         <Button
-          label="Start Workout"
+          label={t('plan.preview.start')}
           size="lg"
           onPress={() => router.push(`/workout/${session.session_id}`)}
           leftIcon={
@@ -123,21 +122,22 @@ function ExerciseRow({
   isLast: boolean;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const catEx = exerciseById(ex.exercise_id);
   const [open, setOpen] = useState(false);
   if (!catEx) {
     return (
       <Text style={{ color: theme.colors.danger }}>
-        Unknown exercise: {ex.exercise_id}
+        {t('plan.preview.unknownExercise', { id: ex.exercise_id })}
       </Text>
     );
   }
   const amountLabel =
     ex.unit === "reps"
-      ? `${ex.amount} reps`
+      ? t('workout.units.reps', { count: ex.amount })
       : ex.unit === "seconds"
-        ? `${ex.amount}s`
-        : `${ex.amount} m climbed`;
+        ? t('workout.units.seconds', { count: ex.amount })
+        : t('workout.units.metersClimbed', { count: ex.amount });
 
   return (
     <View
@@ -168,8 +168,12 @@ function ExerciseRow({
               marginTop: 2,
             }}
           >
-            {ex.sets} × {amountLabel} · rest {ex.rest_seconds}s · ~
-            {Math.round(ex.estimated_calories)} kcal
+            {t('plan.preview.exerciseMeta', {
+              sets: ex.sets,
+              amount: amountLabel,
+              rest: ex.rest_seconds,
+              kcal: Math.round(ex.estimated_calories),
+            })}
           </Text>
         </View>
         <Ionicons
@@ -209,7 +213,7 @@ function ExerciseRow({
                 fontStyle: "italic",
               }}
             >
-              Watch out: {catEx.common_mistakes.join(", ")}
+              {t('plan.preview.watchOut', { mistakes: catEx.common_mistakes.join(", ") })}
             </Text>
           ) : null}
         </View>

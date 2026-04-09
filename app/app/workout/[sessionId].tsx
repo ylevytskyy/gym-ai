@@ -11,6 +11,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import * as Haptics from "expo-haptics";
 
+import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { Button } from "@src/components/Button";
 import { ProgressRing } from "@src/components/ProgressRing";
@@ -25,6 +26,7 @@ import { nowIso } from "@src/lib/dates";
 
 export default function WorkoutRunner() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
   const plan = usePlanStore((s) => s.plan);
   const markExerciseExecution = usePlanStore((s) => s.markExerciseExecution);
@@ -255,12 +257,12 @@ export default function WorkoutRunner() {
   // ─── exit handler ──────────────────────────────────────────────────
   const confirmExit = () => {
     Alert.alert(
-      "Exit workout?",
-      "Your progress so far will be saved.",
+      t('workout.exit.title'),
+      t('workout.exit.body'),
       [
-        { text: "Keep going", style: "cancel" },
+        { text: t('workout.exit.keepGoing'), style: "cancel" },
         {
-          text: "Exit",
+          text: t('workout.exit.confirm'),
           style: "destructive",
           onPress: async () => {
             if (session) {
@@ -283,7 +285,7 @@ export default function WorkoutRunner() {
   if (!session) {
     return (
       <Screen>
-        <Text style={{ color: theme.colors.text }}>Session not found.</Text>
+        <Text style={{ color: theme.colors.text }}>{t('workout.sessionNotFound')}</Text>
       </Screen>
     );
   }
@@ -307,7 +309,7 @@ export default function WorkoutRunner() {
             fontWeight: "700",
           }}
         >
-          {setsCompleted.current} / {totalSets} sets
+          {t('workout.setsProgress', { done: setsCompleted.current, total: totalSets })}
         </Text>
         <View style={{ width: 32 }} />
       </View>
@@ -344,12 +346,13 @@ function CountdownView({
   exerciseName: string;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <View style={{ alignItems: "center" }}>
       <Text
         style={{ color: theme.colors.textMuted, fontSize: 14, fontWeight: "700" }}
       >
-        GET READY
+        {t('workout.getReady')}
       </Text>
       <Text
         style={{
@@ -388,6 +391,7 @@ function SetView({
   onSkip: () => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const progress =
     step.unit === "seconds" && step.amount > 0
       ? 1 - secondsLeft / step.amount
@@ -399,9 +403,9 @@ function SetView({
         style={{ color: theme.colors.textMuted, fontSize: 13, fontWeight: "700" }}
       >
         {step.totalRounds > 1
-          ? `ROUND ${step.roundIdx + 1}/${step.totalRounds} · `
+          ? t('workout.roundOf', { current: step.roundIdx + 1, total: step.totalRounds })
           : ""}
-        SET {step.setIdx + 1} OF {step.totalSets}
+        {t('workout.setOf', { current: step.setIdx + 1, total: step.totalSets })}
       </Text>
       <Text
         style={{
@@ -420,28 +424,28 @@ function SetView({
           <ProgressRing
             progress={progress}
             label={String(secondsLeft)}
-            sublabel="seconds"
+            sublabel={t('workout.units.secondsSublabel')}
           />
         ) : step.unit === "reps" ? (
           <ProgressRing
             progress={0}
             label={String(step.amount)}
-            sublabel="reps · tap Done when finished"
+            sublabel={t('workout.units.repsSublabel')}
           />
         ) : (
           <ProgressRing
             progress={0}
             label={String(step.amount)}
-            sublabel="meters climbed"
+            sublabel={t('workout.units.metersSublabel')}
           />
         )}
       </View>
 
       <View style={{ marginTop: 32, width: "100%", gap: 10 }}>
         {step.unit !== "seconds" ? (
-          <Button label="Done" onPress={onDone} size="lg" />
+          <Button label={t('workout.done')} onPress={onDone} size="lg" />
         ) : null}
-        <Button label="Skip" variant="ghost" onPress={onSkip} />
+        <Button label={t('workout.skip')} variant="ghost" onPress={onSkip} />
       </View>
 
       {step.instructions.length > 0 ? (
@@ -482,12 +486,13 @@ function RestView({
   onSkip: () => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <View style={{ alignItems: "center" }}>
       <Text
         style={{ color: theme.colors.textMuted, fontSize: 14, fontWeight: "700" }}
       >
-        REST
+        {t('workout.rest')}
       </Text>
       <Text
         style={{
@@ -507,11 +512,11 @@ function RestView({
             marginTop: 12,
           }}
         >
-          Up next: {nextName}
+          {t('workout.upNext', { name: nextName })}
         </Text>
       ) : null}
       <View style={{ marginTop: 24, width: "60%" }}>
-        <Button label="Skip rest" variant="secondary" onPress={onSkip} />
+        <Button label={t('workout.skipRest')} variant="secondary" onPress={onSkip} />
       </View>
     </View>
   );
@@ -525,6 +530,7 @@ function SummaryScreen({
   sessionId: string;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const plan = usePlanStore((s) => s.plan);
   const session = plan
     ? findSessionInPlan(plan.plan.days, sessionId)?.session
@@ -552,18 +558,18 @@ function SummaryScreen({
             marginTop: 12,
           }}
         >
-          Nice work!
+          {t('workout.summary.title')}
         </Text>
         <View style={{ marginTop: 32, gap: 12, alignItems: "center" }}>
-          <Stat label="Actual calories" value={`${kcal} kcal`} />
-          <Stat label="Duration" value={`${mins} min`} />
-          <Stat label="Exercises completed" value={`${done}`} />
-          <Stat label="Session completion" value={`${pct}%`} />
+          <Stat label={t('workout.summary.kcal')} value={t('workout.summary.kcalValue', { kcal })} />
+          <Stat label={t('workout.summary.duration')} value={t('workout.summary.durationValue', { min: mins })} />
+          <Stat label={t('workout.summary.completed')} value={`${done}`} />
+          <Stat label={t('workout.summary.completion')} value={t('workout.summary.completionValue', { pct })} />
         </View>
       </View>
       <View>
         <Button
-          label="Done"
+          label={t('workout.summary.cta')}
           size="lg"
           onPress={() => router.replace("/(tabs)")}
         />
