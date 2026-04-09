@@ -11,6 +11,7 @@ import {
 import { router } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@src/components/Screen";
 import { Button } from "@src/components/Button";
@@ -28,6 +29,7 @@ import type { WorkoutPlan } from "@src/types";
 export default function PastePlan() {
   const theme = useTheme();
   const setPlan = usePlanStore((s) => s.setPlan);
+  const { t } = useTranslation();
 
   const [raw, setRaw] = useState("");
   const [errors, setErrors] = useState<ValidationError[] | null>(null);
@@ -67,7 +69,7 @@ export default function PastePlan() {
   return (
     <Screen scrollable>
       <Text style={[styles.title, { color: theme.colors.text }]}>
-        Paste your plan
+        {t('plan.paste.title')}
       </Text>
       <Text
         style={{
@@ -77,8 +79,7 @@ export default function PastePlan() {
           marginBottom: 16,
         }}
       >
-        Paste the JSON the LLM produced. We'll validate it against the schema
-        and make sure every exercise is in the catalog.
+        {t('plan.paste.subtitle')}
       </Text>
 
       <View
@@ -94,7 +95,7 @@ export default function PastePlan() {
         <TextInput
           value={raw}
           onChangeText={setRaw}
-          placeholder="Paste the JSON here…"
+          placeholder={t('plan.paste.placeholder')}
           placeholderTextColor={theme.colors.textMuted}
           multiline
           textAlignVertical="top"
@@ -112,7 +113,7 @@ export default function PastePlan() {
       </View>
       <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
         <Button
-          label="Paste from clipboard"
+          label={t('plan.paste.pasteFromClipboard')}
           variant="secondary"
           onPress={pasteFromClipboard}
           leftIcon={
@@ -127,7 +128,7 @@ export default function PastePlan() {
 
       <View style={{ marginTop: 12 }}>
         <Button
-          label="Validate"
+          label={t('plan.paste.validate')}
           onPress={runValidation}
           disabled={raw.trim().length === 0}
         />
@@ -143,7 +144,7 @@ export default function PastePlan() {
               marginBottom: 8,
             }}
           >
-            {errors.length} error{errors.length > 1 ? "s" : ""} found
+            {t('plan.paste.errorsFound', { count: errors.length })}
           </Text>
           <Card>
             <ScrollView style={{ maxHeight: 320 }}>
@@ -189,7 +190,7 @@ export default function PastePlan() {
                     fontStyle: "italic",
                   }}
                 >
-                  … and {errors.length - 30} more.
+                  {t('plan.paste.moreErrors', { count: errors.length - 30 })}
                 </Text>
               ) : null}
             </ScrollView>
@@ -207,11 +208,11 @@ export default function PastePlan() {
               marginBottom: 8,
             }}
           >
-            ✓ Looks good
+            {t('plan.paste.looksGood')}
           </Text>
           <PlanPreviewCard plan={valid} />
           <View style={{ marginTop: 12 }}>
-            <Button label="Save plan" onPress={savePlan} size="lg" />
+            <Button label={t('plan.paste.save')} onPress={savePlan} size="lg" />
           </View>
         </View>
       ) : null}
@@ -221,22 +222,23 @@ export default function PastePlan() {
 
 function PlanPreviewCard({ plan }: { plan: WorkoutPlan }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const stats = planPreviewStats(plan);
   return (
     <Card>
-      <PreviewRow label="Period" value={`${stats.periodStart} → ${stats.periodEnd}`} />
-      <PreviewRow label="Days" value={`${stats.days} (${stats.activeDays} active)`} />
+      <PreviewRow label={t('plan.paste.stats.period')} value={`${stats.periodStart} → ${stats.periodEnd}`} />
+      <PreviewRow label={t('plan.paste.stats.days')} value={t('plan.paste.stats.daysValue', { total: stats.days, active: stats.activeDays })} />
       <PreviewRow
-        label="Sessions"
+        label={t('plan.paste.stats.sessions')}
         value={`${stats.totalSessions}`}
       />
       <PreviewRow
-        label="Exercises total"
+        label={t('plan.paste.stats.exercisesTotal')}
         value={`${stats.totalExercises}`}
       />
       <PreviewRow
-        label="Estimated calories"
-        value={`${Math.round(stats.caloriesMin)}–${Math.round(stats.caloriesMax)} kcal`}
+        label={t('plan.paste.stats.estimatedCalories')}
+        value={t('plan.paste.stats.estimatedCaloriesValue', { min: Math.round(stats.caloriesMin), max: Math.round(stats.caloriesMax) })}
       />
     </Card>
   );

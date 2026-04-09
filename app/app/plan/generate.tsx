@@ -114,7 +114,7 @@ export default function GeneratePlan() {
       setPrompt(p);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      Alert.alert("Couldn't build prompt", msg);
+      Alert.alert(t('plan.generate.buildErrorTitle'), msg);
     }
   };
 
@@ -130,7 +130,7 @@ export default function GeneratePlan() {
     return (
       <Screen>
         <Text style={[styles.title, { color: theme.colors.text }]}>
-          Your prompt is ready
+          {t('plan.generate.promptReady')}
         </Text>
         <Text
           style={{
@@ -139,8 +139,7 @@ export default function GeneratePlan() {
             marginTop: 4,
           }}
         >
-          Copy this, paste it into Claude (or another LLM), and bring the JSON
-          response back here.
+          {t('plan.generate.promptReadySubtitle')}
         </Text>
         <View
           style={[
@@ -178,7 +177,7 @@ export default function GeneratePlan() {
         </View>
         <View style={{ marginTop: theme.spacing.md, gap: theme.spacing.sm }}>
           <Button
-            label={copied ? "Copied!" : "Copy prompt to clipboard"}
+            label={copied ? t('plan.generate.copied') : t('plan.generate.copyToClipboard')}
             onPress={copyPrompt}
             leftIcon={
               <Ionicons
@@ -189,12 +188,12 @@ export default function GeneratePlan() {
             }
           />
           <Button
-            label="I have my plan — paste it"
+            label={t('plan.generate.havePlan')}
             variant="secondary"
             onPress={() => router.push("/plan/paste")}
           />
           <Button
-            label="Back to form"
+            label={t('plan.generate.backToForm')}
             variant="ghost"
             onPress={() => setPrompt(null)}
           />
@@ -209,23 +208,23 @@ export default function GeneratePlan() {
   return (
     <Screen scrollable>
       <Text style={[styles.title, { color: theme.colors.text }]}>
-        Plan settings
+        {t('plan.generate.title')}
       </Text>
       <Text
         style={{ color: theme.colors.textMuted, fontSize: 14, marginTop: 4 }}
       >
-        A few details about your workday so the plan fits around real life.
+        {t('plan.generate.subtitle')}
       </Text>
 
-      <SectionLabel>DAILY TIME BUDGET</SectionLabel>
+      <SectionLabel>{t('plan.generate.sections.timeBudget')}</SectionLabel>
       <Card>
         <Text style={{ color: theme.colors.text, fontWeight: "600" }}>
-          {availableMinutes} min / day
+          {t('plan.generate.timeBudgetValue', { minutes: availableMinutes })}
         </Text>
         <Text
           style={{ color: theme.colors.textMuted, fontSize: 12, marginTop: 2 }}
         >
-          Main workout + desk breaks together.
+          {t('plan.generate.timeBudgetHint')}
         </Text>
         <View
           style={{
@@ -246,19 +245,19 @@ export default function GeneratePlan() {
         </View>
       </Card>
 
-      <SectionLabel>WORK HOURS</SectionLabel>
+      <SectionLabel>{t('plan.generate.sections.workHours')}</SectionLabel>
       <Card>
         <View style={{ flexDirection: "row", gap: theme.spacing.md }}>
           <View style={{ flex: 1 }}>
             <TimePickerField
-              label="Start"
+              label={t('plan.generate.workStart')}
               value={workStart}
               onChange={setWorkStart}
             />
           </View>
           <View style={{ flex: 1 }}>
             <TimePickerField
-              label="End"
+              label={t('plan.generate.workEnd')}
               value={workEnd}
               onChange={setWorkEnd}
             />
@@ -266,12 +265,12 @@ export default function GeneratePlan() {
         </View>
       </Card>
 
-      <SectionLabel>MEETING DENSITY</SectionLabel>
+      <SectionLabel>{t('plan.generate.sections.meetingDensity')}</SectionLabel>
       <Card>
         <Text
           style={{ color: theme.colors.textMuted, fontSize: 12, marginBottom: theme.spacing.sm }}
         >
-          How busy is your calendar on a typical day?
+          {t('plan.generate.meetingDensityHint')}
         </Text>
         <View style={{ gap: theme.spacing.sm }}>
           {ALL_MEETING_DENSITIES.map((d) => (
@@ -285,11 +284,11 @@ export default function GeneratePlan() {
         </View>
       </Card>
 
-      <SectionLabel>LUNCH BREAK</SectionLabel>
+      <SectionLabel>{t('plan.generate.sections.lunchBreak')}</SectionLabel>
       <Card>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <Text style={{ color: theme.colors.text, fontWeight: "600" }}>
-            I take a lunch break
+            {t('plan.generate.lunchToggle')}
           </Text>
           <Pressable
             onPress={() => setLunchEnabled(!lunchEnabled)}
@@ -312,7 +311,7 @@ export default function GeneratePlan() {
                 fontWeight: "700",
               }}
             >
-              {lunchEnabled ? "Yes" : "No"}
+              {lunchEnabled ? t('plan.generate.yes') : t('plan.generate.no')}
             </Text>
           </Pressable>
         </View>
@@ -326,14 +325,14 @@ export default function GeneratePlan() {
           >
             <View style={{ flex: 1 }}>
               <TimePickerField
-                label="Start"
+                label={t('plan.generate.workStart')}
                 value={lunchStart}
                 onChange={setLunchStart}
               />
             </View>
             <View style={{ flex: 1 }}>
               <TimePickerField
-                label="End"
+                label={t('plan.generate.workEnd')}
                 value={lunchEnd}
                 onChange={setLunchEnd}
               />
@@ -342,7 +341,7 @@ export default function GeneratePlan() {
         ) : null}
       </Card>
 
-      <SectionLabel>LIMITATIONS</SectionLabel>
+      <SectionLabel>{t('plan.generate.sections.limitations')}</SectionLabel>
       <Card>
         <Text
           style={{
@@ -351,8 +350,7 @@ export default function GeneratePlan() {
             marginBottom: theme.spacing.sm,
           }}
         >
-          Any of these? Pick all that apply. Exercises with matching
-          contraindications will be skipped.
+          {t('plan.generate.limitationsHint')}
         </Text>
         <View
           style={{
@@ -376,7 +374,7 @@ export default function GeneratePlan() {
         </View>
       </Card>
 
-      <SectionLabel>DISLIKED EXERCISES</SectionLabel>
+      <SectionLabel>{t('plan.generate.sections.disliked')}</SectionLabel>
       <Card>
         <Text
           style={{
@@ -385,7 +383,7 @@ export default function GeneratePlan() {
             marginBottom: theme.spacing.sm,
           }}
         >
-          Ones to never include. Tap to toggle.
+          {t('plan.generate.dislikedHint')}
         </Text>
         <View
           style={{
@@ -397,7 +395,7 @@ export default function GeneratePlan() {
           {catalog.exercises.slice(0, 40).map((ex) => (
             <Chip
               key={ex.id}
-              label={ex.name}
+              label={ex.id}
               selected={dislikedIds.includes(ex.id)}
               onPress={() =>
                 setDislikedIds((curr) =>
@@ -416,11 +414,11 @@ export default function GeneratePlan() {
             marginTop: theme.spacing.sm,
           }}
         >
-          (showing first 40 of {catalog.exercises.length})
+          {t('plan.generate.dislikedCount', { shown: 40, total: catalog.exercises.length })}
         </Text>
       </Card>
 
-      <SectionLabel>PERIOD</SectionLabel>
+      <SectionLabel>{t('plan.generate.sections.period')}</SectionLabel>
       <Card>
         <View
           style={{
@@ -431,7 +429,7 @@ export default function GeneratePlan() {
           {(["weekly", "monthly", "custom"] as PeriodType[]).map((p) => (
             <Chip
               key={p}
-              label={p.charAt(0).toUpperCase() + p.slice(1)}
+              label={t(`enums:periodTypes.${p}`)}
               selected={periodType === p}
               onPress={() => setPeriodAndDates(p)}
             />
@@ -450,7 +448,7 @@ export default function GeneratePlan() {
 
       <View style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }}>
         <Button
-          label="Build prompt"
+          label={t('plan.generate.buildPrompt')}
           onPress={buildAndShow}
           size="lg"
           leftIcon={
