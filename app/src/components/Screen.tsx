@@ -1,5 +1,12 @@
 import React from "react";
-import { StyleSheet, View, ViewStyle, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  View,
+  ViewStyle,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useTheme } from "@src/theme/ThemeProvider";
@@ -36,17 +43,22 @@ export function Screen({
       }
     >
       <StatusBar style={theme.dark ? "light" : "dark"} />
-      {scrollable ? (
-        <ScrollView
-          contentContainerStyle={[padding, style]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={[styles.inner, padding, style]}>{children}</View>
-      )}
+      <KeyboardAvoidingView
+        style={styles.inner}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {scrollable ? (
+          <ScrollView
+            contentContainerStyle={[padding, style]}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </ScrollView>
+        ) : (
+          <View style={[styles.inner, padding, style]}>{children}</View>
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

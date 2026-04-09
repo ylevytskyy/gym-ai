@@ -6,6 +6,7 @@ import {
   TextInput,
   ScrollView,
   Pressable,
+  Keyboard,
 } from "react-native";
 import { router } from "expo-router";
 import * as Clipboard from "expo-clipboard";
@@ -38,13 +39,21 @@ export default function PastePlan() {
   };
 
   const runValidation = () => {
-    const result = validatePlan(raw);
-    if (result.ok) {
-      setErrors(null);
-      setValid(result.plan);
-    } else {
-      setErrors(result.errors);
+    Keyboard.dismiss();
+    try {
+      const result = validatePlan(raw);
+      if (result.ok) {
+        setErrors(null);
+        setValid(result.plan);
+      } else {
+        setErrors(result.errors);
+        setValid(null);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[paste] validatePlan threw:", e);
       setValid(null);
+      setErrors([{ path: "(runtime)", message: `Validation crashed: ${msg}` }]);
     }
   };
 
@@ -93,7 +102,7 @@ export default function PastePlan() {
             color: theme.colors.text,
             fontSize: 12,
             padding: 10,
-            minHeight: 220,
+            height: 220,
             fontFamily: "Menlo",
           }}
           autoCorrect={false}

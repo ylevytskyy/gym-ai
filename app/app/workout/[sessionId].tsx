@@ -125,21 +125,21 @@ export default function WorkoutRunner() {
     if (!current || current.kind !== "set" || current.unit !== "seconds")
       return;
     stepStartRef.current = Date.now();
-    setTimerLeft(current.amount);
+    let remaining = current.amount;
+    setTimerLeft(remaining);
     const id = setInterval(() => {
-      setTimerLeft((prev) => {
-        const next = prev - 1;
-        if (next === 3 || next === 2 || next === 1) {
-          playBeep();
-          haptic(Haptics.ImpactFeedbackStyle.Light);
-        }
-        if (next <= 0) {
-          clearInterval(id);
-          completeSet();
-          return 0;
-        }
-        return next;
-      });
+      remaining -= 1;
+      if (remaining === 3 || remaining === 2 || remaining === 1) {
+        playBeep();
+        haptic(Haptics.ImpactFeedbackStyle.Light);
+      }
+      if (remaining <= 0) {
+        clearInterval(id);
+        setTimerLeft(0);
+        completeSet();
+      } else {
+        setTimerLeft(remaining);
+      }
     }, 1000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -149,20 +149,21 @@ export default function WorkoutRunner() {
   useEffect(() => {
     if (done) return;
     if (!current || current.kind !== "rest") return;
-    setTimerLeft(current.seconds);
-    if (current.seconds <= 0) {
+    let remaining = current.seconds;
+    setTimerLeft(remaining);
+    if (remaining <= 0) {
       advance();
       return;
     }
     const id = setInterval(() => {
-      setTimerLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(id);
-          advance();
-          return 0;
-        }
-        return prev - 1;
-      });
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(id);
+        setTimerLeft(0);
+        advance();
+      } else {
+        setTimerLeft(remaining);
+      }
     }, 1000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps

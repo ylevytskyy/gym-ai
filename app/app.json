@@ -13,8 +13,13 @@
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Allow Fitness to pick a profile photo from your library.",
         "NSPhotoLibraryAddUsageDescription": "Allow Fitness to save your profile photo.",
-        "UIBackgroundModes": ["fetch"]
-      }
+        "UIBackgroundModes": [
+          "fetch",
+          "fetch"
+        ]
+      },
+      "bundleIdentifier": "com.yuriylev.homedeskfitness",
+      "appleTeamId": "22HTRK4UE7"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,11 +31,14 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "NOTIFICATIONS",
-        "SCHEDULE_EXACT_ALARM",
-        "READ_EXTERNAL_STORAGE",
-        "READ_MEDIA_IMAGES"
-      ]
+        "android.permission.NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.yuriylev.homedeskfitness"
     },
     "web": {
       "output": "static",
