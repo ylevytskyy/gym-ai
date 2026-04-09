@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet, Text, Pressable } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Button } from "./Button";
 import { useTheme } from "@src/theme/ThemeProvider";
 
@@ -16,13 +17,14 @@ interface WizardFooterProps {
 export function WizardFooter({
   step,
   total,
-  nextLabel = "Continue",
+  nextLabel,
   nextDisabled,
   onNext,
   onBack,
   onSkip,
 }: WizardFooterProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <View style={{ paddingBottom: theme.spacing.md }}>
       <View style={styles.pills}>
@@ -51,14 +53,14 @@ export function WizardFooter({
           marginBottom: theme.spacing.md,
         }}
       >
-        Step {step + 1} of {total}
+        {t('wizard.stepOf', { current: step + 1, total })}
       </Text>
-      <Button label={nextLabel} onPress={onNext} disabled={nextDisabled} />
+      <Button label={nextLabel ?? t('wizard.continue')} onPress={onNext} disabled={nextDisabled} />
       <View style={styles.secondaryRow}>
         {onBack ? (
           <Pressable onPress={onBack} style={{ flex: 1, alignItems: "flex-start" }}>
             <Text style={{ color: theme.colors.textMuted, padding: 8 }}>
-              ← Back
+              {t('wizard.back')}
             </Text>
           </Pressable>
         ) : (
@@ -67,7 +69,7 @@ export function WizardFooter({
         {onSkip ? (
           <Pressable onPress={onSkip} style={{ flex: 1, alignItems: "flex-end" }}>
             <Text style={{ color: theme.colors.textMuted, padding: 8 }}>
-              Skip
+              {t('wizard.skip')}
             </Text>
           </Pressable>
         ) : (

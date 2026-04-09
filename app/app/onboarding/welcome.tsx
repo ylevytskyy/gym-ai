@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { Button } from "@src/components/Button";
 import { useTheme } from "@src/theme/ThemeProvider";
@@ -9,6 +10,7 @@ import { useOnboardingStore } from "@src/store/onboardingStore";
 export default function Welcome() {
   const theme = useTheme();
   const reset = useOnboardingStore((s) => s.reset);
+  const { t } = useTranslation();
 
   const start = () => {
     reset();
@@ -20,7 +22,7 @@ export default function Welcome() {
       <View style={styles.center}>
         <Text style={[styles.emoji]}>🏋️</Text>
         <Text style={[styles.title, { color: theme.colors.text }]}>
-          Welcome to Fitness
+          {t('onboarding.welcome.title')}
         </Text>
         <Text
           style={[
@@ -28,13 +30,11 @@ export default function Welcome() {
             { color: theme.colors.textMuted, marginTop: theme.spacing.md },
           ]}
         >
-          Home workouts built around your workday.
-          {"\n"}
-          No equipment. Reminds you to move. Survives meetings.
+          {t('onboarding.welcome.subtitle')}
         </Text>
       </View>
       <View style={{ paddingBottom: theme.spacing.md }}>
-        <Button label="Get started" onPress={start} size="lg" />
+        <Button label={t('onboarding.welcome.cta')} onPress={start} size="lg" />
       </View>
     </Screen>
   );

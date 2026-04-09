@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { TextField } from "@src/components/TextField";
 import { WizardFooter } from "@src/components/WizardFooter";
@@ -20,16 +21,17 @@ export default function BodyStep() {
   const [height, setHeight] = useState(
     draft.height_cm != null ? String(draft.height_cm) : "",
   );
+  const { t } = useTranslation();
 
   const weightN = Number(weight);
   const heightN = Number(height);
   const weightErr =
     weight.length > 0 && (isNaN(weightN) || weightN < 20 || weightN > 300)
-      ? "Between 20 and 300 kg"
+      ? t('onboarding.body.weightError')
       : undefined;
   const heightErr =
     height.length > 0 && (isNaN(heightN) || heightN < 100 || heightN > 250)
-      ? "Between 100 and 250 cm"
+      ? t('onboarding.body.heightError')
       : undefined;
 
   const valid =
@@ -55,7 +57,7 @@ export default function BodyStep() {
             marginBottom: theme.spacing.md,
           }}
         >
-          A few body measurements
+          {t('onboarding.body.title')}
         </Text>
         <Text
           style={{
@@ -64,23 +66,23 @@ export default function BodyStep() {
             marginBottom: theme.spacing.xl,
           }}
         >
-          Used to compute calorie burn during workouts.
+          {t('onboarding.body.subtitle')}
         </Text>
         <View style={{ gap: theme.spacing.lg }}>
           <TextField
-            label="Weight (kg)"
+            label={t('onboarding.body.weightLabel')}
             value={weight}
             onChangeText={setWeight}
             keyboardType="decimal-pad"
-            placeholder="e.g. 75"
+            placeholder={t('onboarding.body.weightPlaceholder')}
             error={weightErr}
           />
           <TextField
-            label="Height (cm)"
+            label={t('onboarding.body.heightLabel')}
             value={height}
             onChangeText={setHeight}
             keyboardType="number-pad"
-            placeholder="e.g. 178"
+            placeholder={t('onboarding.body.heightPlaceholder')}
             error={heightErr}
           />
         </View>

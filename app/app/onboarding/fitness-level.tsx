@@ -35,7 +35,7 @@ export default function FitnessLevelStep() {
             marginBottom: theme.spacing.md,
           }}
         >
-          What's your fitness level?
+          {t('onboarding.fitnessLevel.title')}
         </Text>
         <Text
           style={{
@@ -44,7 +44,7 @@ export default function FitnessLevelStep() {
             marginBottom: theme.spacing.xl,
           }}
         >
-          Shapes exercise difficulty and progression rate.
+          {t('onboarding.fitnessLevel.subtitle')}
         </Text>
         <View style={{ gap: theme.spacing.md }}>
           {ALL_FITNESS_LEVELS.map((level) => {

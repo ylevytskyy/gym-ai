@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { WizardFooter } from "@src/components/WizardFooter";
 import { useTheme } from "@src/theme/ThemeProvider";
@@ -17,6 +18,7 @@ export default function PhotoStep() {
   const draft = useOnboardingStore((s) => s.draft);
   const setDraft = useOnboardingStore((s) => s.setDraft);
   const [busy, setBusy] = useState(false);
+  const { t } = useTranslation();
 
   const pick = async () => {
     setBusy(true);
@@ -33,7 +35,7 @@ export default function PhotoStep() {
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Unknown error";
-      Alert.alert("Couldn't pick photo", msg);
+      Alert.alert(t('onboarding.photo.pickError'), msg);
     } finally {
       setBusy(false);
     }
@@ -63,7 +65,7 @@ export default function PhotoStep() {
             textAlign: "center",
           }}
         >
-          Add a profile photo?
+          {t('onboarding.photo.title')}
         </Text>
         <Text
           style={{
@@ -73,7 +75,7 @@ export default function PhotoStep() {
             textAlign: "center",
           }}
         >
-          Optional. Shown on the dashboard.
+          {t('onboarding.photo.subtitle')}
         </Text>
 
         <Pressable onPress={pick} disabled={busy}>
@@ -112,12 +114,12 @@ export default function PhotoStep() {
           style={{ padding: theme.spacing.md }}
         >
           <Text style={{ color: theme.colors.primary, fontWeight: "600" }}>
-            {draft.photo_uri ? "Replace photo" : "Choose from library"}
+            {draft.photo_uri ? t('onboarding.photo.replace') : t('onboarding.photo.choose')}
           </Text>
         </Pressable>
         {draft.photo_uri ? (
           <Pressable onPress={clear} style={{ padding: theme.spacing.sm }}>
-            <Text style={{ color: theme.colors.textMuted }}>Remove</Text>
+            <Text style={{ color: theme.colors.textMuted }}>{t('onboarding.photo.remove')}</Text>
           </Pressable>
         ) : null}
       </View>

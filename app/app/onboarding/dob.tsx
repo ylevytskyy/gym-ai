@@ -4,6 +4,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { format, subYears } from "date-fns";
 import { Screen } from "@src/components/Screen";
 import { WizardFooter } from "@src/components/WizardFooter";
@@ -25,6 +26,7 @@ export default function DobStep() {
 
   const [value, setValue] = useState<Date>(initial);
   const [pickerOpen, setPickerOpen] = useState(Platform.OS === "ios");
+  const { t } = useTranslation();
 
   const onChange = (_e: DateTimePickerEvent, picked?: Date) => {
     if (Platform.OS === "android") {
@@ -51,7 +53,7 @@ export default function DobStep() {
             marginBottom: theme.spacing.md,
           }}
         >
-          When were you born?
+          {t('onboarding.dob.title')}
         </Text>
         <Text
           style={{
@@ -60,7 +62,7 @@ export default function DobStep() {
             marginBottom: theme.spacing.xl,
           }}
         >
-          Used to age-adjust exercise selection and targets.
+          {t('onboarding.dob.subtitle')}
         </Text>
 
         {Platform.OS === "android" ? (

@@ -52,7 +52,7 @@ export default function GoalsStep() {
             marginBottom: theme.spacing.md,
           }}
         >
-          What are you here for?
+          {t('onboarding.goals.title')}
         </Text>
         <Text
           style={{
@@ -61,7 +61,7 @@ export default function GoalsStep() {
             marginBottom: theme.spacing.xl,
           }}
         >
-          Pick one or more. Shapes how your plan is put together.
+          {t('onboarding.goals.subtitle')}
         </Text>
         <View
           style={{
@@ -84,7 +84,7 @@ export default function GoalsStep() {
         <WizardFooter
           step={STEP}
           total={TOTAL}
-          nextLabel="Finish setup"
+          nextLabel={t('onboarding.goals.finish')}
           nextDisabled={!valid}
           onNext={finish}
           onBack={() => router.back()}

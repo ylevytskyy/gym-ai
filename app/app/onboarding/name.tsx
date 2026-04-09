@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { TextField } from "@src/components/TextField";
 import { WizardFooter } from "@src/components/WizardFooter";
@@ -15,6 +16,7 @@ export default function NameStep() {
   const draft = useOnboardingStore((s) => s.draft);
   const setDraft = useOnboardingStore((s) => s.setDraft);
   const [value, setValue] = useState(draft.name);
+  const { t } = useTranslation();
 
   const valid = value.trim().length > 0;
 
@@ -34,7 +36,7 @@ export default function NameStep() {
             marginBottom: theme.spacing.md,
           }}
         >
-          What should I call you?
+          {t('onboarding.name.title')}
         </Text>
         <Text
           style={{
@@ -43,10 +45,10 @@ export default function NameStep() {
             marginBottom: theme.spacing.lg,
           }}
         >
-          Just a first name is fine — shown in greetings.
+          {t('onboarding.name.subtitle')}
         </Text>
         <TextField
-          placeholder="Your name"
+          placeholder={t('onboarding.name.placeholder')}
           value={value}
           onChangeText={setValue}
           autoFocus
