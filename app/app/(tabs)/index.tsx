@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { Card } from "@src/components/Card";
 import { Button } from "@src/components/Button";
@@ -24,6 +25,7 @@ export default function PlanDashboard() {
   const plan = usePlanStore((s) => s.plan);
   const postponeSession = usePlanStore((s) => s.postponeSession);
   const postponeMinutes = useSettingsStore((s) => s.postponeMinutes);
+  const { t } = useTranslation();
 
   const today = todayYYYYMMDD();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export default function PlanDashboard() {
               { color: theme.colors.text, marginTop: theme.spacing.md },
             ]}
           >
-            No plan yet
+            {t('dashboard.emptyTitle')}
           </Text>
           <Text
             style={[
@@ -68,12 +70,11 @@ export default function PlanDashboard() {
               { color: theme.colors.textMuted, marginTop: theme.spacing.sm },
             ]}
           >
-            Generate a personalized plan with your goals, schedule, and
-            constraints. Takes about a minute.
+            {t('dashboard.emptySubtitle')}
           </Text>
           <View style={{ width: "100%", marginTop: theme.spacing.xl }}>
             <Button
-              label="Generate Plan"
+              label={t('dashboard.generateCta')}
               onPress={() => router.push("/plan/generate")}
               size="lg"
             />
@@ -125,7 +126,7 @@ export default function PlanDashboard() {
                     marginTop: theme.spacing.md,
                   }}
                 >
-                  Rest day
+                  {t('dashboard.restDay')}
                 </Text>
                 <Text
                   style={{
@@ -134,7 +135,7 @@ export default function PlanDashboard() {
                     marginTop: 4,
                   }}
                 >
-                  Recover, hydrate, walk the stairs if you feel like it.
+                  {t('dashboard.restDaySubtitle')}
                 </Text>
               </View>
             </Card>
@@ -159,7 +160,7 @@ export default function PlanDashboard() {
                     { color: theme.colors.textMuted },
                   ]}
                 >
-                  ALL SESSIONS TODAY
+                  {t('dashboard.allSessionsToday')}
                 </Text>
                 <View style={{ marginTop: theme.spacing.sm }}>
                   {selected.sessions.map((s) => (
@@ -181,6 +182,7 @@ export default function PlanDashboard() {
 
 function Header({ name, photoUri }: { name: string; photoUri: string | null }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const initials = name
     ? name
         .split(/\s+/)
@@ -192,7 +194,7 @@ function Header({ name, photoUri }: { name: string; photoUri: string | null }) {
     <View style={styles.header}>
       <View style={{ flex: 1 }}>
         <Text style={{ color: theme.colors.textMuted, fontSize: 13 }}>
-          Hello
+          {t('dashboard.hello')}
         </Text>
         <Text
           style={{
@@ -202,7 +204,7 @@ function Header({ name, photoUri }: { name: string; photoUri: string | null }) {
             marginTop: 2,
           }}
         >
-          {name || "friend"}
+          {name || t('dashboard.friend')}
         </Text>
       </View>
       <View
@@ -232,6 +234,7 @@ function Header({ name, photoUri }: { name: string; photoUri: string | null }) {
 
 function CalorieBar({ day }: { day: Day }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const maxK = Math.max(day.estimated_calories_max, 1);
   const doneK = day.actual_calories_total;
   const pct = Math.max(0, Math.min(1, doneK / maxK));
@@ -239,7 +242,7 @@ function CalorieBar({ day }: { day: Day }) {
     <View style={{ marginTop: theme.spacing.lg }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text style={{ color: theme.colors.textMuted, fontSize: 12, fontWeight: "700" }}>
-          CALORIES TODAY
+          {t('dashboard.caloriesToday')}
         </Text>
         <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: "700" }}>
           {Math.round(doneK)} / {Math.round(day.estimated_calories_max)} kcal

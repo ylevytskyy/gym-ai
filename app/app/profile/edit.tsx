@@ -59,7 +59,7 @@ export default function ProfileEdit() {
         setPhotoUri(stored);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Unknown";
-        Alert.alert("Could not save photo", msg);
+        Alert.alert(t('profileEdit.photoErrorTitle'), msg);
       }
     }
   };
@@ -74,7 +74,7 @@ export default function ProfileEdit() {
       isNaN(heightN) ||
       goals.length === 0
     ) {
-      Alert.alert("Check your inputs", "Name, weight, height, and at least one goal are required.");
+      Alert.alert(t('profileEdit.validationTitle'), t('profileEdit.validationBody'));
       return;
     }
     setProfile({
@@ -124,17 +124,17 @@ export default function ProfileEdit() {
               marginTop: 8,
             }}
           >
-            Change photo
+            {t('profileEdit.changePhoto')}
           </Text>
         </Pressable>
       </View>
 
       <Card>
-        <TextField label="Name" value={name} onChangeText={setName} />
+        <TextField label={t('profileEdit.nameLabel')} value={name} onChangeText={setName} />
       </Card>
 
       <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
-        DATE OF BIRTH
+        {t('profileEdit.sections.dob')}
       </Text>
       <Card>
         <Pressable onPress={() => setDobOpen(true)}>
@@ -158,13 +158,13 @@ export default function ProfileEdit() {
       </Card>
 
       <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
-        BODY
+        {t('profileEdit.sections.body')}
       </Text>
       <Card>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <View style={{ flex: 1 }}>
             <TextField
-              label="Weight (kg)"
+              label={t('profileEdit.weightLabel')}
               value={weight}
               onChangeText={setWeight}
               keyboardType="decimal-pad"
@@ -172,7 +172,7 @@ export default function ProfileEdit() {
           </View>
           <View style={{ flex: 1 }}>
             <TextField
-              label="Height (cm)"
+              label={t('profileEdit.heightLabel')}
               value={height}
               onChangeText={setHeight}
               keyboardType="number-pad"
@@ -182,7 +182,7 @@ export default function ProfileEdit() {
       </Card>
 
       <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
-        FITNESS LEVEL
+        {t('profileEdit.sections.fitnessLevel')}
       </Text>
       <Card>
         <View
@@ -204,7 +204,7 @@ export default function ProfileEdit() {
       </Card>
 
       <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
-        GOALS
+        {t('profileEdit.sections.goals')}
       </Text>
       <Card>
         <View
@@ -226,7 +226,7 @@ export default function ProfileEdit() {
       </Card>
 
       <View style={{ marginTop: 24, marginBottom: 24 }}>
-        <Button label="Save" size="lg" onPress={save} />
+        <Button label={t('profileEdit.save')} size="lg" onPress={save} />
       </View>
     </Screen>
   );

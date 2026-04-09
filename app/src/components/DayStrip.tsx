@@ -7,6 +7,7 @@ import {
   Pressable,
 } from "react-native";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { parseYYYYMMDD, todayYYYYMMDD } from "@src/lib/dates";
 import type { Day } from "@src/types";
@@ -19,6 +20,7 @@ interface DayStripProps {
 
 export function DayStrip({ days, selectedDate, onSelect }: DayStripProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const today = useMemo(() => todayYYYYMMDD(), []);
 
   return (
@@ -74,10 +76,10 @@ export function DayStrip({ days, selectedDate, onSelect }: DayStripProps) {
                   },
                 ]}
               >
-                TODAY
+                {t('dayStrip.today')}
               </Text>
             ) : day.is_rest_day ? (
-              <Text style={[styles.badge, { color: mutedColor }]}>Rest</Text>
+              <Text style={[styles.badge, { color: mutedColor }]}>{t('dayStrip.rest')}</Text>
             ) : (
               <Text style={[styles.badge, { color: mutedColor }]}>
                 {day.sessions.length}

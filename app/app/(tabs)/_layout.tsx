@@ -1,10 +1,12 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@src/theme/ThemeProvider";
 
 export default function TabsLayout() {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -20,7 +22,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Plan",
+          title: t('tabs.plan'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
@@ -29,7 +31,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: t('tabs.settings'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),

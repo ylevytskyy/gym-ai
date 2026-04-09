@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Switch, StyleSheet, Pressable, Alert } from "react-native";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { Card } from "@src/components/Card";
 import { Chip } from "@src/components/Chip";
@@ -12,17 +13,16 @@ import { usePlanStore } from "@src/store/planStore";
 import {
   useSettingsStore,
   type ThemePreference,
+  type LanguagePref,
 } from "@src/store/settingsStore";
 import { cancelAll, requestPermission } from "@src/lib/scheduler";
 
-const THEMES: { value: ThemePreference; label: string }[] = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
+const THEMES: ThemePreference[] = ["system", "light", "dark"];
+const LANGUAGES: LanguagePref[] = ["system", "en", "uk"];
 
 export default function SettingsTab() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const profile = useProfileStore((s) => s.profile);
   const clearProfile = useProfileStore((s) => s.clearProfile);
   const clearPlan = usePlanStore((s) => s.clearPlan);
@@ -35,8 +35,8 @@ export default function SettingsTab() {
       const ok = await requestPermission();
       if (!ok) {
         Alert.alert(
-          "Permission denied",
-          "Enable notifications in your system Settings to get reminders.",
+          t('errors.permissionDeniedTitle'),
+          t('errors.permissionDeniedBody'),
         );
         return;
       }
@@ -48,66 +48,79 @@ export default function SettingsTab() {
 
   const confirmReset = () => {
     Alert.alert(
-      "Clear everything?",
-      "This deletes your profile, current plan, and all progress.",
+      t('settings.confirmReset.title'),
+      t('settings.confirmReset.body'),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('settings.confirmReset.cancel'), style: "cancel" },
         {
-          text: "Clear",
+          text: t('settings.confirmReset.confirm'),
           style: "destructive",
           onPress: () => {
-            Alert.alert("Really clear?", "This cannot be undone.", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Yes, clear everything",
-                style: "destructive",
-                onPress: async () => {
-                  await cancelAll();
-                  clearProfile();
-                  clearPlan();
-                  router.replace("/onboarding/welcome");
+            Alert.alert(
+              t('settings.confirmReset.finalTitle'),
+              t('settings.confirmReset.finalBody'),
+              [
+                { text: t('settings.confirmReset.cancel'), style: "cancel" },
+                {
+                  text: t('settings.confirmReset.finalConfirm'),
+                  style: "destructive",
+                  onPress: async () => {
+                    await cancelAll();
+                    clearProfile();
+                    clearPlan();
+                    router.replace("/onboarding/welcome");
+                  },
                 },
-              },
-            ]);
+              ],
+            );
           },
         },
       ],
     );
   };
 
+  const languageLabel = (l: LanguagePref) =>
+    l === 'system'
+      ? t('settings.language.system')
+      : l === 'en'
+      ? t('settings.language.english')
+      : t('settings.language.ukrainian');
+
   return (
     <Screen scrollable>
-      <Text style={[styles.header, { color: theme.colors.text }]}>Settings</Text>
+      <Text style={[styles.header, { color: theme.colors.text }]}>
+        {t('settings.title')}
+      </Text>
 
       <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
-        PROFILE
+        {t('settings.sections.profile')}
       </Text>
       <Card>
         <NavRow
           icon="person-circle-outline"
-          label="User profile"
-          subtitle={profile?.name ?? "Not set"}
+          label={t('settings.profileRow.label')}
+          subtitle={profile?.name ?? t('settings.profileRow.notSet')}
           onPress={() => router.push("/profile/edit")}
         />
         <Separator />
         <NavRow
           icon="barbell-outline"
-          label={plan ? "Edit plan" : "Generate plan"}
+          label={plan ? t('settings.planRow.edit') : t('settings.planRow.generate')}
           subtitle={
             plan
-              ? "Update schedule and re-generate"
-              : "Create your first workout plan"
+              ? t('settings.planRow.editSubtitle')
+              : t('settings.planRow.generateSubtitle')
           }
           onPress={() => router.push("/plan/generate")}
         />
       </Card>
 
       <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
-        APPEARANCE
+        {t('settings.sections.appearance')}
       </Text>
       <Card>
         <Text style={[styles.rowTitle, { color: theme.colors.text }]}>
-          Theme
+          {t('settings.theme')}
         </Text>
         <View
           style={{
@@ -116,60 +129,86 @@ export default function SettingsTab() {
             marginTop: theme.spacing.sm,
           }}
         >
-          {THEMES.map((t) => (
+          {THEMES.map((tp) => (
             <Chip
-              key={t.value}
-              label={t.label}
-              selected={settings.theme === t.value}
-              onPress={() => settings.setTheme(t.value)}
+              key={tp}
+              label={t(`settings.themeOptions.${tp}`)}
+              selected={settings.theme === tp}
+              onPress={() => settings.setTheme(tp)}
             />
           ))}
         </View>
       </Card>
 
       <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
-        REMINDERS & POLISH
+        {t('settings.sections.language')}
+      </Text>
+      <Card>
+        <Text style={[styles.rowTitle, { color: theme.colors.text }]}>
+          {t('settings.language.label')}
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: theme.spacing.sm,
+            marginTop: theme.spacing.sm,
+            flexWrap: "wrap",
+          }}
+        >
+          {LANGUAGES.map((l) => (
+            <Chip
+              key={l}
+              label={languageLabel(l)}
+              selected={settings.language === l}
+              onPress={() => settings.setLanguage(l)}
+            />
+          ))}
+        </View>
+      </Card>
+
+      <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
+        {t('settings.sections.reminders')}
       </Text>
       <Card>
         <ToggleRow
           icon="notifications-outline"
-          label="Notifications"
-          subtitle="Reminders for desk breaks and workouts"
+          label={t('settings.notifications.label')}
+          subtitle={t('settings.notifications.subtitle')}
           value={settings.notificationsEnabled}
           onChange={onToggleNotifications}
         />
         <Separator />
         <ToggleRow
           icon="pulse-outline"
-          label="Haptics"
-          subtitle="Rumble on rep done, set complete"
+          label={t('settings.haptics.label')}
+          subtitle={t('settings.haptics.subtitle')}
           value={settings.hapticsEnabled}
           onChange={settings.setHapticsEnabled}
         />
         <Separator />
         <ToggleRow
           icon="volume-high-outline"
-          label="Audio cues"
-          subtitle="Countdown beeps during timed exercises"
+          label={t('settings.audio.label')}
+          subtitle={t('settings.audio.subtitle')}
           value={settings.audioEnabled}
           onChange={settings.setAudioEnabled}
         />
         <Separator />
         <ToggleRow
           icon="sunny-outline"
-          label="Keep screen on during workouts"
-          subtitle="Prevents dimming while you're lifting"
+          label={t('settings.keepAwake.label')}
+          subtitle={t('settings.keepAwake.subtitle')}
           value={settings.keepAwakeEnabled}
           onChange={settings.setKeepAwakeEnabled}
         />
       </Card>
 
       <Text style={[styles.sectionLabel, { color: theme.colors.textMuted }]}>
-        POSTPONE
+        {t('settings.sections.postpone')}
       </Text>
       <Card>
         <Text style={[styles.rowTitle, { color: theme.colors.text }]}>
-          Postpone by
+          {t('settings.postponeBy')}
         </Text>
         <Text
           style={{
@@ -178,7 +217,7 @@ export default function SettingsTab() {
             marginTop: 2,
           }}
         >
-          Used when you tap Postpone on an up-next card.
+          {t('settings.postponeHint')}
         </Text>
         <View
           style={{
@@ -191,7 +230,7 @@ export default function SettingsTab() {
           {[5, 10, 15, 20, 30].map((m) => (
             <Chip
               key={m}
-              label={`${m} min`}
+              label={t('settings.postponeMinutes', { count: m })}
               selected={settings.postponeMinutes === m}
               onPress={() => settings.setPostponeMinutes(m)}
             />
@@ -200,7 +239,7 @@ export default function SettingsTab() {
       </Card>
 
       <View style={{ marginTop: theme.spacing.xl }}>
-        <Button label="Clear all data" onPress={confirmReset} variant="danger" />
+        <Button label={t('settings.clearAll')} onPress={confirmReset} variant="danger" />
       </View>
     </Screen>
   );

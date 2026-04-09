@@ -22,16 +22,16 @@ export function UpNextCard({ nextUp, onStart, onPostpone }: UpNextCardProps) {
 
   const status =
     reason === "now"
-      ? "Right now"
+      ? t('upNext.rightNow')
       : reason === "soon"
-        ? `In ${minutesUntilStart} min`
-        : `Starts at ${session.time_window.earliest}`;
+        ? t('upNext.inMinutes', { minutes: minutesUntilStart })
+        : t('upNext.startsAt', { time: session.time_window.earliest });
 
   return (
     <Card>
       <View style={styles.head}>
         <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>
-          UP NEXT · {status.toUpperCase()}
+          {t('upNext.eyebrow')} · {status}
         </Text>
       </View>
       <Text
@@ -62,14 +62,14 @@ export function UpNextCard({ nextUp, onStart, onPostpone }: UpNextCardProps) {
       <View style={{ flexDirection: "row", gap: theme.spacing.sm, marginTop: theme.spacing.lg }}>
         <View style={{ flex: 1 }}>
           <Button
-            label="Start"
+            label={t('upNext.start')}
             onPress={() => onStart(session)}
             leftIcon={<Ionicons name="play" size={16} color={theme.colors.textInverse} />}
           />
         </View>
         <View style={{ flex: 1 }}>
           <Button
-            label="Postpone"
+            label={t('upNext.postpone')}
             onPress={() => onPostpone(session)}
             variant="secondary"
             leftIcon={<Ionicons name="time-outline" size={16} color={theme.colors.text} />}
