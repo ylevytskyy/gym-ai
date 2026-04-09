@@ -1,10 +1,13 @@
 import "react-native-get-random-values"; // must be first (for uuid)
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { View, ActivityIndicator } from "react-native";
 import { Stack, router, useRootNavigationState } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ThemeProvider } from "@src/theme/ThemeProvider";
+import { ThemeProvider, useTheme } from "@src/theme/ThemeProvider";
 import { initScheduler } from "@src/lib/scheduler";
+import { initI18n } from "@src/i18n";
+import { useSettingsStore } from "@src/store/settingsStore";
 
 // Handles both: (1) app was backgrounded and user tapped notification,
 // and (2) app was cold-started by notification tap. We gate the
@@ -15,8 +18,6 @@ function useNotificationDeepLink() {
   const ready = !!navState?.key;
   const pendingSessionIdRef = useRef<string | null>(null);
 
-  // Subscribe to notification responses on mount, but only enqueue them
-  // (we navigate from a separate effect that fires once the navigator is ready).
   useEffect(() => {
     let mounted = true;
 
@@ -44,7 +45,6 @@ function useNotificationDeepLink() {
     };
   }, []);
 
-  // Drain the pending sessionId once the root navigator is ready.
   useEffect(() => {
     if (!ready) return;
     const id = pendingSessionIdRef.current;
@@ -55,8 +55,35 @@ function useNotificationDeepLink() {
   }, [ready]);
 }
 
+function Splash() {
+  const theme = useTheme();
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.background,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <ActivityIndicator color={theme.colors.primary} />
+    </View>
+  );
+}
+
 export default function RootLayout() {
   useNotificationDeepLink();
+  const languagePref = useSettingsStore((s) => s.language);
+  const [i18nReady, setI18nReady] = useState(false);
+
+  useEffect(() => {
+    initI18n(languagePref)
+      .then(() => setI18nReady(true))
+      .catch(() => setI18nReady(true)); // fail-open: worst case, keys render
+    // languagePref is read once at mount; subsequent changes are handled by
+    // settingsStore.setLanguage -> i18n.changeLanguage directly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     initScheduler().catch(() => {});
@@ -65,12 +92,16 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: "transparent" },
-          }}
-        />
+        {i18nReady ? (
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "transparent" },
+            }}
+          />
+        ) : (
+          <Splash />
+        )}
       </ThemeProvider>
     </GestureHandlerRootView>
   );

@@ -3,9 +3,11 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type ThemePreference = "system" | "light" | "dark";
+export type LanguagePref = "system" | "en" | "uk";
 
 interface SettingsState {
   theme: ThemePreference;
+  language: LanguagePref;
   notificationsEnabled: boolean;
   hapticsEnabled: boolean;
   audioEnabled: boolean;
@@ -13,6 +15,7 @@ interface SettingsState {
   postponeMinutes: number;
 
   setTheme: (t: ThemePreference) => void;
+  setLanguage: (l: LanguagePref) => void;
   setNotificationsEnabled: (v: boolean) => void;
   setHapticsEnabled: (v: boolean) => void;
   setAudioEnabled: (v: boolean) => void;
@@ -24,6 +27,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       theme: "system",
+      language: "system",
       notificationsEnabled: true,
       hapticsEnabled: true,
       audioEnabled: true,
@@ -31,6 +35,7 @@ export const useSettingsStore = create<SettingsState>()(
       postponeMinutes: 15,
 
       setTheme: (t) => set({ theme: t }),
+      setLanguage: (l) => set({ language: l }),
       setNotificationsEnabled: (v) => set({ notificationsEnabled: v }),
       setHapticsEnabled: (v) => set({ hapticsEnabled: v }),
       setAudioEnabled: (v) => set({ audioEnabled: v }),
