@@ -25,25 +25,36 @@ export function resolveLanguage(pref: LanguagePref): SupportedLanguage {
     : 'en';
 }
 
-export async function initI18n(pref: LanguagePref): Promise<typeof i18n> {
-  if (i18n.isInitialized) {
-    await i18n.changeLanguage(resolveLanguage(pref));
-    return i18n;
+let initPromise: Promise<typeof i18n> | null = null;
+
+export function initI18n(pref: LanguagePref): Promise<typeof i18n> {
+  if (initPromise) {
+    // Init already in flight or complete — chain onto it and honor the new pref.
+    return initPromise.then(async () => {
+      const target = resolveLanguage(pref);
+      if (i18n.language !== target) {
+        await i18n.changeLanguage(target);
+      }
+      return i18n;
+    });
   }
-  await i18n.use(initReactI18next).init({
-    lng: resolveLanguage(pref),
-    fallbackLng: 'en',
-    ns: ['common', 'enums', 'exercises'],
-    defaultNS: 'common',
-    resources: {
-      en: { common: enCommon, enums: enEnums, exercises: enEx },
-      uk: { common: ukCommon, enums: ukEnums, exercises: ukEx },
-    },
-    interpolation: { escapeValue: false }, // RN renders text, not HTML
-    returnNull: false,
-    compatibilityJSON: 'v4', // CLDR plural rules (required for Ukrainian one/few/many)
-  });
-  return i18n;
+  initPromise = i18n
+    .use(initReactI18next)
+    .init({
+      lng: resolveLanguage(pref),
+      fallbackLng: 'en',
+      ns: ['common', 'enums', 'exercises'],
+      defaultNS: 'common',
+      resources: {
+        en: { common: enCommon, enums: enEnums, exercises: enEx },
+        uk: { common: ukCommon, enums: ukEnums, exercises: ukEx },
+      },
+      interpolation: { escapeValue: false },
+      returnNull: false,
+      compatibilityJSON: 'v4',
+    })
+    .then(() => i18n);
+  return initPromise;
 }
 
 export { i18n };
