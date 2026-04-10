@@ -4,3 +4,7 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+# Exercise image generation (raw files are large, prompts are regenerable)
+scripts/exercise-images/raw/
+scripts/exercise-images/prompts/
