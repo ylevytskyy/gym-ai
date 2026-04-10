@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+"""
+Split comic-strip exercise images into individual step panels.
+
+Usage:
+  python scripts/split-exercise-images.py                # process all raw images
+  python scripts/split-exercise-images.py neck-rolls      # process specific exercise
+
+Reads:  scripts/exercise-images/raw/{id}.png
+Writes: assets/images/exercises/{id}/step-{n}.png
+Updates: assets/data/exercise-images.json
+Generates: src/lib/exerciseImageMap.ts
+"""
+
+import json
+import os
+import sys
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+ROOT = Path(__file__).resolve().parent.parent
+RAW_DIR = ROOT / "scripts" / "exercise-images" / "raw"
+OUTPUT_DIR = ROOT / "assets" / "images" / "exercises"
+MANIFEST_PATH = ROOT / "assets" / "data" / "exercise-images.json"
+EXERCISES_PATH = ROOT / "assets" / "data" / "exercises.json"
+TRANSLATIONS_PATH = ROOT / "src" / "i18n" / "locales" / "en" / "exercises.json"
+IMAGE_MAP_PATH = ROOT / "src" / "lib" / "exerciseImageMap.ts"
+STEP_SIZE = 400  # output square size in px
+DIVIDER_THRESHOLD = 15  # max pixel std-dev to count as divider column
+
+
+def load_expected_steps() -> dict[str, int]:
+    """Return {exercise_id: expected_step_count} from translations."""
+    with open(TRANSLATIONS_PATH) as f:
+        translations = json.load(f)
+    return {eid: len(t["instructions"]) for eid, t in translations.items()}
+
+
+def find_dividers(img_array: np.ndarray, min_gap: int = 5) -> list[int]:
+    """Find x-coordinates of vertical divider lines by detecting low-variance columns."""
+    if img_array.ndim == 3:
+        gray = np.mean(img_array[:, :, :3], axis=2)
+    else:
+        gray = img_array
+
+    h, w = gray.shape
+    col_std = np.std(gray, axis=0)
+    divider_mask = col_std < DIVIDER_THRESHOLD
+
+    dividers = []
+    in_divider = False
+    start = 0
+    for x in range(w):
+        if divider_mask[x] and not in_divider:
+            in_divider = True
+            start = x
+        elif not divider_mask[x] and in_divider:
+            in_divider = False
+            center = (start + x) // 2
+            if center > min_gap and center < w - min_gap:
+                dividers.append(center)
+
+    return dividers
+
+
+def split_image(img: Image.Image, expected_steps: int) -> list[Image.Image]:
+    """Split a comic-strip image into individual panels."""
+    arr = np.array(img)
+    dividers = find_dividers(arr)
+
+    if len(dividers) == expected_steps - 1:
+        edges = [0] + dividers + [img.width]
+        panels = []
+        for i in range(len(edges) - 1):
+            left = edges[i]
+            right = edges[i + 1]
+            panel = img.crop((left, 0, right, img.height))
+            panels.append(panel)
+        return panels
+
+    print(f"  Divider detection found {len(dividers)} dividers, expected {expected_steps - 1}. Using equal-width fallback.")
+    panel_width = img.width // expected_steps
+    panels = []
+    for i in range(expected_steps):
+        left = i * panel_width
+        right = left + panel_width if i < expected_steps - 1 else img.width
+        panel = img.crop((left, 0, right, img.height))
+        panels.append(panel)
+    return panels
+
+
+def process_exercise(exercise_id: str, expected_steps: int) -> int | None:
+    """Process a single exercise. Returns step count on success, None on failure."""
+    raw_path = RAW_DIR / f"{exercise_id}.png"
+    if not raw_path.exists():
+        return None
+
+    print(f"Processing {exercise_id}...")
+    img = Image.open(raw_path).convert("RGBA")
+    panels = split_image(img, expected_steps)
+
+    if len(panels) != expected_steps:
+        print(f"  WARNING: got {len(panels)} panels, expected {expected_steps}")
+
+    out_dir = OUTPUT_DIR / exercise_id
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    for i, panel in enumerate(panels):
+        resized = panel.resize((STEP_SIZE, STEP_SIZE), Image.LANCZOS)
+        out_path = out_dir / f"step-{i + 1}.png"
+        resized.save(out_path, "PNG", optimize=True)
+
+    print(f"  Saved {len(panels)} panels to {out_dir}")
+    return len(panels)
+
+
+def update_manifest(results: dict[str, int]) -> None:
+    """Merge results into the exercise-images.json manifest."""
+    if MANIFEST_PATH.exists():
+        with open(MANIFEST_PATH) as f:
+            manifest = json.load(f)
+    else:
+        manifest = {"version": "1.0.0", "exercises": {}}
+
+    for eid, steps in results.items():
+        manifest["exercises"][eid] = {"steps": steps}
+
+    manifest["exercises"] = dict(sorted(manifest["exercises"].items()))
+
+    with open(MANIFEST_PATH, "w") as f:
+        json.dump(manifest, f, indent=2)
+        f.write("\n")
+
+    print(f"Updated manifest with {len(results)} exercises ({len(manifest['exercises'])} total)")
+
+
+def generate_image_map(manifest: dict) -> None:
+    """Generate src/lib/exerciseImageMap.ts with static require() calls."""
+    exercises = manifest.get("exercises", {})
+
+    lines = [
+        '// AUTO-GENERATED by scripts/split-exercise-images.py — do not edit manually.',
+        '// Maps exerciseId → array of require() sources for each step image.',
+        '',
+        'import { ImageSource } from "expo-image";',
+        '',
+        '// eslint-disable-next-line @typescript-eslint/no-var-requires',
+        'const placeholder = require("../../assets/images/exercises/placeholder.png");',
+        '',
+        'const map: Record<string, ImageSource[]> = {',
+    ]
+
+    for eid in sorted(exercises.keys()):
+        step_count = exercises[eid]["steps"]
+        requires = ", ".join(
+            f'require("../../assets/images/exercises/{eid}/step-{i + 1}.png")'
+            for i in range(step_count)
+        )
+        lines.append(f'  "{eid}": [{requires}],')
+
+    lines += [
+        '};',
+        '',
+        'export function getExerciseStepImages(exerciseId: string): ImageSource[] | null {',
+        '  return map[exerciseId] ?? null;',
+        '}',
+        '',
+        'export function getPlaceholderImage(): ImageSource {',
+        '  return placeholder;',
+        '}',
+        '',
+    ]
+
+    IMAGE_MAP_PATH.write_text("\n".join(lines))
+    print(f"Generated {IMAGE_MAP_PATH}")
+
+
+def main():
+    expected = load_expected_steps()
+
+    if len(sys.argv) > 1:
+        target_ids = sys.argv[1:]
+    else:
+        target_ids = [p.stem for p in RAW_DIR.glob("*.png")]
+
+    if not target_ids:
+        print("No raw images found in", RAW_DIR)
+        return
+
+    results: dict[str, int] = {}
+    for eid in sorted(target_ids):
+        steps = expected.get(eid)
+        if steps is None:
+            print(f"SKIP {eid} — not found in translations")
+            continue
+        count = process_exercise(eid, steps)
+        if count is not None:
+            results[eid] = count
+
+    if results:
+        update_manifest(results)
+
+        with open(MANIFEST_PATH) as f:
+            full_manifest = json.load(f)
+        generate_image_map(full_manifest)
+
+    print(f"Done. Processed {len(results)} exercises.")
+
+
+if __name__ == "__main__":
+    main()
