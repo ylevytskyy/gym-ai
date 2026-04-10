@@ -274,7 +274,8 @@
       "secondsSublabel": "seconds",
       "repsSublabel": "reps · tap Done when finished",
       "metersSublabel": "meters climbed"
-    }
+    },
+    "stepOf": "Step {{current}} of {{total}}"
   },
   "notifications": {
     "title": "Time for your {{sessionType}}",

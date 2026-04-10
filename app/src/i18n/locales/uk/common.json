@@ -274,7 +274,8 @@
       "secondsSublabel": "секунд",
       "repsSublabel": "повторень · натисни «Готово», коли закінчиш",
       "metersSublabel": "метрів підйому"
-    }
+    },
+    "stepOf": "Крок {{current}} з {{total}}"
   },
   "notifications": {
     "title": "Час для: {{sessionType}}",
