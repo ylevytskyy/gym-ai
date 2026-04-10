@@ -1,8 +1,10 @@
 import { Stack } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@src/theme/ThemeProvider";
 
 export default function PlanLayout() {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <Stack
       screenOptions={{
@@ -12,11 +14,11 @@ export default function PlanLayout() {
         contentStyle: { backgroundColor: theme.colors.background },
       }}
     >
-      <Stack.Screen name="generate" options={{ title: "Generate Plan" }} />
-      <Stack.Screen name="paste" options={{ title: "Paste Plan" }} />
+      <Stack.Screen name="generate" options={{ title: t('plan.generateHeader') }} />
+      <Stack.Screen name="paste" options={{ title: t('plan.pasteHeader') }} />
       <Stack.Screen
         name="preview/[sessionId]"
-        options={{ title: "Session Preview" }}
+        options={{ title: t('plan.previewHeader') }}
       />
     </Stack>
   );

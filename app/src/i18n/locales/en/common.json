@@ -144,6 +144,7 @@
     }
   },
   "profileEdit": {
+    "headerTitle": "Profile",
     "changePhoto": "Change photo",
     "sections": {
       "dob": "DATE OF BIRTH",
@@ -160,6 +161,9 @@
     "photoErrorTitle": "Could not save photo"
   },
   "plan": {
+    "generateHeader": "Generate Plan",
+    "pasteHeader": "Paste Plan",
+    "previewHeader": "Session Preview",
     "generate": {
       "title": "Plan settings",
       "subtitle": "A few details about your workday so the plan fits around real life.",

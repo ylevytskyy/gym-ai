@@ -144,6 +144,7 @@
     }
   },
   "profileEdit": {
+    "headerTitle": "Профіль",
     "changePhoto": "Змінити фото",
     "sections": {
       "dob": "ДАТА НАРОДЖЕННЯ",
@@ -160,6 +161,9 @@
     "photoErrorTitle": "Не вдалося зберегти фото"
   },
   "plan": {
+    "generateHeader": "Створити план",
+    "pasteHeader": "Вставити план",
+    "previewHeader": "Попередній перегляд",
     "generate": {
       "title": "Параметри плану",
       "subtitle": "Кілька деталей про твій робочий день, щоб план вписався в реальне життя.",
