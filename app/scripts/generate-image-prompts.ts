@@ -5,8 +5,8 @@
 //
 // Usage: npx tsx scripts/generate-image-prompts.ts
 
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 const ROOT = path.resolve(__dirname, "..");
 const EXERCISES_PATH = path.join(ROOT, "assets/data/exercises.json");
