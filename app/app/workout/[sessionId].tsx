@@ -23,6 +23,8 @@ import { findSessionInPlan } from "@src/lib/session-picker";
 import { buildRunnerSteps, countSetSteps, type RunnerStep } from "@src/lib/runner";
 import { cancelSession } from "@src/lib/scheduler";
 import { nowIso } from "@src/lib/dates";
+import { ExerciseImageCarousel } from "@src/components/ExerciseImageCarousel";
+import { ExerciseImageThumbnail } from "@src/components/ExerciseImageThumbnail";
 
 export default function WorkoutRunner() {
   const theme = useTheme();
@@ -296,6 +298,26 @@ export default function WorkoutRunner() {
 
   if (!current) return null;
 
+  // Resolve exercise ID for the current step (countdown doesn't carry exerciseId)
+  const currentExerciseId =
+    current.kind === "set"
+      ? current.exerciseId
+      : current.kind === "countdown"
+        ? steps
+            .slice(stepIdx)
+            .find((s): s is Extract<RunnerStep, { kind: "set" }> => s.kind === "set")
+            ?.exerciseId ?? ""
+        : "";
+
+  // For rest view, find the next exercise's ID
+  const nextExerciseId =
+    current.kind === "rest"
+      ? steps
+          .slice(stepIdx + 1)
+          .find((s): s is Extract<RunnerStep, { kind: "set" }> => s.kind === "set")
+          ?.exerciseId ?? null
+      : null;
+
   return (
     <Screen padded bottomSafeArea>
       <View style={styles.topRow}>
@@ -316,11 +338,12 @@ export default function WorkoutRunner() {
 
       <View style={{ flex: 1, justifyContent: "center" }}>
         {current.kind === "countdown" ? (
-          <CountdownView number={countdown} exerciseName={current.exerciseName} />
+          <CountdownView number={countdown} exerciseName={current.exerciseName} exerciseId={currentExerciseId} />
         ) : current.kind === "rest" ? (
           <RestView
             seconds={timerLeft}
             nextName={current.nextExerciseName}
+            nextExerciseId={nextExerciseId}
             onSkip={advance}
           />
         ) : (
@@ -341,9 +364,11 @@ export default function WorkoutRunner() {
 function CountdownView({
   number,
   exerciseName,
+  exerciseId,
 }: {
   number: number;
   exerciseName: string;
+  exerciseId: string;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -365,6 +390,11 @@ function CountdownView({
       >
         {exerciseName}
       </Text>
+      {exerciseId ? (
+        <View style={{ marginTop: 16 }}>
+          <ExerciseImageThumbnail exerciseId={exerciseId} size={80} />
+        </View>
+      ) : null}
       <Text
         style={{
           color: theme.colors.primary,
@@ -419,7 +449,11 @@ function SetView({
         {step.exerciseName}
       </Text>
 
-      <View style={{ marginTop: 32 }}>
+      <View style={{ marginTop: 16 }}>
+        <ExerciseImageCarousel exerciseId={step.exerciseId} />
+      </View>
+
+      <View style={{ marginTop: 20 }}>
         {step.unit === "seconds" ? (
           <ProgressRing
             progress={progress}
@@ -479,10 +513,12 @@ function SetView({
 function RestView({
   seconds,
   nextName,
+  nextExerciseId,
   onSkip,
 }: {
   seconds: number;
   nextName: string | null;
+  nextExerciseId: string | null;
   onSkip: () => void;
 }) {
   const theme = useTheme();
@@ -514,6 +550,11 @@ function RestView({
         >
           {t('workout.upNext', { name: nextName })}
         </Text>
+      ) : null}
+      {nextExerciseId ? (
+        <View style={{ marginTop: 12 }}>
+          <ExerciseImageThumbnail exerciseId={nextExerciseId} size={64} />
+        </View>
       ) : null}
       <View style={{ marginTop: 24, width: "60%" }}>
         <Button label={t('workout.skipRest')} variant="secondary" onPress={onSkip} />
