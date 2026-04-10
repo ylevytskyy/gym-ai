@@ -5,6 +5,7 @@ import { useTheme } from "@src/theme/ThemeProvider";
 import { formatTimeWindow } from "@src/lib/dates";
 import type { Session, SessionType } from "@src/types";
 import { useTranslation } from "react-i18next";
+import { ExerciseImageThumbnail } from "./ExerciseImageThumbnail";
 
 interface SessionCardProps {
   session: Session;
@@ -33,6 +34,8 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
     session.execution.status === "completed" ||
     session.execution.status === "skipped";
 
+  const firstExerciseId = session.blocks[0]?.exercises[0]?.exercise_id ?? null;
+
   return (
     <Pressable
       onPress={onPress}
@@ -48,21 +51,25 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
       ]}
     >
       <View style={styles.row}>
-        <View
-          style={[
-            styles.iconBg,
-            {
-              backgroundColor: theme.colors.surfaceAlt,
-              borderRadius: theme.radius.md,
-            },
-          ]}
-        >
-          <Ionicons
-            name={ICON_BY_TYPE[session.type]}
-            size={22}
-            color={priorityColor}
-          />
-        </View>
+        {firstExerciseId ? (
+          <ExerciseImageThumbnail exerciseId={firstExerciseId} size={44} />
+        ) : (
+          <View
+            style={[
+              styles.iconBg,
+              {
+                backgroundColor: theme.colors.surfaceAlt,
+                borderRadius: theme.radius.md,
+              },
+            ]}
+          >
+            <Ionicons
+              name={ICON_BY_TYPE[session.type]}
+              size={22}
+              color={priorityColor}
+            />
+          </View>
+        )}
         <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={[styles.title, { color: theme.colors.text }]}>
