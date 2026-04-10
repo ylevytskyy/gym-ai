@@ -1,5 +1,9 @@
 {
   "version": "1.0.0",
   "placeholder": "assets/images/exercises/placeholder.png",
-  "exercises": {}
+  "exercises": {
+    "neck-rolls": {
+      "steps": 4
+    }
+  }
 }
