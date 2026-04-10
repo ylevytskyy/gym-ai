@@ -10,7 +10,8 @@
     "lint": "expo lint",
     "sync-data": "./scripts/sync-data.sh",
     "typecheck": "tsc --noEmit",
-    "prestart": "./scripts/sync-data.sh"
+    "prestart": "./scripts/sync-data.sh && npx tsx scripts/validate-locales.ts",
+    "validate-locales": "npx tsx scripts/validate-locales.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -64,6 +65,7 @@
     "@types/uuid": "^10.0.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.2"
   },
   "private": true
