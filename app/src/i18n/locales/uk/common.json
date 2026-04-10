@@ -1,1 +1,283 @@
-{}
+{
+  "app": {
+    "loading": "Завантаження…",
+    "notFound": "Не знайдено"
+  },
+  "tabs": {
+    "plan": "План",
+    "settings": "Налаштування"
+  },
+  "wizard": {
+    "continue": "Продовжити",
+    "back": "← Назад",
+    "skip": "Пропустити",
+    "stepOf": "Крок {{current}} з {{total}}"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Ласкаво просимо",
+      "subtitle": "Домашні тренування, що вписуються у твій робочий день.\nБез обладнання. Нагадує рухатися. Переживає будь-які зустрічі.",
+      "cta": "Почати"
+    },
+    "name": {
+      "title": "Як тебе називати?",
+      "subtitle": "Досить імʼя — буде у привітаннях.",
+      "placeholder": "Твоє імʼя"
+    },
+    "photo": {
+      "title": "Додати фото профілю?",
+      "subtitle": "Необовʼязково. Показується на головному екрані.",
+      "choose": "Вибрати з галереї",
+      "replace": "Замінити фото",
+      "remove": "Видалити",
+      "pickError": "Не вдалося вибрати фото"
+    },
+    "dob": {
+      "title": "Коли ти народився?",
+      "subtitle": "Використовується для підбору вправ за віком."
+    },
+    "body": {
+      "title": "Кілька параметрів тіла",
+      "subtitle": "Потрібно для розрахунку калорій під час тренувань.",
+      "weightLabel": "Вага (кг)",
+      "weightPlaceholder": "напр. 75",
+      "weightError": "Від 20 до 300 кг",
+      "heightLabel": "Зріст (см)",
+      "heightPlaceholder": "напр. 178",
+      "heightError": "Від 100 до 250 см"
+    },
+    "fitnessLevel": {
+      "title": "Який у тебе рівень підготовки?",
+      "subtitle": "Впливає на складність вправ і темп прогресу."
+    },
+    "goals": {
+      "title": "Чого ти хочеш досягти?",
+      "subtitle": "Обери одну або декілька цілей. Це формує структуру плану.",
+      "finish": "Завершити налаштування"
+    }
+  },
+  "dashboard": {
+    "hello": "Привіт",
+    "friend": "друже",
+    "restDay": "День відпочинку",
+    "restDaySubtitle": "Відновлюйся, пий воду, піднімись сходами, якщо є настрій.",
+    "allSessionsToday": "ВСІ СЕСІЇ НА СЬОГОДНІ",
+    "caloriesToday": "КАЛОРІЇ СЬОГОДНІ",
+    "emptyTitle": "Плану ще немає",
+    "emptySubtitle": "Створи персональний план зі своїми цілями, розкладом і обмеженнями. Займе близько хвилини.",
+    "generateCta": "Створити план"
+  },
+  "upNext": {
+    "eyebrow": "ДАЛІ",
+    "rightNow": "ЗАРАЗ",
+    "inMinutes": "ЧЕРЕЗ {{minutes}} ХВ",
+    "startsAt": "ПОЧАТОК О {{time}}",
+    "start": "Почати",
+    "postpone": "Відкласти"
+  },
+  "dayStrip": {
+    "today": "СЬОГОДНІ",
+    "rest": "Відпочинок"
+  },
+  "settings": {
+    "title": "Налаштування",
+    "sections": {
+      "profile": "ПРОФІЛЬ",
+      "appearance": "ВИГЛЯД",
+      "reminders": "НАГАДУВАННЯ ТА ПОЛІРУВАННЯ",
+      "postpone": "ВІДКЛАДЕННЯ",
+      "language": "МОВА"
+    },
+    "profileRow": {
+      "label": "Профіль користувача",
+      "notSet": "Не задано"
+    },
+    "planRow": {
+      "edit": "Редагувати план",
+      "editSubtitle": "Оновити розклад і перегенерувати",
+      "generate": "Створити план",
+      "generateSubtitle": "Створи свій перший план тренувань"
+    },
+    "theme": "Тема",
+    "themeOptions": {
+      "system": "Системна",
+      "light": "Світла",
+      "dark": "Темна"
+    },
+    "notifications": {
+      "label": "Сповіщення",
+      "subtitle": "Нагадування про перерви та тренування"
+    },
+    "haptics": {
+      "label": "Вібрація",
+      "subtitle": "Вібрація після підходу і повторень"
+    },
+    "audio": {
+      "label": "Звукові сигнали",
+      "subtitle": "Сигнали зворотного відліку під час тренувань"
+    },
+    "keepAwake": {
+      "label": "Не вимикати екран під час тренування",
+      "subtitle": "Щоб екран не згасав, коли ти тренуєшся"
+    },
+    "postponeBy": "Відкласти на",
+    "postponeHint": "Використовується, коли ти натискаєш «Відкласти» на картці поточної сесії.",
+    "postponeMinutes_one": "{{count}} хв",
+    "postponeMinutes_few": "{{count}} хв",
+    "postponeMinutes_many": "{{count}} хв",
+    "postponeMinutes_other": "{{count}} хв",
+    "language": {
+      "label": "Мова",
+      "system": "Системна",
+      "english": "English",
+      "ukrainian": "Українська"
+    },
+    "clearAll": "Очистити всі дані",
+    "confirmReset": {
+      "title": "Очистити все?",
+      "body": "Це видалить твій профіль, поточний план і весь прогрес.",
+      "confirm": "Очистити",
+      "cancel": "Скасувати",
+      "finalTitle": "Справді все очистити?",
+      "finalBody": "Цю дію неможливо скасувати.",
+      "finalConfirm": "Так, очистити все"
+    }
+  },
+  "profileEdit": {
+    "changePhoto": "Змінити фото",
+    "sections": {
+      "dob": "ДАТА НАРОДЖЕННЯ",
+      "body": "ТІЛО",
+      "fitnessLevel": "РІВЕНЬ ПІДГОТОВКИ",
+      "goals": "ЦІЛІ"
+    },
+    "nameLabel": "Імʼя",
+    "weightLabel": "Вага (кг)",
+    "heightLabel": "Зріст (см)",
+    "save": "Зберегти",
+    "validationTitle": "Перевір введені дані",
+    "validationBody": "Імʼя, вага, зріст і щонайменше одна ціль обовʼязкові.",
+    "photoErrorTitle": "Не вдалося зберегти фото"
+  },
+  "plan": {
+    "generate": {
+      "title": "Параметри плану",
+      "subtitle": "Кілька деталей про твій робочий день, щоб план вписався в реальне життя.",
+      "sections": {
+        "timeBudget": "ДЕННИЙ ЛІМІТ ЧАСУ",
+        "workHours": "РОБОЧІ ГОДИНИ",
+        "meetingDensity": "ЗАВАНТАЖЕНІСТЬ ЗУСТРІЧАМИ",
+        "lunchBreak": "ОБІДНЯ ПЕРЕРВА",
+        "limitations": "ОБМЕЖЕННЯ",
+        "disliked": "ВПРАВИ, ЯКІ НЕ ПОДОБАЮТЬСЯ",
+        "period": "ПЕРІОД"
+      },
+      "timeBudgetValue": "{{minutes}} хв / день",
+      "timeBudgetHint": "Основне тренування + перерви разом.",
+      "timeBudgetMinutes_one": "{{count}} хв",
+      "timeBudgetMinutes_few": "{{count}} хв",
+      "timeBudgetMinutes_many": "{{count}} хв",
+      "timeBudgetMinutes_other": "{{count}} хв",
+      "workStart": "Початок",
+      "workEnd": "Кінець",
+      "meetingDensityHint": "Наскільки завантажений твій типовий день?",
+      "lunchToggle": "Я роблю обідню перерву",
+      "yes": "Так",
+      "no": "Ні",
+      "limitationsHint": "Є щось із цього? Познач усе, що стосується. Вправи з відповідними протипоказаннями буде виключено.",
+      "dislikedHint": "Вправи, які ніколи не включати. Торкнися, щоб змінити.",
+      "dislikedCount": "(показано перші {{shown}} з {{total}})",
+      "buildPrompt": "Сформувати промпт",
+      "promptReady": "Твій промпт готовий",
+      "promptReadySubtitle": "Скопіюй його, встав у Claude (або інший LLM) і поверни JSON-відповідь сюди.",
+      "copyToClipboard": "Копіювати промпт у буфер",
+      "copied": "Скопійовано!",
+      "havePlan": "План готовий — вставити його",
+      "backToForm": "Назад до форми",
+      "buildErrorTitle": "Не вдалося сформувати промпт"
+    },
+    "paste": {
+      "title": "Встав свій план",
+      "subtitle": "Встав JSON, який згенерував LLM. Ми перевіримо його за схемою та переконаємось, що кожна вправа є у каталозі.",
+      "placeholder": "Встав JSON сюди…",
+      "pasteFromClipboard": "Вставити з буфера",
+      "validate": "Перевірити",
+      "errorsFound_one": "Знайдено {{count}} помилку",
+      "errorsFound_few": "Знайдено {{count}} помилки",
+      "errorsFound_many": "Знайдено {{count}} помилок",
+      "errorsFound_other": "Знайдено {{count}} помилок",
+      "moreErrors": "… і ще {{count}}.",
+      "looksGood": "✓ Усе гаразд",
+      "save": "Зберегти план",
+      "stats": {
+        "period": "Період",
+        "days": "Днів",
+        "daysValue": "{{total}} ({{active}} активних)",
+        "sessions": "Сесій",
+        "exercisesTotal": "Усього вправ",
+        "estimatedCalories": "Розрахунок калорій",
+        "estimatedCaloriesValue": "{{min}}–{{max}} ккал"
+      }
+    },
+    "preview": {
+      "notFound": "Сесію не знайдено.",
+      "start": "Почати тренування",
+      "back": "Назад",
+      "watchOut": "Уникай: {{mistakes}}",
+      "unknownExercise": "Невідома вправа: {{id}}",
+      "rounds_one": "{{count}} раунд",
+      "rounds_few": "{{count}} раунди",
+      "rounds_many": "{{count}} раундів",
+      "rounds_other": "{{count}} раундів",
+      "exerciseMeta": "{{sets}} × {{amount}} · відпочинок {{rest}}с · ~{{kcal}} ккал"
+    }
+  },
+  "workout": {
+    "sessionNotFound": "Сесію не знайдено.",
+    "getReady": "ПРИГОТУЙСЯ",
+    "rest": "ВІДПОЧИНОК",
+    "upNext": "Далі: {{name}}",
+    "setOf": "ПІДХІД {{current}} З {{total}}",
+    "roundOf": "РАУНД {{current}}/{{total}} · ",
+    "setsProgress": "{{done}} / {{total}} підходів",
+    "done": "Готово",
+    "skip": "Пропустити",
+    "skipRest": "Пропустити відпочинок",
+    "exit": {
+      "title": "Вийти з тренування?",
+      "body": "Твій прогрес буде збережено.",
+      "keepGoing": "Продовжити",
+      "confirm": "Вийти"
+    },
+    "summary": {
+      "title": "Молодець!",
+      "kcal": "Фактичні калорії",
+      "kcalValue": "{{kcal}} ккал",
+      "duration": "Тривалість",
+      "durationValue": "{{min}} хв",
+      "completed": "Виконано вправ",
+      "completion": "Завершення сесії",
+      "completionValue": "{{pct}}%",
+      "cta": "Готово"
+    },
+    "units": {
+      "reps_one": "{{count}} повторення",
+      "reps_few": "{{count}} повторення",
+      "reps_many": "{{count}} повторень",
+      "reps_other": "{{count}} повторень",
+      "seconds": "{{count}}с",
+      "metersClimbed": "{{count}} м підйому",
+      "secondsSublabel": "секунд",
+      "repsSublabel": "повторень · натисни «Готово», коли закінчиш",
+      "metersSublabel": "метрів підйому"
+    }
+  },
+  "notifications": {
+    "title": "Час для: {{sessionType}}",
+    "body": "{{duration}} хв · ~{{kcal}} ккал · вікно закривається о {{windowClose}}"
+  },
+  "errors": {
+    "permissionDeniedTitle": "Дозвіл відхилено",
+    "permissionDeniedBody": "Увімкни сповіщення у системних налаштуваннях, щоб отримувати нагадування."
+  }
+}
