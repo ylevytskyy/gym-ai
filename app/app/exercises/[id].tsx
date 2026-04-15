@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { Card } from "@src/components/Card";
 import { Chip } from "@src/components/Chip";
-import { ExerciseImageCarousel } from "@src/components/ExerciseImageCarousel";
+import { ExerciseImagePlayer } from "@src/components/ExerciseImagePlayer";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { exerciseById, exerciseText } from "@src/lib/catalog";
 import { useSpeech, hasVoiceFor } from "@src/lib/speech";
@@ -48,7 +48,7 @@ export default function ExerciseDetailScreen() {
   if (!exercise || !text) {
     return (
       <Screen>
-        <Stack.Screen options={{ title: "" }} />
+        <Stack.Screen options={{ title: "", headerLeft: () => <BackButton /> }} />
         <Text style={{ color: theme.colors.text, marginTop: 24 }}>
           {t("app.notFound")}
         </Text>
@@ -66,10 +66,10 @@ export default function ExerciseDetailScreen() {
 
   return (
     <Screen scrollable>
-      <Stack.Screen options={{ title: text.name }} />
+      <Stack.Screen options={{ title: text.name, headerLeft: () => <BackButton /> }} />
 
       <View style={{ marginTop: theme.spacing.md }}>
-        <ExerciseImageCarousel exerciseId={exercise.id} />
+        <ExerciseImagePlayer exerciseId={exercise.id} />
       </View>
 
       <View style={{ marginTop: theme.spacing.lg }}>
@@ -259,6 +259,21 @@ function MetaRow({
         ))}
       </View>
     </View>
+  );
+}
+
+function BackButton() {
+  const theme = useTheme();
+  return (
+    <Pressable
+      onPress={() => router.back()}
+      accessibilityRole="button"
+      accessibilityLabel="Back"
+      hitSlop={12}
+      style={{ paddingHorizontal: 4 }}
+    >
+      <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
+    </Pressable>
   );
 }
 
