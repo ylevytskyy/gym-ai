@@ -7,6 +7,14 @@ import { ImageSource } from "expo-image";
 const placeholder = require("../../assets/images/exercises/placeholder.png");
 
 const map: Record<string, ImageSource[]> = {
+  "ankle-circles": [require("../../assets/images/exercises/ankle-circles/step-1.png"), require("../../assets/images/exercises/ankle-circles/step-2.png"), require("../../assets/images/exercises/ankle-circles/step-3.png"), require("../../assets/images/exercises/ankle-circles/step-4.png")],
+  "bicycle-crunches": [require("../../assets/images/exercises/bicycle-crunches/step-1.png"), require("../../assets/images/exercises/bicycle-crunches/step-2.png"), require("../../assets/images/exercises/bicycle-crunches/step-3.png"), require("../../assets/images/exercises/bicycle-crunches/step-4.png")],
+  "bird-dog": [require("../../assets/images/exercises/bird-dog/step-1.png"), require("../../assets/images/exercises/bird-dog/step-2.png"), require("../../assets/images/exercises/bird-dog/step-3.png"), require("../../assets/images/exercises/bird-dog/step-4.png"), require("../../assets/images/exercises/bird-dog/step-5.png")],
+  "bodyweight-squats": [require("../../assets/images/exercises/bodyweight-squats/step-1.png"), require("../../assets/images/exercises/bodyweight-squats/step-2.png"), require("../../assets/images/exercises/bodyweight-squats/step-3.png"), require("../../assets/images/exercises/bodyweight-squats/step-4.png"), require("../../assets/images/exercises/bodyweight-squats/step-5.png")],
+  "burpees": [require("../../assets/images/exercises/burpees/step-1.png"), require("../../assets/images/exercises/burpees/step-2.png"), require("../../assets/images/exercises/burpees/step-3.png"), require("../../assets/images/exercises/burpees/step-4.png"), require("../../assets/images/exercises/burpees/step-5.png"), require("../../assets/images/exercises/burpees/step-6.png")],
+  "butt-kicks": [require("../../assets/images/exercises/butt-kicks/step-1.png"), require("../../assets/images/exercises/butt-kicks/step-2.png"), require("../../assets/images/exercises/butt-kicks/step-3.png")],
+  "calf-raises": [require("../../assets/images/exercises/calf-raises/step-1.png"), require("../../assets/images/exercises/calf-raises/step-2.png"), require("../../assets/images/exercises/calf-raises/step-3.png"), require("../../assets/images/exercises/calf-raises/step-4.png")],
+  "cat-cow": [require("../../assets/images/exercises/cat-cow/step-1.png"), require("../../assets/images/exercises/cat-cow/step-2.png"), require("../../assets/images/exercises/cat-cow/step-3.png"), require("../../assets/images/exercises/cat-cow/step-4.png")],
   "neck-rolls": [require("../../assets/images/exercises/neck-rolls/step-1.png"), require("../../assets/images/exercises/neck-rolls/step-2.png"), require("../../assets/images/exercises/neck-rolls/step-3.png"), require("../../assets/images/exercises/neck-rolls/step-4.png")],
 };
 
