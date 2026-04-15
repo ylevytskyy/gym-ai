@@ -5,7 +5,8 @@
   },
   "tabs": {
     "plan": "План",
-    "settings": "Налаштування"
+    "settings": "Налаштування",
+    "exercises": "Вправи"
   },
   "wizard": {
     "continue": "Продовжити",
@@ -78,6 +79,19 @@
   "dayStrip": {
     "today": "СЬОГОДНІ",
     "rest": "Відпочинок"
+  },
+  "exercises": {
+    "listTitle": "Вправи",
+    "playInstructions": "Відтворити інструкції",
+    "stop": "Зупинити",
+    "instructionsHeading": "Інструкції",
+    "commonMistakesHeading": "Типові помилки",
+    "modificationsHeading": "Варіації",
+    "easier": "Легше",
+    "harder": "Важче",
+    "ukVoiceMissing": "Український голос не встановлено на цьому пристрої — використовується стандартний голос.",
+    "difficultyLabel": "Складність",
+    "bodyPartSeparator": " · "
   },
   "settings": {
     "title": "Налаштування",

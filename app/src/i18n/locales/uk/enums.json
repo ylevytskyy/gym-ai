@@ -50,6 +50,16 @@
     "stair_cardio": "Кардіо сходами",
     "stretching": "Розтяжка"
   },
+  "exerciseCategories": {
+    "desk_break": "Перерва за столом",
+    "mobility": "Мобільність",
+    "flexibility": "Гнучкість",
+    "core": "Кор",
+    "strength_upper": "Сила верхньої частини тіла",
+    "strength_lower": "Сила нижньої частини тіла",
+    "cardio": "Кардіо",
+    "stair": "Сходи"
+  },
   "priorities": {
     "required": "Обовʼязково",
     "preferred": "Бажано",
@@ -83,7 +93,18 @@
     "legs": "Ноги",
     "glutes": "Сідниці",
     "hips": "Стегна",
-    "full_body": "Все тіло"
+    "full_body": "Все тіло",
+    "abs": "Прес",
+    "ankles": "Щиколотки",
+    "calves": "Литки",
+    "eyes": "Очі",
+    "forearms": "Передпліччя",
+    "hamstrings": "Задня поверхня стегна",
+    "hip_flexors": "Згиначі стегна",
+    "inner_thighs": "Внутрішня поверхня стегон",
+    "quads": "Квадрицепси",
+    "triceps": "Трицепси",
+    "wrists": "Зап'ястки"
   },
   "contraindications": {
     "lower_back_injury": "Травма попереку",

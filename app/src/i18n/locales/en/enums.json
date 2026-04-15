@@ -50,6 +50,16 @@
     "stair_cardio": "Stair cardio",
     "stretching": "Stretching"
   },
+  "exerciseCategories": {
+    "desk_break": "Desk break",
+    "mobility": "Mobility",
+    "flexibility": "Flexibility",
+    "core": "Core",
+    "strength_upper": "Upper body strength",
+    "strength_lower": "Lower body strength",
+    "cardio": "Cardio",
+    "stair": "Stairs"
+  },
   "priorities": {
     "required": "Required",
     "preferred": "Preferred",
@@ -83,7 +93,18 @@
     "legs": "Legs",
     "glutes": "Glutes",
     "hips": "Hips",
-    "full_body": "Full body"
+    "full_body": "Full body",
+    "abs": "Abs",
+    "ankles": "Ankles",
+    "calves": "Calves",
+    "eyes": "Eyes",
+    "forearms": "Forearms",
+    "hamstrings": "Hamstrings",
+    "hip_flexors": "Hip flexors",
+    "inner_thighs": "Inner thighs",
+    "quads": "Quads",
+    "triceps": "Triceps",
+    "wrists": "Wrists"
   },
   "contraindications": {
     "lower_back_injury": "Lower back injury",

@@ -5,7 +5,8 @@
   },
   "tabs": {
     "plan": "Plan",
-    "settings": "Settings"
+    "settings": "Settings",
+    "exercises": "Exercises"
   },
   "wizard": {
     "continue": "Continue",
@@ -78,6 +79,19 @@
   "dayStrip": {
     "today": "TODAY",
     "rest": "Rest"
+  },
+  "exercises": {
+    "listTitle": "Exercises",
+    "playInstructions": "Play instructions",
+    "stop": "Stop",
+    "instructionsHeading": "Instructions",
+    "commonMistakesHeading": "Common mistakes",
+    "modificationsHeading": "Modifications",
+    "easier": "Easier",
+    "harder": "Harder",
+    "ukVoiceMissing": "Ukrainian voice not installed on this device — using default voice.",
+    "difficultyLabel": "Difficulty",
+    "bodyPartSeparator": " · "
   },
   "settings": {
     "title": "Settings",
