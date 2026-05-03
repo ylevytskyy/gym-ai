@@ -81,7 +81,17 @@ Category counts (for sizing expectations): desk_break 15, core 12, strength_uppe
 
 `expo-router` dynamic route. Reads `id` from `useLocalSearchParams()`, looks up the exercise in the catalog and its translations.
 
-Scroll layout top-to-bottom:
+### Language-change behaviour
+
+A `useEffect` watches `activeLang` (resolved from `settingsStore.language`)
+and calls `stop()` when it actually changes mid-screen, so a user who
+flips Settings while playing instructions doesn't hear English mid-stream
+after switching to Ukrainian. The effect tracks the previous language in
+a `useRef` and **skips its first run** — opening the screen does not call
+`Speech.stop()`, which would otherwise be a no-op but is unnecessary
+work and could clip speech started elsewhere.
+
+### Scroll layout top-to-bottom
 
 1. **Header:** standard back chevron (expo-router default or reuse pattern from `plan/preview/[sessionId]`), localized name as title.
 2. **Image carousel:** `ExerciseImageCarousel` for `id`.
