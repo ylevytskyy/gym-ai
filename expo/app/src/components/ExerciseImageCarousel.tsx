@@ -46,6 +46,11 @@ export function ExerciseImageCarousel({
     [activeStep, onStepChange],
   );
 
+  const primary = theme.colors.primary;
+  const border = theme.colors.border;
+  const surfaceAlt = theme.colors.surfaceAlt;
+  const radiusSm = theme.radius.sm;
+
   const renderThumb = useCallback(
     ({ item, index }: { item: ImageSource; index: number }) => {
       const isActive = index === current;
@@ -55,12 +60,10 @@ export function ExerciseImageCarousel({
             style={[
               styles.thumb,
               {
-                borderColor: isActive
-                  ? theme.colors.primary
-                  : theme.colors.border,
+                borderColor: isActive ? primary : border,
                 borderWidth: isActive ? 2 : 1,
-                borderRadius: theme.radius.sm,
-                backgroundColor: theme.colors.surfaceAlt,
+                borderRadius: radiusSm,
+                backgroundColor: surfaceAlt,
               },
             ]}
           >
@@ -73,7 +76,7 @@ export function ExerciseImageCarousel({
         </Pressable>
       );
     },
-    [current, theme, selectStep],
+    [current, selectStep, primary, border, surfaceAlt, radiusSm],
   );
 
   // Don't show thumbnail strip if only placeholder (no real images)
