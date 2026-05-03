@@ -3,7 +3,7 @@
 // Public API for exercise image loading. Components import this module
 // instead of touching the image map or manifest directly.
 
-import { ImageSource } from "expo-image";
+import type { ImageSource } from "expo-image";
 import {
   getExerciseStepImages,
   getPlaceholderImage,
