@@ -16,12 +16,12 @@ export interface LlmChatResponse {
   provider: string;
   model: string;
   content: string;
+  finishReason?: string;
   usage?: {
     promptTokens?: number;
     completionTokens?: number;
     totalTokens?: number;
   };
-  rawResponse?: unknown;
 }
 
 export interface WorkoutPlanGenerationResponse {

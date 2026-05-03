@@ -13,10 +13,6 @@ import {
   WorkoutPlanGenerationResponse,
 } from './llm.types';
 
-interface ProviderRawResponse {
-  choices?: Array<{ finish_reason?: string }>;
-}
-
 const WORKOUT_PLAN_SYSTEM_PROMPT =
   'You generate workout plans as strict JSON. Output ONLY a single JSON object that conforms to the provided schema. Do not include surrounding prose, markdown fences, comments, or any text outside the JSON object.';
 
@@ -50,14 +46,14 @@ export class LlmService {
     return {
       provider: response.provider,
       model: response.model,
-      plan: this.parsePlan(response.content, response.rawResponse),
+      plan: this.parsePlan(response.content, response.finishReason),
       usage: response.usage,
     };
   }
 
   private parsePlan(
     content: string,
-    rawResponse?: unknown,
+    finishReason?: string,
   ): Record<string, unknown> {
     let json = '';
     try {
@@ -70,8 +66,6 @@ export class LlmService {
       return parsed;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const finishReason = (rawResponse as ProviderRawResponse | undefined)
-        ?.choices?.[0]?.finish_reason;
 
       this.logger.error(
         `Workout-plan JSON parse failed: ${message} | finish_reason=${finishReason ?? 'n/a'} | length=${content.length} | tail="${json.slice(-100)}"`,

@@ -113,12 +113,12 @@ export class OpenRouterClient implements LlmClient {
       provider: 'openrouter',
       model: payload.model ?? model,
       content,
+      finishReason,
       usage: {
         promptTokens: payload.usage?.prompt_tokens,
         completionTokens: payload.usage?.completion_tokens,
         totalTokens: payload.usage?.total_tokens,
       },
-      rawResponse: payload,
     };
   }
 
