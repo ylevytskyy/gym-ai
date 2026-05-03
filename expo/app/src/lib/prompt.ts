@@ -3,13 +3,9 @@
 
 import type { PeriodType, UserProfile } from "@src/types";
 import { PROMPT_TEMPLATE } from "./prompt-template.generated";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import exercisesStructural from "../../assets/data/exercises.json";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import exercisesTextEn from "../i18n/locales/en/exercises.json";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import planSchemaJson from "../../assets/data/workout-plan.schema.json";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import sampleWeeklyPlanJson from "../../assets/data/sample-weekly-plan.json";
 
 export interface PeriodChoice {
@@ -22,27 +18,22 @@ function asJsonString(v: unknown): string {
   return JSON.stringify(v, null, 2);
 }
 
-type ExerciseTextEntry = {
-  name: string;
-  instructions: string[];
-  common_mistakes: string[];
-  modifications: { easier: string; harder: string };
-  notes: string | null;
-};
-
-// Merges the structural catalog with the English exercise-text dictionary so
-// the LLM receives the same full-text shape it always has. The LLM keeps
-// emitting English exercise ids regardless of the app's current language.
-function mergedCatalogForPrompt(): object {
-  const textMap = exercisesTextEn as unknown as Record<string, ExerciseTextEntry>;
-  const structural = exercisesStructural as { exercises: Array<{ id: string }> };
-  return {
+function mergedCatalogForPrompt(): string {
+  const textMap = exercisesTextEn as unknown as Record<
+    string,
+    { name: string }
+  >;
+  const structural = exercisesStructural as {
+    exercises: Array<{ id: string }>;
+  };
+  const merged = {
     ...exercisesStructural,
     exercises: structural.exercises.map((e) => ({
       ...e,
-      ...(textMap[e.id] ?? {}),
+      name: textMap[e.id]?.name ?? e.id,
     })),
   };
+  return JSON.stringify(merged);
 }
 
 export function buildPrompt(
@@ -84,7 +75,7 @@ export function buildPrompt(
     out = out.split(k).join(v);
   }
 
-  out = out.split("<<EXERCISES_JSON>>").join(asJsonString(mergedCatalogForPrompt()));
+  out = out.split("<<EXERCISES_JSON>>").join(mergedCatalogForPrompt());
   out = out
     .split("<<WORKOUT_PLAN_SCHEMA_JSON>>")
     .join(asJsonString(planSchemaJson));

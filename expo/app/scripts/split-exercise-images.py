@@ -181,7 +181,6 @@ def generate_image_map(manifest: dict) -> None:
         "",
         'import type { ImageSource } from "expo-image";',
         "",
-        "// eslint-disable-next-line @typescript-eslint/no-var-requires",
         'const placeholder = require("../../assets/images/exercises/placeholder.png");',
         "",
         "const map: Record<string, ImageSource[]> = {",

@@ -5,7 +5,6 @@ import Ajv, { type ErrorObject } from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 import type { WorkoutPlan } from "@src/types";
 import { allExerciseIds, exerciseById } from "./catalog";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import planSchemaJson from "../../assets/data/workout-plan.schema.json";
 
 export interface ValidationError {

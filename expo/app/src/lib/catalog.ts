@@ -4,7 +4,6 @@ import type { Catalog, Exercise } from "@src/types";
 // JSON import works because resolveJsonModule + allowSyntheticDefaultImports
 // are both on (via expo/tsconfig.base + our extension).
 // The JSON is bundled by Metro so no runtime FS read is needed.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import catalogData from "../../assets/data/exercises.json";
 
 const catalog = catalogData as unknown as Catalog;
