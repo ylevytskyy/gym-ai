@@ -8,7 +8,8 @@ describe('HealthController (e2e)', () => {
   let app: NestFastifyApplication | undefined;
 
   beforeAll(async () => {
-    process.env.JWT_SECRET = 'test-secret-with-at-least-32-characters';
+    process.env.SUPABASE_URL = 'https://test.supabase.co';
+    process.env.SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key';
     const { AppModule } = await import('../src/app.module');
 
     const moduleRef = await Test.createTestingModule({
