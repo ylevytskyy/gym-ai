@@ -8,3 +8,8 @@ expo-env.d.ts
 # Exercise image generation (raw files are large, prompts are regenerable)
 scripts/exercise-images/raw/
 scripts/exercise-images/prompts/
+
+GoogleService-Info.plist
+google-services.json
+gym-ai-google.zip
+google-supabase-websecrets.json

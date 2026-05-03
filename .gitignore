@@ -11,10 +11,8 @@ expo-env.d.ts
 
 # ─── native build outputs (we use Expo Go in V1; iOS/Android dirs
 #     would only appear if someone runs `expo prebuild`) ────────
-/ios/
-/android/
-app/ios/
-app/android/
+expo/app/ios/
+expo/app/android/
 .kotlin/
 *.orig.*
 *.jks
@@ -24,7 +22,7 @@ app/android/
 *.mobileprovision
 
 # ─── auto-generated files (re-created by scripts/sync-data.sh) ─
-app/src/lib/prompt-template.generated.ts
+expo/app/src/lib/prompt-template.generated.ts
 
 # ─── Metro / bundler ───────────────────────────────────────────
 .metro-health-check*
@@ -53,6 +51,14 @@ yarn-error.*
 
 # ─── Claude Code local settings (machine-specific permissions) ─
 .claude/settings.local.json
+
+# ─── AI tool / IDE skill clutter (machine-local) ───────────────
+.agents/
+.trae/
+.windsurf/
+.claude/skills/
+skills-lock.json
+.mcp.json
 
 # ─── misc ──────────────────────────────────────────────────────
 app-example/
