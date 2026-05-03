@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -46,8 +46,6 @@ export function ExerciseImageCarousel({
     [onStepChange],
   );
 
-  const thumbListRef = useRef<FlatList>(null);
-
   const renderThumb = useCallback(
     ({ item, index }: { item: ImageSource; index: number }) => {
       const isActive = index === current;
@@ -85,7 +83,6 @@ export function ExerciseImageCarousel({
     <View style={styles.container}>
       {showThumbs ? (
         <FlatList
-          ref={thumbListRef}
           data={allSteps}
           renderItem={renderThumb}
           keyExtractor={(_, i) => String(i)}
@@ -120,7 +117,7 @@ export function ExerciseImageCarousel({
           >
             {t("workout.stepOf", {
               current: current + 1,
-              total: instructions.length,
+              total: allSteps.length,
             })}
           </Text>
           <Text
