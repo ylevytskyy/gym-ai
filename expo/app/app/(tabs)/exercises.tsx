@@ -88,7 +88,7 @@ function Row({ exercise }: { exercise: Exercise }) {
 
   return (
     <Pressable
-      onPress={() => router.push(`/exercises/${exercise.id}` as any)}
+      onPress={() => router.push(`/exercises/${exercise.id}`)}
       style={styles.row}
       android_ripple={{ color: theme.colors.border }}
     >
