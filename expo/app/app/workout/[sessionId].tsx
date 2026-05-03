@@ -479,31 +479,6 @@ function SetView({
         ) : null}
         <Button label={t('workout.skip')} variant="ghost" onPress={onSkip} />
       </View>
-
-      {step.instructions.length > 0 ? (
-        <View
-          style={{
-            marginTop: 24,
-            borderLeftWidth: 3,
-            borderLeftColor: theme.colors.primary + "55",
-            paddingLeft: 10,
-            alignSelf: "stretch",
-          }}
-        >
-          {step.instructions.slice(0, 3).map((line, i) => (
-            <Text
-              key={i}
-              style={{
-                color: theme.colors.textMuted,
-                fontSize: 12,
-                lineHeight: 17,
-              }}
-            >
-              • {line}
-            </Text>
-          ))}
-        </View>
-      ) : null}
     </View>
   );
 }
