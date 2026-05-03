@@ -18,7 +18,10 @@ describe('LlmService', () => {
     const result = await service.generateWorkoutPlan({ prompt: 'make a plan' });
 
     expect(chat).toHaveBeenCalledWith({
-      messages: [{ role: 'user', content: 'make a plan' }],
+      messages: [
+        { role: 'system', content: expect.stringContaining('strict JSON') },
+        { role: 'user', content: 'make a plan' },
+      ],
       model: undefined,
       temperature: 0.2,
       maxTokens: 200_000,

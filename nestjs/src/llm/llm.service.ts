@@ -17,6 +17,9 @@ interface ProviderRawResponse {
   choices?: Array<{ finish_reason?: string }>;
 }
 
+const WORKOUT_PLAN_SYSTEM_PROMPT =
+  'You generate workout plans as strict JSON. Output ONLY a single JSON object that conforms to the provided schema. Do not include surrounding prose, markdown fences, comments, or any text outside the JSON object.';
+
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
@@ -31,7 +34,10 @@ export class LlmService {
     request: Omit<LlmChatRequest, 'messages'> & { prompt: string },
   ): Promise<WorkoutPlanGenerationResponse> {
     const response = await this.client.chat({
-      messages: [{ role: 'user', content: request.prompt }],
+      messages: [
+        { role: 'system', content: WORKOUT_PLAN_SYSTEM_PROMPT },
+        { role: 'user', content: request.prompt },
+      ],
       model: request.model,
       temperature: request.temperature ?? 0.2,
       maxTokens: request.maxTokens ?? 200_000,
