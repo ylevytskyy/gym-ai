@@ -11,10 +11,6 @@ const BCP47: Record<SupportedLanguage, string> = {
   uk: "uk-UA",
 };
 
-export function bcp47For(lang: SupportedLanguage): string {
-  return BCP47[lang];
-}
-
 /**
  * Returns true if the device reports any voice whose BCP-47 tag starts with
  * the target 2-letter code (e.g. "uk"). iOS ships `uk-UA` (Lesya); Android
