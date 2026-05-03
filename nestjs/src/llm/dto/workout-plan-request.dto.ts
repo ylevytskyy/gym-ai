@@ -26,6 +26,6 @@ export class WorkoutPlanRequestDto {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(400_000)
+  @Max(200_000)
   maxTokens?: number;
 }
