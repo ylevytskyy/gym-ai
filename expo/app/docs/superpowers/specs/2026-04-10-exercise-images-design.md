@@ -25,39 +25,51 @@ Generate illustrated exercise images for all 75 exercises using Google Gemini's 
 
 ## 1. Prompt Template
 
-A script generates ready-to-paste prompts for each exercise by filling this template with data from `exercises.json` and `en/exercises.json` translations.
+A script generates ready-to-paste prompts for each exercise. The original
+single-row comic-strip layout was replaced with a **2D panel grid** that
+mixes tall, wide, and square panels — needed because some poses are
+upright (pushups standing-tall view) while others are horizontal (pushup
+plank, side-lying) or seated (chair stretches). Mixing orientations in one
+strip gave Gemini ambiguous proportions; the grid spec gives it explicit
+pixel-coordinate constraints per panel.
 
-```
-Create a single horizontal comic-strip illustration showing the exercise "[EXERCISE_NAME]"
-in [N] sequential panels from left to right, separated by thin vertical dividers.
+### Inputs
 
-Panels (left to right):
-1. [STEP_1_DESCRIPTION]
-2. [STEP_2_DESCRIPTION]
-3. [STEP_3_DESCRIPTION]
-...
+The generator (`scripts/generate-image-prompts.ts`) reads three files:
 
-Style requirements:
-- Illustrated cartoon style, clean vector-like look
-- Gender-neutral abstract human figure with simplified features, no specific ethnicity
-- White/transparent background
-- Each panel is a perfect square
-- Consistent character size and proportions across all panels
-- Thin gray vertical lines separating panels
-- No text, labels, numbers, or annotations anywhere in the image
-- Clean outlines, flat colors, minimal shading
-- Show the figure from the angle that best demonstrates the movement
-```
+- `assets/data/exercises.json` — the exercise IDs to iterate.
+- `src/i18n/locales/en/exercises.json` — names + per-step instruction
+  summaries.
+- `scripts/exercise-images/layouts.json` — per-exercise array of panel
+  orientations (`"tall" | "wide" | "square"`), one entry per step.
+- `scripts/exercise-images/pose-details.json` — per-exercise array of
+  detailed pose descriptions (camera angle, joint angles, hand/foot
+  positions, etc.), one entry per step. The "Pose to draw" paragraph is
+  the authoritative visual reference for each panel; the locale string is
+  the short workout instruction.
 
-### Variables
+### Grid layout rules
 
-- `[EXERCISE_NAME]`: from `en/exercises.json` → `{id}.name`
-- `[N]`: length of `en/exercises.json` → `{id}.instructions` array
-- `[STEP_X_DESCRIPTION]`: each entry from the `instructions` array
+- Canonical unit = 300 px. Image is always 600 px tall.
+- `tall` → 1 unit wide × 600 tall column (one upright-figure panel).
+- `wide` → 2 units wide × 600 tall column containing two stacked 600×300
+  half-height cells (top + bottom) for horizontal-body poses. Wide cells
+  pair in source order; an unpaired wide is rendered in the bottom half
+  with the top half left blank.
+- `square` → 2 units wide × 600 tall column with one 600×600 cell, used
+  for seated, kneeling, or close-up shots.
+- Reading order: top-down within a column, left-to-right between columns.
 
-### Prompt Generation Script
+### Output
 
-`scripts/generate-image-prompts.ts` reads exercise data and outputs 75 ready-to-paste prompts to `scripts/exercise-images/prompts/`. One `.txt` file per exercise (e.g., `standard-push-ups.txt`).
+One `.txt` file per exercise written to `scripts/exercise-images/prompts/`
+(e.g. `standard-push-ups.txt`). Each prompt embeds the per-column grid
+spec, per-step pose details, global drawing guidance, and a shared style
+block.
+
+### Run
+
+`npx tsx scripts/generate-image-prompts.ts`
 
 ## 2. Image Splitting Pipeline
 
@@ -149,7 +161,7 @@ Small preview component used in cards, lists, and previews throughout the app.
 ```typescript
 interface ExerciseImageThumbnailProps {
   exerciseId: string;
-  step?: number;    // which step to show, defaults to 1
+  step?: number;    // which step to show (0-indexed), defaults to 0
   size?: number;    // pixel size, defaults to 48
 }
 ```
@@ -161,20 +173,56 @@ interface ExerciseImageThumbnailProps {
 - Alternative exercise selection
 
 **Behavior:**
-- Shows `step-1.png` by default (the starting position)
+- Shows the first step by default (the starting position)
 - Falls back to placeholder if no images exist
 - Uses `expo-image` with caching
 
-### 4.3 Integration Points
+### 4.3 ExerciseImagePlayer (new component)
+
+Auto-cycling display used where the user is *not* actively driving step
+selection — primarily the exercise detail screen, where the user wants to
+see the movement at a glance without tapping thumbnails. Behaves as a
+silent "video" of the steps.
+
+**Props:**
+```typescript
+interface ExerciseImagePlayerProps {
+  exerciseId: string;
+  size?: number;     // square image size in px, defaults to 220
+  delayMs?: number;  // delay between frames in ms, defaults to 1200
+}
+```
+
+**Behavior:**
+- Cycles through `step-1` → `step-N` → `step-1` … via `setInterval`.
+- Resets to step 0 when `exerciseId` changes.
+- If the manifest has no images for the exercise (or only a single
+  placeholder), the cycle is suppressed and the placeholder is shown
+  statically.
+- The current step's instruction text (1-line label `step X of N` plus a
+  3-line clamp of the instruction) is rendered below the image, mirroring
+  the carousel's text block.
+
+**Why a separate component:** the carousel is interactive (tap a thumb to
+jump to a step) and is the right control on the workout runner where the
+user wants to inspect a specific step. The player is non-interactive and
+is the right control on the detail screen where the user wants the
+movement to play passively while reading the instructions / hitting the
+TTS button.
+
+### 4.4 Integration Points
 
 **Workout screen** (`app/workout/[sessionId].tsx`):
 - Add `ExerciseImageCarousel` above the timer/controls
 - Carousel step can optionally auto-advance during timed exercises
 - During rest periods, show step-1 of the upcoming exercise as preview
 
+**Exercise detail screen** (`app/exercises/[id].tsx`):
+- Use `ExerciseImagePlayer` as the top-of-screen visual.
+
 **Exercise browsing** (plan generation, alternatives):
 - Add `ExerciseImageThumbnail` to exercise list items
-- Tapping an exercise could expand to show the full carousel
+- Tapping an exercise opens the detail screen above.
 
 **Session cards** (`SessionCard.tsx`, `UpNextCard.tsx`):
 - Add small `ExerciseImageThumbnail` for visual recognition
