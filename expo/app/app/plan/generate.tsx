@@ -6,11 +6,9 @@ import {
   Pressable,
   Platform,
   Alert,
-  ScrollView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { format, addDays, parse } from "date-fns";
-import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
@@ -18,7 +16,6 @@ import { Screen } from "@src/components/Screen";
 import { Card } from "@src/components/Card";
 import { Chip } from "@src/components/Chip";
 import { Button } from "@src/components/Button";
-import { TextField } from "@src/components/TextField";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { useProfileStore } from "@src/store/profileStore";
 import {
@@ -32,12 +29,17 @@ import { useTranslation } from "react-i18next";
 import { buildPrompt, type PeriodChoice } from "@src/lib/prompt";
 import { todayYYYYMMDD } from "@src/lib/dates";
 import { getCatalog, exerciseText } from "@src/lib/catalog";
+import { generateWorkoutPlan } from "@src/lib/api";
+import { validatePlan } from "@src/lib/validate";
+import { usePlanStore } from "@src/store/planStore";
+import { rescheduleAll } from "@src/lib/scheduler";
 
 export default function GeneratePlan() {
   const theme = useTheme();
   const { t } = useTranslation();
   const profile = useProfileStore((s) => s.profile);
   const updateProfile = useProfileStore((s) => s.updateProfile);
+  const setPlan = usePlanStore((s) => s.setPlan);
 
   // ─── local form state (prefilled from profile where available) ─────
   const [availableMinutes, setAvailableMinutes] = useState<number>(
@@ -85,11 +87,13 @@ export default function GeneratePlan() {
   };
 
   // ─── submit ────────────────────────────────────────────────────────
-  const [prompt, setPrompt] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const buildAndShow = () => {
-    if (!profile) return;
+  const buildCurrentPrompt = () => {
+    if (!profile) {
+      throw new Error("Profile is missing.");
+    }
+
     const updatedProfile = {
       ...profile,
       available_minutes_per_day: availableMinutes,
@@ -104,103 +108,44 @@ export default function GeneratePlan() {
       },
     };
     updateProfile(updatedProfile);
+
+    const period: PeriodChoice = {
+      type: periodType,
+      start_date: startDate,
+      end_date: endDate,
+    };
+
+    return buildPrompt(updatedProfile, period);
+  };
+
+  const buildAndGenerate = async () => {
+    setIsGenerating(true);
     try {
-      const period: PeriodChoice = {
-        type: periodType,
-        start_date: startDate,
-        end_date: endDate,
-      };
-      const p = buildPrompt(updatedProfile, period);
-      setPrompt(p);
+      const prompt = buildCurrentPrompt();
+      const response = await generateWorkoutPlan(prompt);
+      const result = validatePlan(JSON.stringify(response.plan));
+
+      if (!result.ok) {
+        const preview = result.errors
+          .slice(0, 3)
+          .map((e) => `${e.path}: ${e.message}`)
+          .join("\n");
+        Alert.alert(t('plan.generate.validationErrorTitle'), preview);
+        return;
+      }
+
+      setPlan(result.plan);
+      rescheduleAll(result.plan).catch((err) => {
+        console.warn("[generate] rescheduleAll failed", err);
+      });
+      router.replace("/(tabs)");
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      Alert.alert(t('plan.generate.buildErrorTitle'), msg);
+      Alert.alert(t('plan.generate.generateErrorTitle'), msg);
+    } finally {
+      setIsGenerating(false);
     }
   };
-
-  const copyPrompt = async () => {
-    if (!prompt) return;
-    await Clipboard.setStringAsync(prompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
-  };
-
-  // ─── prompt view ──────────────────────────────────────────────────
-  if (prompt) {
-    return (
-      <Screen>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          {t('plan.generate.promptReady')}
-        </Text>
-        <Text
-          style={{
-            color: theme.colors.textMuted,
-            fontSize: 14,
-            marginTop: 4,
-          }}
-        >
-          {t('plan.generate.promptReadySubtitle')}
-        </Text>
-        <View
-          style={[
-            styles.promptBox,
-            {
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.border,
-              borderRadius: theme.radius.md,
-              marginTop: theme.spacing.md,
-            },
-          ]}
-        >
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 12 }}
-          >
-            <Text
-              style={{
-                color: theme.colors.text,
-                fontFamily: Platform.select({
-                  ios: "Menlo",
-                  android: "monospace",
-                }),
-                fontSize: 11,
-                lineHeight: 15,
-              }}
-              selectable
-            >
-              {prompt.length > 8000
-                ? prompt.slice(0, 8000) +
-                  `\n\n... (${prompt.length - 8000} more characters; tap Copy to get the full prompt)`
-                : prompt}
-            </Text>
-          </ScrollView>
-        </View>
-        <View style={{ marginTop: theme.spacing.md, gap: theme.spacing.sm }}>
-          <Button
-            label={copied ? t('plan.generate.copied') : t('plan.generate.copyToClipboard')}
-            onPress={copyPrompt}
-            leftIcon={
-              <Ionicons
-                name={copied ? "checkmark" : "copy-outline"}
-                size={16}
-                color={theme.colors.textInverse}
-              />
-            }
-          />
-          <Button
-            label={t('plan.generate.havePlan')}
-            variant="secondary"
-            onPress={() => router.push("/plan/paste")}
-          />
-          <Button
-            label={t('plan.generate.backToForm')}
-            variant="ghost"
-            onPress={() => setPrompt(null)}
-          />
-        </View>
-      </Screen>
-    );
-  }
 
   // ─── form view ────────────────────────────────────────────────────
   const catalog = getCatalog();
@@ -448,8 +393,9 @@ export default function GeneratePlan() {
 
       <View style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }}>
         <Button
-          label={t('plan.generate.buildPrompt')}
-          onPress={buildAndShow}
+          label={t('plan.generate.generatePlan')}
+          onPress={buildAndGenerate}
+          loading={isGenerating}
           size="lg"
           leftIcon={
             <Ionicons
@@ -459,6 +405,14 @@ export default function GeneratePlan() {
             />
           }
         />
+        <View style={{ marginTop: theme.spacing.sm }}>
+          <Button
+            label={t('plan.generate.pasteFallback')}
+            variant="secondary"
+            onPress={() => router.push("/plan/paste")}
+            disabled={isGenerating}
+          />
+        </View>
       </View>
     </Screen>
   );
@@ -536,8 +490,4 @@ function TimePickerField({
 
 const styles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: "700", marginTop: 8 },
-  promptBox: {
-    borderWidth: 1,
-    height: 260,
-  },
 });

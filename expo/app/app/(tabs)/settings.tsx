@@ -16,6 +16,7 @@ import {
   type LanguagePref,
 } from "@src/store/settingsStore";
 import { cancelAll, requestPermission } from "@src/lib/scheduler";
+import { supabase } from "@src/lib/supabase";
 
 const THEMES: ThemePreference[] = ["system", "light", "dark"];
 const LANGUAGES: LanguagePref[] = ["system", "en", "uk"];
@@ -238,7 +239,15 @@ export default function SettingsTab() {
         </View>
       </Card>
 
-      <View style={{ marginTop: theme.spacing.xl }}>
+      <View style={{ marginTop: theme.spacing.xl, gap: theme.spacing.sm }}>
+        <Button
+          label={t('auth.signOut')}
+          onPress={async () => {
+            await supabase.auth.signOut();
+            router.replace("/sign-in");
+          }}
+          variant="ghost"
+        />
         <Button label={t('settings.clearAll')} onPress={confirmReset} variant="danger" />
       </View>
     </Screen>

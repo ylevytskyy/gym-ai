@@ -2,6 +2,7 @@ import React from "react";
 import { View, ActivityIndicator } from "react-native";
 import { Redirect } from "expo-router";
 import { useProfileStore } from "@src/store/profileStore";
+import { useAuthStore } from "@src/store/authStore";
 import { useTheme } from "@src/theme/ThemeProvider";
 
 // Use <Redirect> rather than imperative router.replace() in a useEffect:
@@ -13,8 +14,9 @@ export default function IndexGate() {
   const theme = useTheme();
   const hasHydrated = useProfileStore.persist?.hasHydrated() ?? false;
   const profile = useProfileStore((s) => s.profile);
+  const authStatus = useAuthStore((s) => s.status);
 
-  if (!hasHydrated) {
+  if (!hasHydrated || authStatus === "loading") {
     return (
       <View
         style={{
@@ -29,6 +31,9 @@ export default function IndexGate() {
     );
   }
 
+  if (authStatus === "signed-out") {
+    return <Redirect href="/sign-in" />;
+  }
   if (profile) {
     return <Redirect href="/(tabs)" />;
   }

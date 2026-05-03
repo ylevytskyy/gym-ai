@@ -8,6 +8,7 @@ import { ThemeProvider, useTheme } from "@src/theme/ThemeProvider";
 import { initScheduler } from "@src/lib/scheduler";
 import { initI18n } from "@src/i18n";
 import { useSettingsStore } from "@src/store/settingsStore";
+import { useInitAuth } from "@src/store/authStore";
 
 // Handles both: (1) app was backgrounded and user tapped notification,
 // and (2) app was cold-started by notification tap. We gate the
@@ -72,6 +73,7 @@ function Splash() {
 }
 
 export default function RootLayout() {
+  useInitAuth();
   useNotificationDeepLink();
   const languagePref = useSettingsStore((s) => s.language);
   const [i18nReady, setI18nReady] = useState(false);
