@@ -1,23 +1,34 @@
 # Fitness API
 
-NestJS API scaffolded for OAuth authentication, provider-swappable LLM calls, and lean Docker deployment.
+NestJS API for Supabase-authenticated requests and provider-swappable LLM workflows.
 
 ## Start locally
 
 ```bash
-yarn install
+pnpm install
 cp .env.example .env
-yarn start:dev
+pnpm start:dev
 ```
 
-Google OAuth is available at `GET /api/auth/google`. The callback issues a JWT response.
+For local debugging:
 
-LLM calls are available at `POST /api/llm/chat` with a bearer token.
+```bash
+pnpm start:debug
+```
+
+The API serves routes under `http://127.0.0.1:3000/api`, and the Node debugger listens on `127.0.0.1:9229`.
+
+## Authentication
+
+The API trusts Supabase-issued access tokens. Clients sign in via Supabase Auth and send the resulting access token as `Authorization: Bearer <token>`. The API verifies the token against Supabase's JWKS at `${SUPABASE_URL}/auth/v1/.well-known/jwks.json` and runs PostgREST calls under the user's RLS context.
+
+`GET /api/auth/me` returns the verified user. `POST /api/llm/chat` and `POST /api/llm/workout-plan` require a bearer token.
 
 ## Architecture
 
-- `auth`: JWT issuance, Google OAuth strategy, and provider-shaped user identities. Apple and email auth can be added as new strategies/services without changing controllers that consume `CurrentUser`.
-- `llm`: application-facing `LlmClient` interface with an OpenRouter adapter. Claude, DeepSeek, Gemini, or direct OpenAI-style APIs can be added as new providers behind the same token.
+- `auth`: Supabase JWT verification guard and `CurrentUser` decorator.
+- `supabase`: shared Supabase JWKS verifier and per-request client factory.
+- `llm`: application-facing `LlmClient` interface with an OpenRouter adapter.
 - `common/config`: typed environment access and validation.
 - `health`: lightweight liveness endpoint for containers and orchestrators.
 

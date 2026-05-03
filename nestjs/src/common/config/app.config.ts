@@ -5,14 +5,9 @@ export interface AppConfig {
   port: number;
   apiPrefix: string;
   corsOrigins: string[];
-  jwt: {
-    secret: string;
-    expiresIn: string;
-  };
-  google: {
-    clientId: string;
-    clientSecret: string;
-    callbackUrl: string;
+  supabase: {
+    url: string;
+    publishableKey: string;
   };
   llm: {
     provider: LlmProviderName;
@@ -31,19 +26,9 @@ export const appConfig = (): AppConfig => ({
   port: numberFromEnv('PORT', 3000),
   apiPrefix: process.env.API_PREFIX ?? 'api',
   corsOrigins: csvFromEnv('CORS_ORIGINS'),
-  jwt: {
-    secret: process.env.JWT_SECRET ?? '',
-    expiresIn: process.env.JWT_EXPIRES_IN ?? '15m',
-  },
-  google: {
-    clientId: stringFromEnv('GOOGLE_CLIENT_ID', 'development-google-client-id'),
-    clientSecret: stringFromEnv(
-      'GOOGLE_CLIENT_SECRET',
-      'development-google-client-secret',
-    ),
-    callbackUrl:
-      process.env.GOOGLE_CALLBACK_URL ??
-      'http://localhost:3000/api/auth/google/callback',
+  supabase: {
+    url: process.env.SUPABASE_URL ?? '',
+    publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY ?? '',
   },
   llm: {
     provider: (process.env.LLM_PROVIDER ?? 'openrouter') as LlmProviderName,
@@ -65,14 +50,10 @@ export function validateConfig(
   const nodeEnv =
     typeof config.NODE_ENV === 'string' ? config.NODE_ENV : 'development';
   const isProduction = nodeEnv === 'production';
-  const required = ['JWT_SECRET'];
+  const required = ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY'];
 
   if (isProduction) {
-    required.push(
-      'GOOGLE_CLIENT_ID',
-      'GOOGLE_CLIENT_SECRET',
-      'OPENROUTER_API_KEY',
-    );
+    required.push('OPENROUTER_API_KEY');
   }
 
   const missing = required.filter((key) => !config[key]);
@@ -82,11 +63,16 @@ export function validateConfig(
     );
   }
 
-  if (
-    (config.JWT_SECRET as string | undefined)?.length &&
-    String(config.JWT_SECRET).length < 32
-  ) {
-    throw new Error('JWT_SECRET must be at least 32 characters long.');
+  const supabaseUrl = config.SUPABASE_URL;
+  if (typeof supabaseUrl === 'string' && supabaseUrl.length > 0) {
+    try {
+      const parsed = new URL(supabaseUrl);
+      if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+        throw new Error('SUPABASE_URL must be an http(s) URL.');
+      }
+    } catch {
+      throw new Error('SUPABASE_URL must be a valid URL.');
+    }
   }
 
   return config;
@@ -111,13 +97,4 @@ function csvFromEnv(name: string): string[] {
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
-}
-
-function stringFromEnv(name: string, developmentFallback: string): string {
-  const value = process.env[name];
-  if (value) {
-    return value;
-  }
-
-  return process.env.NODE_ENV === 'production' ? '' : developmentFallback;
 }

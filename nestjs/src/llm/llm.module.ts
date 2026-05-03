@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { AuthModule } from '../auth/auth.module';
 import { AppConfig } from '../common/config/app.config';
 import { LLM_CLIENT } from './llm.constants';
 import { LlmController } from './llm.controller';
@@ -8,6 +9,7 @@ import { LlmService } from './llm.service';
 import { OpenRouterClient } from './providers/openrouter.client';
 
 @Module({
+  imports: [AuthModule],
   controllers: [LlmController],
   providers: [
     LlmService,
