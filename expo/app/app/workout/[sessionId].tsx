@@ -296,24 +296,20 @@ export default function WorkoutRunner() {
 
   if (!current) return null;
 
-  // Resolve exercise ID for the current step (countdown doesn't carry exerciseId)
+  // Resolve exercise ID for the current step. Set carries it directly;
+  // countdown carries blockIdx/exIdx; rest doesn't carry pointers but the
+  // next step (always present when rest exists) does.
   const currentExerciseId =
     current.kind === "set"
       ? current.exerciseId
       : current.kind === "countdown"
-        ? steps
-            .slice(stepIdx)
-            .find((s): s is Extract<RunnerStep, { kind: "set" }> => s.kind === "set")
-            ?.exerciseId ?? ""
+        ? session.blocks[current.blockIdx].exercises[current.exIdx].exercise_id
         : "";
 
-  // For rest view, find the next exercise's ID
+  const nextStep = current.kind === "rest" ? steps[stepIdx + 1] : undefined;
   const nextExerciseId =
-    current.kind === "rest"
-      ? steps
-          .slice(stepIdx + 1)
-          .find((s): s is Extract<RunnerStep, { kind: "set" }> => s.kind === "set")
-          ?.exerciseId ?? null
+    nextStep && (nextStep.kind === "set" || nextStep.kind === "countdown")
+      ? session.blocks[nextStep.blockIdx].exercises[nextStep.exIdx].exercise_id
       : null;
 
   return (
