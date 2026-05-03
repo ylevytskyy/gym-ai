@@ -4,7 +4,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 
-describe('AppController (e2e)', () => {
+describe('HealthController (e2e)', () => {
   let app: NestFastifyApplication | undefined;
 
   beforeAll(async () => {
