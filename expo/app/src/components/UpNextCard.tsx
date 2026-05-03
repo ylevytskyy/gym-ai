@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { formatTimeWindow } from "@src/lib/dates";
 import type { NextUpResult } from "@src/lib/session-picker";
 import { ExerciseImageThumbnail } from "./ExerciseImageThumbnail";
+import { getExerciseImages } from "@src/lib/exerciseImages";
 
 interface UpNextCardProps {
   nextUp: NextUpResult;
@@ -22,6 +23,8 @@ export function UpNextCard({ nextUp, onStart, onPostpone }: UpNextCardProps) {
   const { session, reason, minutesUntilStart } = nextUp;
 
   const firstExerciseId = session.blocks[0]?.exercises[0]?.exercise_id ?? null;
+  const showThumb =
+    firstExerciseId !== null && getExerciseImages(firstExerciseId).hasImages;
 
   const status =
     reason === "now"
@@ -45,7 +48,7 @@ export function UpNextCard({ nextUp, onStart, onPostpone }: UpNextCardProps) {
       >
         {t(`enums:sessionTypes.${session.type}`)}
       </Text>
-      {firstExerciseId ? (
+      {showThumb && firstExerciseId ? (
         <View style={{ alignItems: "center", marginTop: theme.spacing.md }}>
           <ExerciseImageThumbnail exerciseId={firstExerciseId} size={72} />
         </View>

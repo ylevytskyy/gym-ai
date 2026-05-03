@@ -6,6 +6,7 @@ import { formatTimeWindow } from "@src/lib/dates";
 import type { Session, SessionType } from "@src/types";
 import { useTranslation } from "react-i18next";
 import { ExerciseImageThumbnail } from "./ExerciseImageThumbnail";
+import { getExerciseImages } from "@src/lib/exerciseImages";
 
 interface SessionCardProps {
   session: Session;
@@ -35,6 +36,8 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
     session.execution.status === "skipped";
 
   const firstExerciseId = session.blocks[0]?.exercises[0]?.exercise_id ?? null;
+  const showThumb =
+    firstExerciseId !== null && getExerciseImages(firstExerciseId).hasImages;
 
   return (
     <Pressable
@@ -51,7 +54,7 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
       ]}
     >
       <View style={styles.row}>
-        {firstExerciseId ? (
+        {showThumb && firstExerciseId ? (
           <ExerciseImageThumbnail exerciseId={firstExerciseId} size={44} />
         ) : (
           <View
