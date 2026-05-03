@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 
@@ -12,8 +12,7 @@ export interface SupabaseUserClaims {
 }
 
 @Injectable()
-export class SupabaseAuthVerifier implements OnModuleDestroy {
-  private readonly logger = new Logger(SupabaseAuthVerifier.name);
+export class SupabaseAuthVerifier {
   private readonly jwks: ReturnType<typeof createRemoteJWKSet>;
   private readonly issuer: string;
 
@@ -28,13 +27,11 @@ export class SupabaseAuthVerifier implements OnModuleDestroy {
   async verify(accessToken: string): Promise<SupabaseUserClaims> {
     const { payload } = await jwtVerify(accessToken, this.jwks, {
       issuer: this.issuer,
+      audience: 'authenticated',
+      algorithms: ['ES256', 'RS256'],
     });
 
     return claimsFromPayload(payload);
-  }
-
-  onModuleDestroy(): void {
-    this.logger.debug('SupabaseAuthVerifier destroyed');
   }
 }
 
