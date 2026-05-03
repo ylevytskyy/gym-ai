@@ -21,6 +21,14 @@ export interface LlmChatResponse {
     completionTokens?: number;
     totalTokens?: number;
   };
+  rawResponse?: unknown;
+}
+
+export interface WorkoutPlanGenerationResponse {
+  provider: string;
+  model: string;
+  plan: Record<string, unknown>;
+  usage?: LlmChatResponse['usage'];
 }
 
 export interface LlmClient {

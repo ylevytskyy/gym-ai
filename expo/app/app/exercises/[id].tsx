@@ -264,11 +264,12 @@ function MetaRow({
 
 function BackButton() {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <Pressable
       onPress={() => router.back()}
       accessibilityRole="button"
-      accessibilityLabel="Back"
+      accessibilityLabel={t("app.back")}
       hitSlop={12}
       style={{ paddingHorizontal: 4 }}
     >

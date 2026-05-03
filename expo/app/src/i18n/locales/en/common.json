@@ -1,7 +1,8 @@
 {
   "app": {
     "loading": "Loading…",
-    "notFound": "Not found"
+    "notFound": "Not found",
+    "back": "Back"
   },
   "tabs": {
     "plan": "Plan",

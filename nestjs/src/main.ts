@@ -18,7 +18,7 @@ async function bootstrap(): Promise<void> {
     AppModule,
     new FastifyAdapter({
       logger: process.env.NODE_ENV !== 'test',
-      bodyLimit: 1_048_576,
+      bodyLimit: 10 * 1024 * 1024,
     }),
   );
 
