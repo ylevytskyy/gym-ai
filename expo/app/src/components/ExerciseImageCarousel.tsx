@@ -22,6 +22,8 @@ const THUMB_SIZE = 52;
 const THUMB_GAP = 6;
 const DETAIL_SIZE = 220;
 
+const ThumbSeparator = () => <View style={{ width: THUMB_GAP }} />;
+
 export function ExerciseImageCarousel({
   exerciseId,
   activeStep,
@@ -92,7 +94,7 @@ export function ExerciseImageCarousel({
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.thumbList}
-          ItemSeparatorComponent={() => <View style={{ width: THUMB_GAP }} />}
+          ItemSeparatorComponent={ThumbSeparator}
         />
       ) : null}
 
