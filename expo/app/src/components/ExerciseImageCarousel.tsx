@@ -40,10 +40,10 @@ export function ExerciseImageCarousel({
 
   const selectStep = useCallback(
     (index: number) => {
-      setInternalStep(index);
+      if (activeStep === undefined) setInternalStep(index);
       onStepChange?.(index);
     },
-    [onStepChange],
+    [activeStep, onStepChange],
   );
 
   const renderThumb = useCallback(
