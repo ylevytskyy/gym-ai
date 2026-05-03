@@ -12,14 +12,14 @@ device — no native build required.
 cd app
 
 # Install deps (only needed once)
-PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" npm install
+PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" pnpm install
 
 # Sync the data foundation into the app's assets (idempotent; runs automatically
-# via npm run start's prestart hook, but you can also run it by hand)
-npm run sync-data
+# via pnpm start's prestart hook, but you can also run it by hand)
+pnpm sync-data
 
 # Start the dev server
-PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" npm run start
+PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" pnpm start
 ```
 
 Scan the QR code from your phone's Expo Go app.
@@ -28,7 +28,7 @@ Scan the QR code from your phone's Expo Go app.
 
 The system-level `/usr/local/bin/node` symlink on this machine is stale; only
 the Homebrew binary at `/opt/homebrew/Cellar/node/25.7.0/bin/node` works. Every
-`node`/`npm`/`npx` invocation in the docs above therefore sets `PATH=` inline.
+`node`/`pnpm` invocation in the docs above therefore sets `PATH=` inline.
 You can fix this permanently by fixing the symlink or adding Homebrew's node
 bin to your shell config.
 
@@ -76,10 +76,10 @@ Plus one throwaway `onboardingStore` (not persisted) for the onboarding draft.
 The source-of-truth data lives in the parent directory. The `scripts/sync-data.sh`
 script copies the 4 files into `assets/data/` and generates
 `src/lib/prompt-template.generated.ts` (the prompt as a TS template literal,
-escaped). The script is idempotent; `npm run start` re-runs it via `prestart`.
+escaped). The script is idempotent; `pnpm start` re-runs it via `prestart`.
 
 If you edit `../exercises.json` or any root-level data file, just run
-`npm run sync-data` (or restart).
+`pnpm sync-data` (or restart).
 
 ## Notifications
 
@@ -92,17 +92,17 @@ If you edit `../exercises.json` or any root-level data file, just run
 
 ## TypeScript
 
-Strict mode. Run `npm run typecheck` for a quick check.
+Strict mode. Run `pnpm typecheck` for a quick check.
 
 ```sh
-PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" npm run typecheck
+PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" pnpm typecheck
 ```
 
 ## Exporting a production bundle
 
 ```sh
-PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" npx expo export --platform ios
-PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" npx expo export --platform android
+PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" pnpm dlx expo export --platform ios
+PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" pnpm dlx expo export --platform android
 ```
 
 Both targets bundle cleanly as of the last verification.

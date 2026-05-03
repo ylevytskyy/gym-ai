@@ -26,7 +26,7 @@ TS_DEST="$APP_ROOT/src/lib/prompt-template.generated.ts"
 PROMPT_SRC="$SRC/workout-generator-prompt.md"
 {
   printf '// AUTO-GENERATED from ../../../workout-generator-prompt.md by scripts/sync-data.sh\n'
-  printf '// Do not edit by hand — re-run: npm run sync-data\n\n'
+  printf '// Do not edit by hand — re-run: pnpm sync-data\n\n'
   printf 'export const PROMPT_TEMPLATE = '
   sed -e 's/\\/\\\\/g' -e 's/`/\\`/g' -e 's/\${/\\${/g' "$PROMPT_SRC" \
     | awk 'BEGIN{printf "`"} {print} END{printf "`;\n"}'

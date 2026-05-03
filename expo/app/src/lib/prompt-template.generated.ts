@@ -1,5 +1,5 @@
 // AUTO-GENERATED from ../../../workout-generator-prompt.md by scripts/sync-data.sh
-// Do not edit by hand — re-run: npm run sync-data
+// Do not edit by hand — re-run: pnpm sync-data
 
 export const PROMPT_TEMPLATE = `# Workout Plan Generator — LLM Prompt
 

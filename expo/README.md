@@ -74,11 +74,11 @@ print('valid' if not errors else f'{len(errors)} errors')
 "
 ```
 
-If you have Node available, `npx ajv-cli` works too:
+If you have Node available, `pnpm dlx ajv-cli` works too:
 
 ```sh
-npx ajv compile -s workout-plan.schema.json
-npx ajv validate -s workout-plan.schema.json -d sample-weekly-plan.json
+pnpm dlx ajv-cli compile -s workout-plan.schema.json
+pnpm dlx ajv-cli validate -s workout-plan.schema.json -d sample-weekly-plan.json
 ```
 
 ## Generating a plan with an LLM
@@ -129,8 +129,8 @@ MET values come from the [Compendium of Physical Activities](https://pacompendiu
 
 ```sh
 cd app
-PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" npm install
-PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" npm run start
+PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" pnpm install
+PATH="/opt/homebrew/Cellar/node/25.7.0/bin:$PATH" pnpm start
 ```
 
 Scan the QR code from Expo Go on your phone. Full setup and architecture notes
