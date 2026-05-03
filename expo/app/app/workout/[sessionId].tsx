@@ -17,7 +17,6 @@ import { Button } from "@src/components/Button";
 import { ProgressRing } from "@src/components/ProgressRing";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { usePlanStore } from "@src/store/planStore";
-import { useProfileStore } from "@src/store/profileStore";
 import { useSettingsStore } from "@src/store/settingsStore";
 import { findSessionInPlan } from "@src/lib/session-picker";
 import { buildRunnerSteps, countSetSteps, type RunnerStep } from "@src/lib/runner";
@@ -66,7 +65,7 @@ export default function WorkoutRunner() {
   const [done, setDone] = useState(false);
   const startedAtRef = useRef<string>(nowIso());
   const stepStartRef = useRef<number>(Date.now());
-  const setsCompleted = useRef(0);
+  const [setsCompleted, setSetsCompleted] = useState(0);
 
   // ─── audio (stubs — sound files not yet bundled; settings toggle reserved)
   const playBeep = () => {
@@ -215,7 +214,7 @@ export default function WorkoutRunner() {
       completed_at: nowIso(),
     });
 
-    setsCompleted.current += 1;
+    setSetsCompleted((n) => n + 1);
     success();
     playDing();
     advance();
@@ -227,17 +226,15 @@ export default function WorkoutRunner() {
       if (!session) return;
       const prior =
         session.blocks[current.blockIdx].exercises[current.exIdx].execution;
-      const isLastSet =
-        (prior.actual_sets_completed || 0) + 1 >=
-        current.totalSets * current.totalRounds;
-      if (isLastSet && prior.actual_sets_completed === 0) {
+      const totalForExercise = current.totalSets * current.totalRounds;
+      const completed = prior.actual_sets_completed || 0;
+      const isLastSet = completed + 1 >= totalForExercise;
+      if (isLastSet) {
         markExerciseExecution(
           session.session_id,
           current.blockIdx,
           current.exIdx,
-          {
-            status: "skipped",
-          },
+          { status: completed === 0 ? "skipped" : "partial" },
         );
       }
     }
@@ -275,6 +272,7 @@ export default function WorkoutRunner() {
                     60000,
                 ),
               });
+              await cancelSession(session.session_id);
             }
             router.back();
           },
@@ -331,7 +329,7 @@ export default function WorkoutRunner() {
             fontWeight: "700",
           }}
         >
-          {t('workout.setsProgress', { done: setsCompleted.current, total: totalSets })}
+          {t('workout.setsProgress', { done: setsCompleted, total: totalSets })}
         </Text>
         <View style={{ width: 32 }} />
       </View>
