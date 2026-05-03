@@ -8,7 +8,7 @@ Use `pnpm` for all JavaScript and TypeScript commands in this workspace. Do not 
 
 - Run `pnpm start:dev` from this directory to start the API in watch mode.
 - Run `pnpm start:debug` from this directory to start the API in watch mode with the Node debugger on port `9229`.
-- Keep `.env` populated from `.env.example`, including `JWT_SECRET`, before starting the API locally.
+- Keep `.env` populated from `.env.example`, including `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `OPENROUTER_API_KEY`, before starting the API locally.
 - The API listens on port `3000` by default and uses the `/api` global prefix.
 - Verify local health with `curl -s http://127.0.0.1:3000/api/health`.
 - Attach a debugger to `127.0.0.1:9229` when using `pnpm start:debug`.
