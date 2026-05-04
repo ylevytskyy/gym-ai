@@ -6,6 +6,7 @@ import {
   Pressable,
   Platform,
   Alert,
+  Modal,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { format, addDays, parse } from "date-fns";
@@ -198,6 +199,7 @@ export default function GeneratePlan() {
               label={t('plan.generate.workStart')}
               value={workStart}
               onChange={setWorkStart}
+              maxTimeExclusive={workEnd}
             />
           </View>
           <View style={{ flex: 1 }}>
@@ -205,6 +207,7 @@ export default function GeneratePlan() {
               label={t('plan.generate.workEnd')}
               value={workEnd}
               onChange={setWorkEnd}
+              minTimeExclusive={workStart}
             />
           </View>
         </View>
@@ -273,6 +276,7 @@ export default function GeneratePlan() {
                 label={t('plan.generate.workStart')}
                 value={lunchStart}
                 onChange={setLunchStart}
+                maxTimeExclusive={lunchEnd}
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -280,6 +284,7 @@ export default function GeneratePlan() {
                 label={t('plan.generate.workEnd')}
                 value={lunchEnd}
                 onChange={setLunchEnd}
+                minTimeExclusive={lunchStart}
               />
             </View>
           </View>
@@ -436,18 +441,60 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+function hhmmToUtcDate(s: string): Date {
+  const [h = 0, m = 0] = s.split(":").map(Number);
+  const d = new Date(0);
+  d.setUTCHours(h, m, 0, 0);
+  return d;
+}
+
+function utcDateToHHmm(d: Date): string {
+  const h = String(d.getUTCHours()).padStart(2, "0");
+  const m = String(d.getUTCMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
 function TimePickerField({
   label,
   value,
   onChange,
+  minTimeExclusive,
+  maxTimeExclusive,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  minTimeExclusive?: string;
+  maxTimeExclusive?: string;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const asDate = parse(value, "HH:mm", new Date());
+  const [pending, setPending] = useState<Date>(() => hhmmToUtcDate(value));
+
+  const minDate = minTimeExclusive
+    ? new Date(hhmmToUtcDate(minTimeExclusive).getTime() + 60_000)
+    : undefined;
+  const maxDate = maxTimeExclusive
+    ? new Date(hhmmToUtcDate(maxTimeExclusive).getTime() - 60_000)
+    : undefined;
+
+  const clamp = (d: Date): Date => {
+    if (minDate && d.getTime() < minDate.getTime()) return minDate;
+    if (maxDate && d.getTime() > maxDate.getTime()) return maxDate;
+    return d;
+  };
+
+  const openPicker = () => {
+    setPending(clamp(hhmmToUtcDate(value)));
+    setOpen(true);
+  };
+
+  const commit = () => {
+    onChange(utcDateToHHmm(clamp(pending)));
+    setOpen(false);
+  };
+
   return (
     <>
       <Text
@@ -460,7 +507,7 @@ function TimePickerField({
         {label}
       </Text>
       <Pressable
-        onPress={() => setOpen(true)}
+        onPress={openPicker}
         style={{
           borderWidth: 1,
           borderColor: theme.colors.border,
@@ -472,14 +519,71 @@ function TimePickerField({
       >
         <Text style={{ color: theme.colors.text, fontSize: 16 }}>{value}</Text>
       </Pressable>
-      {open ? (
+      {Platform.OS === "ios" && open ? (
+        <Modal
+          visible
+          transparent
+          animationType="slide"
+          onRequestClose={() => setOpen(false)}
+        >
+          <View style={{ flex: 1 }}>
+            <Pressable
+              style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}
+              onPress={() => setOpen(false)}
+            />
+            <View style={{ backgroundColor: theme.colors.surface }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
+                  paddingHorizontal: theme.spacing.md,
+                  paddingVertical: theme.spacing.sm,
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                  borderBottomColor: theme.colors.border,
+                }}
+              >
+                <Pressable onPress={commit} hitSlop={12}>
+                  <Text
+                    style={{
+                      color: theme.colors.primary,
+                      fontSize: 16,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {t("app.done")}
+                  </Text>
+                </Pressable>
+              </View>
+              <DateTimePicker
+                value={pending}
+                mode="time"
+                display="spinner"
+                timeZoneName="UTC"
+                minimumDate={minDate}
+                maximumDate={maxDate}
+                onChange={(_e, picked) => {
+                  if (picked) setPending(picked);
+                }}
+                themeVariant={theme.dark ? "dark" : "light"}
+                style={{
+                  width: "100%",
+                  backgroundColor: theme.colors.surface,
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+      ) : Platform.OS === "android" && open ? (
         <DateTimePicker
-          value={asDate}
+          value={pending}
           mode="time"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
+          display="default"
+          timeZoneName="UTC"
+          minimumDate={minDate}
+          maximumDate={maxDate}
           onChange={(_e, picked) => {
-            if (Platform.OS === "android") setOpen(false);
-            if (picked) onChange(format(picked, "HH:mm"));
+            setOpen(false);
+            if (picked) onChange(utcDateToHHmm(clamp(picked)));
           }}
           themeVariant={theme.dark ? "dark" : "light"}
         />

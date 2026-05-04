@@ -1,11 +1,14 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { Button } from "@src/components/Button";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { useOnboardingStore } from "@src/store/onboardingStore";
+
+const logoDark = require("../../assets/images/logo-dark.png");
+const logoLight = require("../../assets/images/logo-light.png");
 
 export default function Welcome() {
   const theme = useTheme();
@@ -20,14 +23,17 @@ export default function Welcome() {
   return (
     <Screen>
       <View style={styles.center}>
-        <Text style={[styles.emoji]}>🏋️</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          {t('onboarding.welcome.title')}
-        </Text>
+        <Image
+          source={theme.dark ? logoDark : logoLight}
+          style={styles.logo}
+          resizeMode="contain"
+          accessibilityRole="image"
+          accessibilityLabel={t('onboarding.welcome.title')}
+        />
         <Text
           style={[
             styles.subtitle,
-            { color: theme.colors.textMuted, marginTop: theme.spacing.md },
+            { color: theme.colors.textMuted, marginTop: theme.spacing.lg },
           ]}
         >
           {t('onboarding.welcome.subtitle')}
@@ -42,7 +48,6 @@ export default function Welcome() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  emoji: { fontSize: 72 },
-  title: { fontSize: 28, fontWeight: "700", marginTop: 24 },
+  logo: { width: "100%", aspectRatio: 1536 / 1024, maxWidth: 360 },
   subtitle: { fontSize: 16, textAlign: "center", lineHeight: 22 },
 });

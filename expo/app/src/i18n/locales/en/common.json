@@ -2,7 +2,8 @@
   "app": {
     "loading": "Loading…",
     "notFound": "Not found",
-    "back": "Back"
+    "back": "Back",
+    "done": "Done"
   },
   "tabs": {
     "plan": "Plan",
@@ -14,6 +15,20 @@
     "back": "← Back",
     "skip": "Skip",
     "stepOf": "Step {{current}} of {{total}}"
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create account",
+    "signInCta": "Sign in",
+    "signUpCta": "Create account",
+    "toggleToSignUp": "New here? Create an account",
+    "toggleToSignIn": "Already have an account? Sign in",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "checkEmail": "Check your email to confirm the account.",
+    "signOut": "Sign out"
   },
   "onboarding": {
     "welcome": {
@@ -213,7 +228,11 @@
       "copied": "Copied!",
       "havePlan": "I have my plan — paste it",
       "backToForm": "Back to form",
-      "buildErrorTitle": "Couldn't build prompt"
+      "buildErrorTitle": "Couldn't build prompt",
+      "generatePlan": "Generate plan",
+      "pasteFallback": "Paste a plan instead",
+      "validationErrorTitle": "Plan didn't validate",
+      "generateErrorTitle": "Couldn't generate plan"
     },
     "paste": {
       "title": "Paste your plan",

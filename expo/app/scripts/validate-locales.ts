@@ -1,6 +1,8 @@
-// Build-time check that every locale file has the same keys as English and
-// that every exercise id in the structural catalog has a matching entry in
-// both en and uk exercises.json. Fails the build on drift.
+// Build-time check that every locale file has the same keys as English, that
+// every exercise id in the structural catalog has a matching entry in both en
+// and uk exercises.json, and that every literal `t("…")` / `i18n.t("…")` key
+// referenced from app/ or src/ exists in the English locales. Fails the build
+// on drift.
 //
 // Run: npx tsx scripts/validate-locales.ts
 
@@ -11,6 +13,9 @@ const APP_ROOT = path.resolve(__dirname, '..');
 const LOCALES = path.join(APP_ROOT, 'src', 'i18n', 'locales');
 const LANGS = ['en', 'uk'] as const;
 const NAMESPACES = ['common', 'enums', 'exercises'] as const;
+const SCAN_DIRS = ['app', 'src'] as const;
+const SCAN_EXTS = new Set(['.ts', '.tsx']);
+const DEFAULT_NS = 'common';
 
 type Issue = string;
 const issues: Issue[] = [];
@@ -114,10 +119,77 @@ for (const id of Object.keys(ukEx)) {
   }
 }
 
+// 3) referenced keys: every literal `t("…")` / `i18n.t("…")` in app/ or src/
+// must resolve against the English locale for its namespace. Skips template
+// literals and other dynamic forms — only plain quoted strings are checked.
+const enByNs: Record<string, Set<string>> = {
+  common: collectKeys(loadJson(path.join(LOCALES, 'en', 'common.json'))),
+  enums: collectKeys(loadJson(path.join(LOCALES, 'en', 'enums.json'))),
+  exercises: new Set(Object.keys(enEx)),
+};
+
+const T_CALL_RE = /(?<![\w$])(?:i18n\.)?t\(\s*(['"])([^'"\\]+)\1/g;
+
+// CLDR plural suffixes used by i18next when a key is called with `{ count }`.
+const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
+function hasKey(bucket: Set<string>, key: string): boolean {
+  if (bucket.has(key)) return true;
+  return PLURAL_SUFFIXES.some((s) => bucket.has(key + s));
+}
+
+function* walk(dir: string): Generator<string> {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) yield* walk(full);
+    else if (SCAN_EXTS.has(path.extname(entry.name))) yield full;
+  }
+}
+
+const referenced = new Map<string, Set<string>>(); // key → set of files
+for (const dir of SCAN_DIRS) {
+  const root = path.join(APP_ROOT, dir);
+  if (!fs.existsSync(root)) continue;
+  for (const file of walk(root)) {
+    const src = fs.readFileSync(file, 'utf8');
+    for (const m of src.matchAll(T_CALL_RE)) {
+      const raw = m[2];
+      const where = path.relative(APP_ROOT, file);
+      if (!referenced.has(raw)) referenced.set(raw, new Set());
+      referenced.get(raw)!.add(where);
+    }
+  }
+}
+
+for (const [raw, files] of referenced) {
+  const colon = raw.indexOf(':');
+  const ns = colon >= 0 ? raw.slice(0, colon) : DEFAULT_NS;
+  const key = colon >= 0 ? raw.slice(colon + 1) : raw;
+  const bucket = enByNs[ns];
+  if (!bucket) {
+    issues.push(`[refs] unknown namespace '${ns}' in t('${raw}') (${[...files].join(', ')})`);
+    continue;
+  }
+  if (ns === 'exercises') {
+    // exercises.json is keyed by exercise id at the top level; nested
+    // lookups (e.g. exercises:foo.name) are valid as long as the id exists.
+    const id = key.split('.')[0];
+    if (!bucket.has(id)) {
+      issues.push(`[refs] missing en exercise '${id}' for t('${raw}') (${[...files].join(', ')})`);
+    }
+    continue;
+  }
+  if (!hasKey(bucket, key)) {
+    issues.push(`[refs] missing en.${ns}: '${key}' referenced from ${[...files].join(', ')}`);
+  }
+}
+
 if (issues.length > 0) {
   console.error(`validate-locales: ${issues.length} issue(s) found:`);
   for (const issue of issues) console.error(`  - ${issue}`);
   process.exit(1);
 }
 
-console.log(`validate-locales: OK (${catalog.exercises.length} exercises, ${LANGS.length} languages, ${NAMESPACES.length} namespaces)`);
+console.log(
+  `validate-locales: OK (${catalog.exercises.length} exercises, ${LANGS.length} languages, ${NAMESPACES.length} namespaces, ${referenced.size} referenced keys)`,
+);

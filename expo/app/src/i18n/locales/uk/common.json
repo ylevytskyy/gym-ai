@@ -2,7 +2,8 @@
   "app": {
     "loading": "Завантаження…",
     "notFound": "Не знайдено",
-    "back": "Назад"
+    "back": "Назад",
+    "done": "Готово"
   },
   "tabs": {
     "plan": "План",
@@ -14,6 +15,20 @@
     "back": "← Назад",
     "skip": "Пропустити",
     "stepOf": "Крок {{current}} з {{total}}"
+  },
+  "auth": {
+    "signInTitle": "Увійти",
+    "signUpTitle": "Створити акаунт",
+    "signInCta": "Увійти",
+    "signUpCta": "Створити акаунт",
+    "toggleToSignUp": "Новий користувач? Створіть акаунт",
+    "toggleToSignIn": "Уже маєте акаунт? Увійдіть",
+    "emailLabel": "Електронна пошта",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Щонайменше 6 символів",
+    "checkEmail": "Перевірте пошту, щоб підтвердити акаунт.",
+    "signOut": "Вийти"
   },
   "onboarding": {
     "welcome": {
@@ -213,7 +228,11 @@
       "copied": "Скопійовано!",
       "havePlan": "План готовий — вставити його",
       "backToForm": "Назад до форми",
-      "buildErrorTitle": "Не вдалося сформувати промпт"
+      "buildErrorTitle": "Не вдалося сформувати промпт",
+      "generatePlan": "Згенерувати план",
+      "pasteFallback": "Вставити план вручну",
+      "validationErrorTitle": "План не пройшов перевірку",
+      "generateErrorTitle": "Не вдалося згенерувати план"
     },
     "paste": {
       "title": "Встав свій план",
