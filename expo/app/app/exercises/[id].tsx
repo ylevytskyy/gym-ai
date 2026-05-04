@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import { Stack, router, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
@@ -48,7 +48,7 @@ export default function ExerciseDetailScreen() {
   if (!exercise || !text) {
     return (
       <Screen>
-        <Stack.Screen options={{ title: "", headerLeft: () => <BackButton /> }} />
+        <Stack.Screen options={{ title: "" }} />
         <Text style={{ color: theme.colors.text, marginTop: 24 }}>
           {t("app.notFound")}
         </Text>
@@ -66,7 +66,7 @@ export default function ExerciseDetailScreen() {
 
   return (
     <Screen scrollable>
-      <Stack.Screen options={{ title: text.name, headerLeft: () => <BackButton /> }} />
+      <Stack.Screen options={{ title: text.name }} />
 
       <View style={{ marginTop: theme.spacing.md }}>
         <ExerciseImagePlayer exerciseId={exercise.id} />
@@ -259,22 +259,6 @@ function MetaRow({
         ))}
       </View>
     </View>
-  );
-}
-
-function BackButton() {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  return (
-    <Pressable
-      onPress={() => router.back()}
-      accessibilityRole="button"
-      accessibilityLabel={t("app.back")}
-      hitSlop={12}
-      style={{ paddingHorizontal: 4 }}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
-    </Pressable>
   );
 }
 
