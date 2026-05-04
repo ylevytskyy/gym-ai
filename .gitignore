@@ -59,6 +59,7 @@ yarn-error.*
 .claude/skills/
 skills-lock.json
 .mcp.json
+nestjs/.claude/
 
 # ─── misc ──────────────────────────────────────────────────────
 app-example/
