@@ -1,11 +1,12 @@
 """Geometric validation primitives. Pure functions over PoseHistory.
 
-A 'joint' identifier is a (bone_name, axis) tuple — e.g. ("mixamorig:LeftUpLeg", "X").
+A 'joint' identifier is a (bone_name, axis) tuple — e.g. (Bones.LEFT_UP_LEG, "X").
 """
 import math
 from dataclasses import dataclass
 
 from .pose_data import PoseHistory
+from .rig import Bones as _Bones
 
 
 _AXIS_INDEX = {"X": 0, "Y": 1, "Z": 2}
@@ -214,17 +215,17 @@ def world_position_drift_max(
 
 
 def hip_no_lateral_drift(history: PoseHistory, *, max_meters: float) -> list[ValidationResult]:
-    return world_position_drift_max(history, bone="mixamorig:Hips", axis="X", max_meters=max_meters)
+    return world_position_drift_max(history, bone=_Bones.HIPS, axis="X", max_meters=max_meters)
 
 
 def hip_no_sagittal_drift(history: PoseHistory, *, max_meters: float) -> list[ValidationResult]:
-    return world_position_drift_max(history, bone="mixamorig:Hips", axis="Y", max_meters=max_meters)
+    return world_position_drift_max(history, bone=_Bones.HIPS, axis="Y", max_meters=max_meters)
 
 
-_FOOT_BONES = {"left": "mixamorig:LeftFoot", "right": "mixamorig:RightFoot"}
+_FOOT_BONES = {"left": _Bones.LEFT_FOOT, "right": _Bones.RIGHT_FOOT}
 _SHIN_BONES = {
-    "left": ("mixamorig:LeftLeg", "mixamorig:LeftFoot"),
-    "right": ("mixamorig:RightLeg", "mixamorig:RightFoot"),
+    "left": (_Bones.LEFT_LEG, _Bones.LEFT_FOOT),
+    "right": (_Bones.RIGHT_LEG, _Bones.RIGHT_FOOT),
 }
 
 # Blender world-coordinate Z is "up". The function exposes "y" in its public API
