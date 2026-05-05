@@ -2,61 +2,61 @@
   "_comment": "Detailed per-step pose descriptions. Each string replaces the short instruction text in the generated prompt. Be explicit: camera angle, joint angles, hand/foot placement on floor, spine orientation, head/gaze, motion indicators.",
   "exercises": {
     "ankle-circles": [
-      "Camera: side profile, figure facing right, seated on a simple wooden chair drawn on the floor line. Spine vertical, shoulders level, both hands resting loosely on the thighs. Left foot is flat on the floor. Right foot is lifted about 20 cm off the floor, right knee bent to about 110 degrees, right toes pointed forward. Head upright, gaze forward.",
-      "Same seated chair and posture. Right foot is still lifted at the same height. Draw a small circular motion arc around the right ankle (a curved loop with a tiny arrowhead) indicating clockwise rotation. Toes point slightly downward-forward to suggest mid-rotation. No text on the arc.",
-      "Same seated chair and posture. Right foot still lifted. Now the motion arc around the right ankle runs in the OPPOSITE direction (counter-clockwise). Toes point slightly upward-forward to suggest the reversed mid-rotation.",
-      "Same chair and seated posture. Now the LEFT foot is lifted 20 cm off the floor with left knee bent to 110 degrees and left toes pointed forward. Right foot is flat on the floor. A small circular motion arc surrounds the left ankle."
+      "Skeletal: Vertical spine. 2 arms (L/R) bent 120\u00b0 at elbow, hands on thighs. 2 legs: L leg (hip 90\u00b0, knee 90\u00b0, foot flat), R leg (hip 70\u00b0, knee 110\u00b0, foot hovering). Limb Count: EXACTLY 4 limbs (2 arms, 2 legs). Contact: Butt on chair, L sole on floor, 2 hands on thighs. Audit: The lifted R leg is the ONLY right leg; ensure no ghost leg remains on the floor under the chair.",
+      "Skeletal: Same as Panel 1. Visual: Small clockwise rotation arc around R ankle. Limb Count: EXACTLY 4 limbs. Contact: Butt on chair, L sole on floor. Audit: Ensure R foot is the only moving part; R thigh remains stationary at 70\u00b0 hip flexion. Only two legs exist in this frame.",
+      "Skeletal: Same as Panel 1. Visual: Small counter-clockwise rotation arc around R ankle. Limb Count: EXACTLY 4 limbs. Contact: Butt on chair, L sole on floor. Audit: Confirm previous clockwise arc is removed and replaced by the new direction. Still only 2 arms and 2 legs total.",
+      "Skeletal: Vertical spine. 2 arms bent 120\u00b0. 2 legs: R leg (hip 90\u00b0, knee 90\u00b0, foot flat), L leg (hip 70\u00b0, knee 110\u00b0, foot hovering). Limb Count: EXACTLY 4 limbs. Contact: Butt on chair, R sole on floor. Audit: L leg is now the ONLY lifted leg; R leg must be firmly on the ground with no second R leg in the air."
     ],
     "bicycle-crunches": [
-      "Camera: side profile, figure lying flat on the back (supine) on the floor line, head to the right, feet to the left. Hands are placed lightly behind the head with fingers near the ears and elbows pointing out sideways toward the camera. Both knees are bent to 90 degrees and lifted so the thighs are vertical and the shins are horizontal (tabletop). Lower back pressed to the floor.",
-      "Supine on the floor. Torso is twisted: the RIGHT elbow is lifted and rotated toward the LEFT knee, which is pulled in close to the chest (left thigh drawn toward the torso, left knee bent 90 degrees). Simultaneously the RIGHT leg is extended nearly straight at a low angle with the right foot hovering 15–20 cm above the floor. Hands still behind the head; neck long, gaze diagonally toward the left knee.",
-      "Mirror of the previous panel. LEFT elbow lifted and rotated toward the RIGHT knee which is pulled in close to the chest; LEFT leg extended nearly straight at a low angle with the left foot hovering 15–20 cm above the floor. Add small curved motion lines between the two legs to indicate the continuous pedaling switch.",
-      "Same body position as panel 2 (right elbow to left knee, right leg extended low). Add subtle repeating motion lines at the shoulders and feet to indicate this is the steady-state pedaling rep."
+      "INVENTORY: 1 Head Sphere, 1 Torso Capsule, 6 Cylinders (2 for arms, 4 for legs). TOTAL: 6 Cylinders. SKELETON: Single skeleton, 4 limbs. Blueprint: Supine spine. Arms: Hands anchored behind head, elbows wide. Legs: Tabletop (hips 90\u00b0, knees 90\u00b0). COMPONENT MAPPING: Each limb is a discrete, unbranching cylinder. ILLEGAL: No 3rd arm from floor. No 5th limb from stomach. Every cylinder must originate ONLY from its respective socket.",
+      "INVENTORY: 6 Cylinders. SKELETON: Spine rotated 30\u00b0 left. VISIBILITY: The LEFT SHOULDER is hidden behind the torso. The RIGHT ELBOW is the only elbow visible in the foreground, pivoted forward to intercept Left Knee. The LEFT KNEE is the only knee visible in the foreground. INTERSECTION: Right Elbow hovers 1px ABOVE the Left Knee; they are distinct, separate objects. Do NOT merge. NEGATIVE SPACE: Original 'behind head' position is empty. AUDIT: Torso surface is smooth; ZERO cylinders sprout from it.",
+      "INVENTORY: 6 Cylinders. SKELETON: Spine rotated 30\u00b0 right. VISIBILITY: The RIGHT SHOULDER is hidden behind the torso. The LEFT ELBOW is the only elbow visible in the foreground. The RIGHT KNEE is the only knee visible in the foreground. INTERSECTION: Left Elbow and Right Knee remain distinct shapes with 1px gap. NEGATIVE SPACE: Original positions erased. AUDIT: No extra limbs from center of torso. Exactly 6 cylinders total. Erase ghost limbs from previous frame.",
+      "INVENTORY: 6 Cylinders. SKELETON: Reciprocal motion. KINEMATIC CHAIN: Limbs maintain integrity as straight cylinder segments. AUDIT: Simulate a 360\u00b0 scan; confirm torso capsule has exactly 4 limb attachment points. ILLEGAL: No branching limbs. No 3rd arm for balance. Erase all ghost limbs. Torso surface is a smooth capsule with ZERO sprouting limbs."
     ],
     "bird-dog": [
-      "Camera: side profile, figure on all fours on the floor line, facing right. Hands flat on the floor with wrists directly under the shoulders, fingers pointing forward. Knees directly under the hips, shins flat on the floor, tops of the feet down. Spine flat and neutral, head in line with the spine, gaze straight down at the floor.",
-      "Same quadruped pose as before. Add light emphasis lines or subtle shading around the abdomen to show the core is tight and braced. Body shape otherwise identical: hands under shoulders, knees under hips, flat back, gaze down.",
-      "Same quadruped base. The RIGHT arm is extended straight forward at shoulder height, biceps beside the right ear, fingers forward (arm parallel to the floor). The LEFT leg is extended straight back at hip height, toes pointed (leg parallel to the floor). Fingertip-to-toe line is one long horizontal through the body. Hips and shoulders are square to the floor — no tilting.",
-      "Identical extended shape held — same right arm forward, left leg back, both parallel to the floor. A tiny curved arrow above the extended arm suggests a brief hold, but no text.",
-      "Mirror of the extended pose. LEFT arm extended straight forward at shoulder height, RIGHT leg extended straight back at hip height, both parallel to the floor. Hips and shoulders level."
+      "Skeletal: Horizontal spine. 2 arms vertical (90\u00b0 to spine), palms flat. 2 legs bent 90\u00b0 at hip and knee, knees/shins/tops of feet flat. Visual: Side profile on all fours. Limb Count: 4 limbs total (2 hands, 2 knees). Contact: 2 palms, 2 knees, 2 tops of feet. Audit: Standard quadruped; no extra arms under chest.",
+      "Skeletal: Same as Panel 1. Visual: Emphasize abdominal core with shading. Limb Count: 4 limbs. Contact: 2 palms, 2 knees. Audit: Ensure only 2 hands and 2 knees are visible.",
+      "Skeletal: Horizontal spine. L arm vertical (90\u00b0 to spine), R arm horizontal (180\u00b0 extension). R leg bent at hip/knee (90\u00b0), L leg horizontal (180\u00b0 extension). Visual: Opposite arm and leg extended. Limb Count: EXACTLY 2 arms and 2 legs. The LEFT arm is the ONLY one touching the floor. The LEFT leg is the ONLY one in the air. Contact: Left palm, right knee, right shin. Audit: Models often draw a 3rd arm for support; explicitly limit to 1 arm and 1 knee on the ground.",
+      "Skeletal: Same as Panel 3. Visual: Hold position. Limb Count: 4 limbs total (1 arm down, 1 arm out, 1 knee down, 1 leg out). Contact: Left palm, right knee. Audit: Maintain strict 4-limb symmetry.",
+      "Skeletal: Horizontal spine. R arm vertical (90\u00b0), L arm horizontal (180\u00b0). L leg bent at hip/knee (90\u00b0), R leg horizontal (180\u00b0). Visual: Mirror extension. Limb Count: 4 limbs. The RIGHT arm is the ONLY one touching the floor. The RIGHT leg is the ONLY one in the air. Contact: Right palm, left knee, left shin. Audit: Verify that the previous supporting limbs have lifted or swapped to keep the total count at 4."
     ],
     "bodyweight-squats": [
-      "Camera: side profile facing right, full body visible. Figure stands upright, feet shoulder-width apart and flat on the floor, toes turned slightly outward (visible as a slight splay). Arms relaxed at the sides, palms facing the thighs. Spine vertical, shoulders level, head upright, gaze forward.",
-      "Beginning the squat. Hips pushed back slightly, knees bent about 30 degrees, torso leaned slightly forward from the hips (back still flat). Arms lifted forward to shoulder height for counterbalance, palms down, fingers forward. Feet still flat on floor.",
-      "Descent, with emphasis on form: chest up and open, spine neutral (not rounded), weight visibly in the heels (small horizontal pressure lines near the heels). Torso leans forward at about 45 degrees, arms extended forward at shoulder height. Knees bent to about 70 degrees and tracking forward over the toes. Feet flat.",
-      "Bottom of the squat. Thighs parallel to the floor, knees bent ~90 degrees, kneecaps aligned over the toes. Hips pushed back and down. Torso leaning forward at about 45 degrees with chest open. Arms reaching forward at shoulder height, palms down. Feet flat on the floor, weight on the heels.",
-      "Ascending back up. Knees partially extended to about 135 degrees, hips driving up and slightly forward, torso returning toward vertical. Arms lowering back toward the sides. Add two short upward motion arrows beside the hips to indicate the drive out of the bottom."
+      "Skeletal: Vertical spine. 2 arms straight at sides (180\u00b0). 2 legs straight (180\u00b0), feet flat. Limb Count: EXACTLY 4 limbs (2 arms, 2 legs). Contact: 2 feet flat on floor. Audit: Basic standing pose; no extra limbs or support structures.",
+      "Skeletal: Spine tilted 10\u00b0 forward. 2 arms straight, raised 90\u00b0 to horizontal. 2 legs symmetrical: hip 160\u00b0, knee 150\u00b0. Limb Count: EXACTLY 4 limbs. Contact: 2 feet flat. Audit: Ensure 2 arms are in front and ONLY 2 legs are squatting; no ghost legs in the original standing position.",
+      "Skeletal: Spine tilted 30\u00b0 forward. 2 arms horizontal (90\u00b0). 2 legs: hip 120\u00b0, knee 110\u00b0. Limb Count: EXACTLY 4 limbs. Contact: 2 feet flat. Audit: Knees stay behind toes; check that the model doesn't draw a third leg for balance.",
+      "Skeletal: Spine tilted 45\u00b0 forward. 2 arms horizontal (90\u00b0). 2 legs: hip 90\u00b0, knee 90\u00b0 (thighs parallel to floor). Limb Count: EXACTLY 4 limbs. Contact: 2 feet flat. Audit: The figure has exactly 2 thighs and 2 shins; no extra appendages visible.",
+      "Skeletal: Spine tilted 10\u00b0 forward. 2 arms lowering (45\u00b0). 2 legs: hip 150\u00b0, knee 160\u00b0. Limb Count: EXACTLY 4 limbs. Contact: 2 feet flat. Audit: Use upward motion lines near hips to show ascent without adding extra limbs."
     ],
     "burpees": [
-      "Side profile, figure facing right. Standing upright, feet hip-width apart and flat on the floor, legs straight with knees soft (not locked), torso vertical, arms relaxed at the sides with palms facing the thighs, shoulders level, head upright, gaze forward.",
-      "Deep squat with hands planted. Hips lowered near heel level, knees bent well past 90 degrees and tracking forward over the toes, feet flat on the floor hip-width apart. Torso tipped forward so the chest is above/between the thighs. Both palms flat on the floor just in front of the feet, fingers forward, arms straight, shoulders directly above the hands. Head looks down and slightly forward.",
-      "High plank (feet just kicked back). Body forms one perfectly straight diagonal line from heels to head. Arms fully extended and vertical, palms flat on the floor directly beneath the shoulders in the exact same spot as the previous panel. Feet together, toes curled under, heels pointing up. Head in line with the spine, gaze down. Short horizontal motion lines trailing behind the feet indicate the jump back.",
-      "Push-up bottom position. Chest hovers about a fist's height above the floor. Elbows bent to ~90 degrees, tucked at about 45 degrees from the torso (not flared straight out sideways, not pinned tight against the ribs). Forearms vertical, palms still flat in the same spot. Body remains one straight diagonal line from heels to head — no sagging hips, no piked butt. Feet together, toes curled. Gaze down.",
-      "Feet jumped forward to the hands: the figure is back in the deep squat from panel 2. Both feet flat on the floor just behind or beside the hands, hips low, knees bent sharply, chest over the thighs, both palms still planted on the floor. Short horizontal motion lines trailing behind the feet indicate the jump forward.",
-      "Explosive airborne jump. Both feet clearly off the ground with a visible gap between the soles and the floor line. Legs fully straight and extended downward, toes pointed. Torso vertical and fully upright. Both arms reach STRAIGHT UP overhead, fully extended, biceps beside the ears, palms facing each other. Head upright, gaze forward. Several short upward motion lines trail from beneath the feet and hips."
+      "Skeletal: Vertical spine. 2 arms straight at sides (180\u00b0). 2 legs straight, feet flat (180\u00b0). Visual: Standing upright. Limb Count: 4 limbs total. Contact: 2 feet flat on floor. Audit: Standard human silhouette.",
+      "Skeletal: Deep hip/knee flexion (150\u00b0). 2 arms straight, palms flat on floor (90\u00b0 to floor). 2 legs folded, feet flat. Visual: Crouched squat with hands planted between knees. Limb Count: 4 limbs. 2 hands, 2 feet. Contact: 2 palms, 2 soles. Audit: No extra hands or feet during the transition into the crouch.",
+      "Skeletal: Diagonal spine (30\u00b0 to floor). 2 arms vertical and straight (180\u00b0). 2 legs straight and together (180\u00b0). Visual: High plank. Limb Count: 4 limbs. 2 hands down, 2 feet down. Contact: 2 palms, 2 balls of feet. Audit: Ensure only 2 legs extend back; no ghost legs remain in the squat position.",
+      "Skeletal: Diagonal spine. 2 arms bent 90\u00b0 at elbow, forearms vertical. 2 legs straight (180\u00b0). Visual: Push-up bottom position, chest hovering. Limb Count: 4 limbs total. 2 hands, 2 feet. Contact: 2 palms, 2 balls of feet. Audit: Check for extra 'support' limbs under the torso; ensure only 2 arms exist.",
+      "Skeletal: Same as Panel 2 (Squat). Visual: Feet jumped forward to hands. Limb Count: 4 limbs. 2 hands, 2 feet. Contact: 2 palms, 2 soles. Audit: As feet jump forward, remove them from the plank position to prevent 'third leg' hallucination.",
+      "Skeletal: Vertical spine. 2 arms reached straight up (180\u00b0 at shoulder/elbow). 2 legs straight (180\u00b0), toes pointed down. Visual: Explosive jump. Limb Count: 4 limbs. 2 arms up, 2 legs down. Contact: None (visible gap between soles and floor). Audit: Ensure exactly 2 legs are jumping; no legs left on the ground."
     ],
     "butt-kicks": [
-      "Side profile, figure facing right. Standing upright, feet hip-width apart and flat on the floor, arms bent at the elbows to ~90 degrees in a running-ready position (one arm slightly forward, one slightly back). Spine vertical, head upright, gaze forward.",
-      "Running-in-place action. RIGHT foot is kicked up behind so the right heel nearly touches the right glute — right knee points down-forward, right thigh nearly vertical, right shin folded with heel near the glute. LEFT foot is planted flat on the floor, left leg bearing weight. Arms pump in opposition: right arm swung back, left arm swung forward, both still at ~90 degree bends. Short motion lines trail the rising right foot.",
-      "Mirror of the previous panel. LEFT foot kicked up with left heel near the left glute, right foot planted. Arm pump reversed (left arm back, right arm forward). Short motion lines trail the rising left foot. Spine still vertical, gaze forward."
+      "Skeletal: Vertical spine. 2 arms bent 90\u00b0 at elbow (running position). 2 legs straight (180\u00b0), feet flat. Limb Count: EXACTLY 4 limbs total. Contact: 2 feet flat. Audit: Neutral standing pose; ensure only 2 legs and 2 arms are present.",
+      "Skeletal: Vertical spine. 2 arms: R elbow 90\u00b0 (forward), L elbow 90\u00b0 (back). 2 legs: L leg straight (180\u00b0), R leg hip 170\u00b0 (neutral), knee 10\u00b0 (heel to glute). Limb Count: EXACTLY 4 limbs. Contact: L foot flat. Audit: R leg is folded at knee ONLY; no 3rd leg on floor. R thigh is parallel to L thigh.",
+      "Skeletal: Vertical spine. 2 arms: L elbow 90\u00b0 (forward), R elbow 90\u00b0 (back). 2 legs: R leg straight (180\u00b0), L leg hip 170\u00b0, knee 10\u00b0 (heel to glute). Limb Count: EXACTLY 4 limbs. Contact: R foot flat. Audit: L leg is now the ONLY folded leg; R leg is the ONLY straight leg bearing weight."
     ],
     "calf-raises": [
-      "Side profile, facing right. Figure stands tall, feet hip-width apart flat on the floor, legs straight with knees soft, arms relaxed at the sides. Spine vertical, shoulders level, head upright, gaze forward.",
-      "Top of the raise. Heels are lifted as high as possible — visible 6–8 cm gap between the heels and the floor. Figure balances on the balls of both feet, toes curled slightly to grip the floor. Calves visibly engaged (subtle shading lines at the back of the lower leg). Legs straight, torso vertical, arms still at the sides.",
-      "Identical top position to the previous panel — a brief hold. Same gap between heels and floor, weight on the balls of the feet. Add a tiny curved line above the figure to suggest a pause without using text.",
-      "Descent back down. Heels lowered almost to the floor (a 1–2 cm gap remaining) with the rest of the body identical to the starting position. Small downward motion arrows beside the heels indicate controlled lowering."
+      "Skeletal: Vertical spine. 2 arms straight at sides (180\u00b0). 2 legs straight (180\u00b0), feet flat. Limb Count: EXACTLY 4 limbs (2 arms, 2 legs). Contact: 2 feet flat on floor. Audit: Standard standing posture; no extra limbs.",
+      "Skeletal: Vertical spine. 2 arms straight. 2 legs straight (180\u00b0 knee), ankles 45\u00b0 (plantarflexed). Limb Count: EXACTLY 4 limbs. Contact: Balls of 2 feet only; 6cm gap under heels. Audit: Ensure only 2 feet are drawn; both must be in identical raised position with no heels on ground.",
+      "Skeletal: Same as Panel 2 (top of raise). Visual: Hold position. Limb Count: EXACTLY 4 limbs. Contact: Balls of 2 feet. Audit: Check for stability; no extra leg or arm for balance.",
+      "Skeletal: Vertical spine. 2 arms straight. 2 legs straight, ankles 10\u00b0 (heels hovering 1cm). Limb Count: EXACTLY 4 limbs. Contact: Balls of 2 feet. Audit: Downward motion arrows next to heels; ensure the original high-heels position is removed."
     ],
     "cat-cow": [
-      "Camera: side profile facing right, full body visible on the floor line. Figure is on all fours: hands flat with wrists under the shoulders, fingers forward; knees directly under the hips, shins flat on the floor, tops of the feet down. Spine is flat/neutral, head in line with the spine, gaze down at the floor.",
-      "COW phase. Belly drops toward the floor, chest lifts and opens forward, tailbone lifts upward — the spine arcs downward in a gentle U curve. Shoulder blades pulled back slightly. Head lifts so the gaze goes slightly up and forward. Hands still under the shoulders, knees still under the hips.",
-      "CAT phase. Spine arcs upward in a rounded hump, tailbone tucks under, pelvis tilts posteriorly. Head drops so the chin tucks toward the chest, gaze down toward the thighs. Shoulders press gently away from the ears. Hands still under the shoulders, knees still under the hips.",
-      "Transition / flowing through the movement. Spine is mid-way between cat and cow — nearly neutral with a slight dip. Add a small vertical curved arrow through the spine to suggest continuous flow with breath."
+      "Skeletal: Horizontal spine. 2 arms vertical (90\u00b0 to spine), elbows straight (180\u00b0). 2 legs bent 90\u00b0 at hip and knee. Limb Count: EXACTLY 4 limbs (2 arms, 2 legs). Contact: 2 palms, 2 knees, 2 shins, 2 tops of feet. Audit: All-fours position; no extra arms under chest or legs behind.",
+      "Skeletal: Spine curved downward (concave). 2 arms vertical (90\u00b0). 2 legs at 90\u00b0. Head tilted up 45\u00b0. Limb Count: EXACTLY 4 limbs. Contact: 2 palms, 2 knees. Audit: Cow pose; ensure belly 'drops' between the 2 arms and 2 legs without adding a 5th support pillar.",
+      "Skeletal: Spine arched upward (convex/hump). 2 arms vertical (90\u00b0). 2 legs at 90\u00b0. Head tilted down 90\u00b0 (chin to chest). Limb Count: EXACTLY 4 limbs. Contact: 2 palms, 2 knees. Audit: Cat pose; spine peaks between shoulders and hips; ensure only 2 arms and 2 legs are supporting the hump.",
+      "Skeletal: Spine returning to neutral horizontal. 2 arms vertical. 2 legs at 90\u00b0. Limb Count: EXACTLY 4 limbs. Contact: 2 palms, 2 knees. Audit: Flow indicator arrow through spine; check that the model doesn't leave a ghost hump or dip behind."
     ],
     "chair-tricep-dips": [
-      "Camera: side profile facing right. A simple wooden chair is drawn on the floor line. Figure sits on the front edge of the chair. Feet flat on the floor, hip-width, knees bent ~90 degrees. Both hands grip the front edge of the chair seat next to the hips, fingers pointing forward over the edge, arms straight. Torso vertical, gaze forward.",
-      "Same chair. The figure has slid forward off the seat: the hips are now in front of the chair, the arms are fully straight supporting the weight, palms still gripping the chair edge. Feet flat on the floor with legs bent to ~90 degrees, shins vertical. Torso vertical, gaze forward.",
-      "Bottom of the dip. Elbows are bent to about 90 degrees and pointing straight backward behind the figure (tucked close to the sides, not flared out). Hips have lowered straight down in front of the chair — hips now close to the floor. Back stays upright and close to the chair. Shins still vertical, feet flat. Gaze forward.",
-      "Ascending back up by extending the elbows. Arms nearly straight again, hips rising back to the level just below the chair seat. Same chair/hand/foot placement. Small upward motion arrows beside the triceps."
+      "Skeletal: Vertical spine. 2 arms straight, hands gripping chair edge behind hips. 2 legs bent (hip 90\u00b0, knee 90\u00b0), feet flat. Visual: Seated on edge of wooden chair. Limb Count: 4 limbs total. 2 arms reaching back, 2 legs reaching forward. Contact: 2 palms on chair, 2 soles on floor. Audit: Chair legs must be distinct from human limbs.",
+      "Skeletal: Vertical spine, hips forward of chair. 2 arms straight behind torso (shoulder extension). 2 legs bent (hip 90\u00b0, knee 90\u00b0), feet flat. Visual: Figure has slid off seat, supported by arms. Limb Count: 4 limbs. The ONLY two arms are behind the torso. Contact: 2 palms on chair edge, 2 soles on floor. Audit: Prevent a 3rd arm from appearing in front for balance.",
+      "Skeletal: Vertical spine. 2 arms bent at 90\u00b0 at elbow, elbows pointing straight back. 2 legs bent (hip 90\u00b0, knee 90\u00b0), feet flat. Visual: Bottom of dip, hips near floor. Limb Count: 4 limbs. All arms are behind the torso. Contact: 2 palms on chair edge, 2 soles on floor. Audit: Ensure the 90\u00b0 bent elbows are the only elbow joints drawn; no straight arms remain.",
+      "Skeletal: Vertical spine. 2 arms nearly straight (160\u00b0). 2 legs bent at hip/knee 90\u00b0. Visual: Ascending back up. Limb Count: 4 limbs total. Contact: 2 palms on chair, 2 soles on floor. Audit: Maintain 4 limbs throughout the vertical travel."
     ],
     "childs-pose": [
       "Camera: side profile facing right. Figure kneels on the floor: tops of both feet on the floor with big toes touching, knees apart wider than the hips. Torso is upright for this setup frame. Hips above the heels. Arms relaxed at the sides. Gaze forward.",
@@ -67,8 +67,8 @@
     ],
     "chin-tucks": [
       "Camera: side profile facing right. Figure sits upright on a simple chair drawn on the floor line. Both feet flat on the floor, hip-width. Hands resting lightly on the thighs. Spine vertical, shoulders level and relaxed. Head upright in a neutral position, gaze straight forward.",
-      "Same seated setup. The head has been drawn STRAIGHT back (without tilting up or down), creating a 'double chin' — the back of the skull moves rearward, the chin retracts slightly, making a small fold of skin under the jaw. Gaze still straight forward, neck long. Shoulders remain down and level.",
-      "Held retracted position — identical pose to the previous panel. Add a tiny curved pause-indicator line above the head (no text, no numbers).",
+      "Same seated setup. The head has been drawn STRAIGHT back (without tilting up or down), creating a 'double chin' \u2014 the back of the skull moves rearward, the chin retracts slightly, making a small fold of skin under the jaw. Gaze still straight forward, neck long. Shoulders remain down and level.",
+      "Held retracted position \u2014 identical pose to the previous panel. Add a tiny curved pause-indicator line above the head (no text, no numbers).",
       "Returning to neutral. Head back to the starting position (no tuck), gaze straight forward. A small horizontal motion arrow behind the head indicates the release forward."
     ],
     "cobra-pose": [
@@ -81,12 +81,12 @@
     "dead-bug": [
       "Side profile, figure lying supine on the floor line. Both arms extended STRAIGHT UP toward the ceiling, arms vertical, palms facing each other, fingers pointing up. Both knees bent to 90 degrees and lifted so the thighs are vertical over the hips and the shins are horizontal (tabletop). Lower back pressed firmly to the floor.",
       "Same supine tabletop position. Subtle emphasis shading along the lower back and abdomen to indicate the core is braced and the lumbar spine is pressed into the floor.",
-      "Opposite-limb extension. The RIGHT leg extends slowly toward straight, with the right heel hovering 10–15 cm above the floor; thigh now near horizontal. Simultaneously the LEFT arm lowers overhead toward the floor, stopping just above the floor with the arm straight and fingers pointing away from the head (the hand hovers a couple of cm off the floor). Right arm still straight up, left leg still bent in tabletop. Lower back stays pressed to the floor.",
-      "Return to the starting tabletop position (both arms up, both knees bent over hips). Then mirror: LEFT leg extending low, RIGHT arm reaching overhead near the floor — draw this second phase with small motion lines indicating the switch."
+      "Opposite-limb extension. The RIGHT leg extends slowly toward straight, with the right heel hovering 10\u201315 cm above the floor; thigh now near horizontal. Simultaneously the LEFT arm lowers overhead toward the floor, stopping just above the floor with the arm straight and fingers pointing away from the head (the hand hovers a couple of cm off the floor). Right arm still straight up, left leg still bent in tabletop. Lower back stays pressed to the floor.",
+      "Return to the starting tabletop position (both arms up, both knees bent over hips). Then mirror: LEFT leg extending low, RIGHT arm reaching overhead near the floor \u2014 draw this second phase with small motion lines indicating the switch."
     ],
     "decline-push-ups": [
       "Camera: side profile facing right. A simple sturdy chair is drawn on the floor line to the LEFT side of the panel. Figure is in an elevated plank: both feet resting on top of the chair seat, hands on the floor in front of the chair shoulder-width apart, fingers forward, arms straight and vertical. Body forms one straight diagonal line sloping DOWN from the feet on the chair to the head near the floor. Gaze down at the floor.",
-      "Setup confirmation — same decline plank. Hands flat under the shoulders on the floor, feet on the chair. Body still a straight line downhill. Head in line with spine.",
+      "Setup confirmation \u2014 same decline plank. Hands flat under the shoulders on the floor, feet on the chair. Body still a straight line downhill. Head in line with spine.",
       "Push-up bottom. Chest lowers to hover a fist's height above the floor. Elbows bent ~90 degrees, tucked at 45 degrees from the torso. Forearms vertical, palms in the same spot on the floor. Feet still planted on the chair. Body remains one straight line from feet (high) to head (low). Gaze down.",
       "Pressing back up to the starting decline plank. Elbows partially extended (~135 degrees), chest rising away from the floor. Feet still on the chair. Body straight. Small upward motion arrows beside the upper back."
     ],
@@ -102,28 +102,28 @@
       "Held stretch. Same forward-lean position. Add a subtle emphasis arc across the front of the chest to indicate the stretch in the pectorals (no text)."
     ],
     "downward-dog": [
-      "Camera: side profile facing right. Figure starts on all fours on the floor line. Hands flat on the floor with wrists under the shoulders, knees under the hips. Spine neutral, gaze down.",
-      "Mid-transition. Toes curl under (balls of the feet on the floor). Hips begin to lift upward and backward while arms stay straight and pressing into the floor. Body is about halfway between all-fours and the final inverted V.",
-      "Full downward-facing dog. Body forms an inverted V. Arms are straight with palms flat on the floor, shoulder-width. Legs are straight with feet flat (or nearly flat) on the floor, hip-width. Hips are lifted high toward the ceiling. Spine long from wrists to tailbone. Head hangs between the arms, ears aligned with the upper arms, gaze toward the knees or belly.",
-      "Active pose with pedaling heels. Right heel is lifted off the floor with the right knee slightly bent (mid-pedal), left heel pressed toward the floor with left leg straight. Arms and spine still in the inverted V shape. Small vertical motion arrows near the heels to indicate alternating pedaling.",
-      "Full expression with both heels reaching toward the floor (they do not need to touch). Arms straight, palms pressing firmly into the floor — subtle pressure lines under the palms. Body long and still in the inverted V. Gaze toward the belly."
+      "Skeletal: Spine neutral. 2 arms vertical, palms flat. 2 legs bent 90\u00b0 at hip/knee, knees/shins flat. Visual: Side profile on all fours. Limb Count: 4 limbs total. Contact: 2 palms, 2 knees. Audit: Standard starting position.",
+      "Skeletal: Spine hinging at hips. 2 arms straight (180\u00b0). 2 legs bent at knees, hips lifting. Visual: Mid-transition, hips rising. Limb Count: 4 limbs. Contact: 2 palms, 2 balls of feet. Audit: Ensure only 2 legs are lifting; no knees left on the floor.",
+      "Skeletal: Inverted V shape. 2 arms straight (180\u00b0 at shoulder/elbow). 2 legs straight (180\u00b0 at hip/knee). Visual: Classic peak pose. Limb Count: EXACTLY 4 limbs. The 2 straight arms and 2 straight legs are the only support structures. Contact: 2 palms splayed, 2 heels (or balls of feet) flat. Audit: Head hangs between arms; do not interpret the head as a 5th limb.",
+      "Skeletal: Inverted V. 2 arms straight (180\u00b0). R leg straight (180\u00b0), L leg knee bent 30\u00b0. Visual: Pedaling action. Limb Count: 4 limbs. The single R leg is straight, the single L leg is the ONLY one bent. Contact: 2 palms, R heel down, L ball of foot down. Audit: Ensure only 2 legs exist; do not draw a straight L leg behind the bent one.",
+      "Skeletal: Same as Panel 3. Visual: Deepest V-shape. Limb Count: 4 limbs total. 2 arms and 2 legs. Contact: 2 palms splayed, 2 heels pressing toward floor. Audit: Confirm all 4 limbs are accounted for in a single cohesive skeleton."
     ],
     "eye-20-20-20": [
       "Camera: 3/4 front view of the upper body. Figure sits at a simple desk (just a horizontal surface line) with a laptop/screen in front. Head turned AWAY from the screen, looking off to the side. Shoulders relaxed. Expression calm.",
       "Same seated setup. The figure's gaze is directed far into the distance toward a tiny object drawn in the far background (a small tree or window on the horizon) to indicate focusing far. Eyes are open and soft.",
-      "Same seated setup. Eyes closed softly in a slow blink — simple curved lines for closed lids. Head still facing away from the screen. Shoulders relaxed."
+      "Same seated setup. Eyes closed softly in a slow blink \u2014 simple curved lines for closed lids. Head still facing away from the screen. Shoulders relaxed."
     ],
     "flutter-kicks": [
       "Camera: side profile facing right. Figure lies supine on the floor line, legs straight, both hands tucked palm-down UNDER the hips (a visible hand shape just beneath each hip for lumbar support). Head rests on the floor.",
-      "Both legs are lifted a few inches off the floor — legs straight, feet together, ankles softly pointed. Lower back pressed into the floor, indicated by a subtle pressure line along the lumbar curve.",
+      "Both legs are lifted a few inches off the floor \u2014 legs straight, feet together, ankles softly pointed. Lower back pressed into the floor, indicated by a subtle pressure line along the lumbar curve.",
       "Continued straight legs lifted. Add a small double-headed horizontal emphasis line across the lower back to indicate firm pressure into the floor.",
-      "Alternating flutter kick. RIGHT leg is slightly raised (maybe 30 cm off the floor), LEFT leg is slightly lower (maybe 10 cm off the floor) — both straight, ankles soft. Small curved motion lines near the feet indicate the rapid up-down alternation. Hands still under the hips."
+      "Alternating flutter kick. RIGHT leg is slightly raised (maybe 30 cm off the floor), LEFT leg is slightly lower (maybe 10 cm off the floor) \u2014 both straight, ankles soft. Small curved motion lines near the feet indicate the rapid up-down alternation. Hands still under the hips."
     ],
     "forearm-plank": [
       "Camera: side profile facing right. Figure starts face-down on the forearms: both forearms flat on the floor with elbows directly under the shoulders, hands either flat or loosely clasped. Knees still on the floor. Torso long. Gaze down at the floor.",
       "Legs extending back. Both feet pushed back so only the balls of the feet touch the floor (heels up), legs straight. Body lifts so hips rise off the floor.",
       "Full forearm plank. Body forms one perfectly straight line from heels to head. Forearms flat on the floor with elbows under shoulders, shoulders directly over the elbows. Feet together, toes curled, heels pointing up. Head neutral, gaze down. Subtle emphasis shading along the abs and glutes to indicate active engagement.",
-      "Held plank. Identical to previous panel. Add a small curved breath-line at the ribs — the body is rigid and still, breathing controlled."
+      "Held plank. Identical to previous panel. Add a small curved breath-line at the ribs \u2014 the body is rigid and still, breathing controlled."
     ],
     "glute-bridges": [
       "Camera: side profile facing right. Figure lies supine on the floor line. Knees bent, feet flat on the floor close to the glutes (heels about 20 cm from the seat). Arms straight at the sides on the floor, palms down. Head rests on the floor, gaze up toward the ceiling.",
@@ -141,14 +141,14 @@
     "high-knees": [
       "Camera: side profile facing right. Figure stands upright, feet hip-width, arms bent at the elbows to ~90 degrees in a running-ready position. Spine vertical, gaze forward.",
       "Running in place. RIGHT knee driven up toward hip height (thigh roughly horizontal), right shin nearly vertical hanging down from the knee, right foot dorsiflexed. LEFT foot planted on the floor with left leg straight. Arms pumping: left arm forward, right arm back. Small upward motion lines beside the right knee.",
-      "Arm pump emphasis: same right-knee-up pose, but arms are clearly in opposition — left elbow at 90 degrees swung forward with the hand near the chin, right elbow at 90 degrees swung back with the hand near the hip. Small curved motion arcs at the elbows to indicate pumping.",
+      "Arm pump emphasis: same right-knee-up pose, but arms are clearly in opposition \u2014 left elbow at 90 degrees swung forward with the hand near the chin, right elbow at 90 degrees swung back with the hand near the hip. Small curved motion arcs at the elbows to indicate pumping.",
       "Mirror running-in-place. LEFT knee driven up to hip height, RIGHT foot planted. Arms switched: right arm forward, left arm back. Ball-of-foot emphasis: tiny upward motion line under the planted right foot to indicate staying light on the forefoot."
     ],
     "hip-flexor-lunge-stretch": [
       "Camera: side profile facing right. Figure stands upright on the floor line, feet together, arms at the sides, gaze forward. Simple standing start.",
       "Long lunge. RIGHT foot stepped forward, right knee bent to 90 degrees with the right shin vertical and right foot flat on the floor. LEFT leg extended long behind, left knee hovering just above the floor (slight soft bend), top of the left foot or ball of the foot on the floor. Torso upright, arms resting on the front thigh or at the sides.",
       "Pelvic tuck. Same lunge, but the pelvis is tilted posteriorly (tailbone tucked under, pubic bone lifted forward). A subtle curved line at the front of the hip indicates the stretch sensation. Torso upright, hands on the front thigh for support.",
-      "Held stretch with a deeper sink. Slight further lowering of the back hip toward the floor, pelvis still tucked. Arms can be lifted overhead reaching up (optional intensifier) — in this panel keep hands on the front thigh. Same mirrored side in the next set, but for this panel show the right-foot-forward configuration."
+      "Held stretch with a deeper sink. Slight further lowering of the back hip toward the floor, pelvis still tucked. Arms can be lifted overhead reaching up (optional intensifier) \u2014 in this panel keep hands on the front thigh. Same mirrored side in the next set, but for this panel show the right-foot-forward configuration."
     ],
     "hollow-hold": [
       "Camera: side profile facing right. Figure lies supine on the floor line, arms straight at the sides, palms down. Legs straight, feet together. Head rests on the floor.",
@@ -159,7 +159,7 @@
     "inchworms": [
       "Side profile facing right. Figure stands upright, feet hip-width apart and flat, arms at the sides, spine vertical, gaze forward.",
       "Standing forward fold with hands reaching to the floor. Legs still nearly straight (slight knee bend allowed), torso folded forward from the hips so the head is near the knees and both palms are flat on the floor just in front of the feet. Fingers forward. Gaze toward the feet.",
-      "Walked out to a high plank. Feet still in the same spot (flat), but the hands have walked forward so the body is now in a high plank — arms vertical with palms under the shoulders, body in one straight diagonal line from heels to head, toes curled, heels up. Gaze down.",
+      "Walked out to a high plank. Feet still in the same spot (flat), but the hands have walked forward so the body is now in a high plank \u2014 arms vertical with palms under the shoulders, body in one straight diagonal line from heels to head, toes curled, heels up. Gaze down.",
       "Optional push-up at the plank. Chest lowered a fist's height above the floor, elbows bent ~90 degrees tucked at 45 degrees from the torso. Body still a straight line. Feet in the same spot, gaze down.",
       "Walking the hands back to the feet and standing up. A mid-transition pose: hands about halfway back toward the feet, hips rising, legs straightening toward the fold. Small horizontal motion lines beneath the hands to indicate the walk back."
     ],
@@ -177,7 +177,7 @@
     ],
     "knee-push-ups": [
       "Camera: side profile facing right. Figure is on all fours on the floor line: hands flat under the shoulders, knees under the hips, shins flat on the floor, tops of the feet down. Spine neutral, gaze down.",
-      "Walked forward into a knee plank. Hands still flat, wrists under shoulders. Knees still on the floor (shins flat), but hands are now further forward so the body forms one straight diagonal line from the KNEES to the head (not heels). Feet lifted off the floor (optional — or feet flat; show knees bearing the weight). Gaze down.",
+      "Walked forward into a knee plank. Hands still flat, wrists under shoulders. Knees still on the floor (shins flat), but hands are now further forward so the body forms one straight diagonal line from the KNEES to the head (not heels). Feet lifted off the floor (optional \u2014 or feet flat; show knees bearing the weight). Gaze down.",
       "Bottom of the knee push-up. Chest lowered to hover a fist's height above the floor. Elbows bent ~90 degrees tucked at 45 degrees from the torso. Knees still on the floor. Body still one straight line from knees to head. Gaze down.",
       "Pressing back up. Elbows partially extended (~135 degrees), chest rising, knees still on the floor. Body still one straight line knees-to-head. Small upward motion arrows at the shoulders."
     ],
@@ -185,7 +185,7 @@
       "Camera: side profile facing right. Figure lies supine on the floor line, legs straight and together, arms straight at the sides with palms down (or tucked under the hips). Head rests on the floor. Feet together.",
       "Lower back actively pressed into the floor. Same supine position with a visible pressure line along the lumbar curve and the navel drawn gently inward.",
       "Legs lifted to vertical. Both legs fully straight, together, rotated upward so the soles point toward the ceiling and the legs are perpendicular to the floor. Hips stay on the floor. Arms still at the sides, head down.",
-      "Lowering under control. Legs partway down between vertical and the floor — currently at about 30 degrees above the floor, still straight and together. Feet do NOT touch the floor. Small downward motion arrows beside the ankles indicate controlled lowering."
+      "Lowering under control. Legs partway down between vertical and the floor \u2014 currently at about 30 degrees above the floor, still straight and together. Feet do NOT touch the floor. Small downward motion arrows beside the ankles indicate controlled lowering."
     ],
     "lunge-jumps": [
       "Side profile facing right. Figure stands in a long split lunge: RIGHT foot forward, right knee bent 90 degrees with right shin vertical. LEFT leg extended back, left knee hovering just above the floor in a soft bend, ball of the left foot on the floor, heel up. Torso upright, arms bent at the elbows in a running-ready position.",
@@ -196,7 +196,7 @@
     "mountain-climbers": [
       "Camera: side profile facing right. Figure is in a high plank on the floor line: hands flat under the shoulders, arms straight and vertical, body one straight diagonal line from heels to head, toes curled, heels up. Gaze down.",
       "Right knee driven toward the chest. The RIGHT leg bent sharply at the knee so the right thigh pulls in under the torso, right foot lifted off the floor and hovering a few cm above it (toes still pointed). LEFT leg remains straight and extended behind with toes curled on the floor. Hands still planted under shoulders, arms straight. Hips stay low (no piking up). Gaze down.",
-      "Mirror — LEFT knee driven toward the chest, RIGHT leg extended behind. Hands in the same spot, arms straight. Small motion lines at the knees suggest the rapid alternating drive. Hips still low and steady."
+      "Mirror \u2014 LEFT knee driven toward the chest, RIGHT leg extended behind. Hands in the same spot, arms straight. Small motion lines at the knees suggest the rapid alternating drive. Hips still low and steady."
     ],
     "neck-rolls": [
       "Camera: close-up 3/4 front view of the head and shoulders. Figure visible from the chest up, standing or seated upright. Shoulders level and relaxed, chest open. Head is centered and upright with the chin neither raised nor lowered, gaze forward.",
@@ -223,7 +223,7 @@
     ],
     "plank-shoulder-taps": [
       "Camera: 3/4 front-angle view so the hand tapping the shoulder is visible. Figure in a high plank with feet slightly wider than hip-width for stability. Hands flat under the shoulders, arms straight, body straight from heels to head. Gaze slightly forward and down.",
-      "The RIGHT hand has lifted off the floor and is touching the LEFT shoulder — right elbow bent, right hand flat on the left shoulder. LEFT hand and both feet remain planted. Hips stay level (no twisting visible). Body line still straight.",
+      "The RIGHT hand has lifted off the floor and is touching the LEFT shoulder \u2014 right elbow bent, right hand flat on the left shoulder. LEFT hand and both feet remain planted. Hips stay level (no twisting visible). Body line still straight.",
       "Back in both-hands-planted plank, then about to mirror. Draw this middle frame as the high plank with a small curved motion line above the right hand indicating it just returned.",
       "The LEFT hand has lifted and is touching the RIGHT shoulder. Right hand and both feet planted. Hips level, no rocking (add small pressure lines at the hips and feet to emphasize stability). Gaze forward and down."
     ],
@@ -243,15 +243,15 @@
     ],
     "scapular-squeezes": [
       "Camera: 3/4 rear view from behind and slightly above so the shoulder blades are visible. Figure stands upright with arms relaxed at the sides, spine vertical, gaze forward. Shoulder blades drawn in neutral position on the upper back.",
-      "Squeezed. Shoulder blades visibly drawn together toward the spine — they appear pinched closer on the back, creating a subtle valley between them. Chest opens slightly forward. Arms remain at the sides. A tiny horizontal emphasis line between the shoulder blades indicates the pinch.",
-      "Held squeeze. Identical to previous panel — pinched shoulder blades. Add a small curved pause indicator above the upper back.",
+      "Squeezed. Shoulder blades visibly drawn together toward the spine \u2014 they appear pinched closer on the back, creating a subtle valley between them. Chest opens slightly forward. Arms remain at the sides. A tiny horizontal emphasis line between the shoulder blades indicates the pinch.",
+      "Held squeeze. Identical to previous panel \u2014 pinched shoulder blades. Add a small curved pause indicator above the upper back.",
       "Released. Shoulder blades back to neutral, same as panel 1. Small outward motion arcs at the shoulder blades indicate the release."
     ],
     "scissor-kicks": [
       "Camera: side profile facing right. Figure lies supine on the floor line, legs straight together, hands under the hips palm-down for lumbar support. Head rests on the floor, gaze up.",
       "Both legs lifted a few inches off the floor, legs straight and together. Small pressure line along the lower back indicates firm contact with the floor.",
-      "Scissoring. LEFT leg is crossed OVER the right leg mid-air — left leg slightly angled inward and upward so the ankles cross, right leg slightly angled the other way underneath. Both legs still straight and just above the floor. Short motion arcs between the legs indicate the crossing.",
-      "Mirror scissor. RIGHT leg crossed over the left — right ankle above left. Both legs straight, just above the floor. Hands still under the hips. Small emphasis line at the lower back."
+      "Scissoring. LEFT leg is crossed OVER the right leg mid-air \u2014 left leg slightly angled inward and upward so the ankles cross, right leg slightly angled the other way underneath. Both legs still straight and just above the floor. Short motion arcs between the legs indicate the crossing.",
+      "Mirror scissor. RIGHT leg crossed over the left \u2014 right ankle above left. Both legs straight, just above the floor. Hands still under the hips. Small emphasis line at the lower back."
     ],
     "seated-cat-cow": [
       "Camera: side profile facing right. Figure sits upright on a simple chair drawn on the floor line, feet flat on the floor hip-width, knees bent 90 degrees. Both hands rest on the thighs. Spine vertical, shoulders level, head upright, gaze forward.",
@@ -268,7 +268,7 @@
     "seated-leg-extensions": [
       "Camera: side profile facing right. Figure sits upright on a simple chair on the floor line, both feet flat on the floor hip-width, knees bent 90 degrees. Hands rest on the thighs. Spine vertical, gaze forward.",
       "Right leg extended. RIGHT knee extended so the right leg is nearly straight and horizontal, parallel to the floor, foot slightly dorsiflexed (toes up). Left foot still flat on the floor. Torso still upright. Hands on thighs.",
-      "Held extension. Identical to previous panel — right leg horizontal — with a small curved pause indicator at the knee. No text.",
+      "Held extension. Identical to previous panel \u2014 right leg horizontal \u2014 with a small curved pause indicator at the knee. No text.",
       "Alternate. LEFT leg extended horizontally (mirror of panel 2), right foot flat on the floor. Torso upright, hands on thighs."
     ],
     "seated-spinal-twist": [
@@ -279,10 +279,10 @@
       "Mirrored side. LEFT hand on the outside of the RIGHT knee, right hand reaches back, torso rotated to the RIGHT."
     ],
     "shadow-boxing": [
-      "Side profile facing right. Figure in a boxing stance: LEFT foot forward (lead), RIGHT foot back (rear), feet about shoulder-width apart on a diagonal line. Knees slightly bent. Both hands raised up near the face in guard — fists at cheek height, elbows tucked near the ribs. Chin slightly tucked, gaze forward at an imaginary opponent.",
+      "Side profile facing right. Figure in a boxing stance: LEFT foot forward (lead), RIGHT foot back (rear), feet about shoulder-width apart on a diagonal line. Knees slightly bent. Both hands raised up near the face in guard \u2014 fists at cheek height, elbows tucked near the ribs. Chin slightly tucked, gaze forward at an imaginary opponent.",
       "Throwing a jab with the lead hand. LEFT arm extended straight forward from the shoulder at chin height, fist forward with palm down. RIGHT hand still guarding the face. Chin stays tucked. Hips and shoulders rotate slightly toward the target. Short motion line trailing the jab.",
       "Throwing a cross with the rear hand. RIGHT arm extended straight forward from the shoulder at chin height, rear hip and shoulder rotated forward (visible twist in the torso), left hand returning to guard the chin. Rear heel pivots upward (right heel lifts off the floor for hip rotation). Short motion line trailing the cross.",
-      "Continuous motion — bobbing. Figure sinks down slightly by bending both knees deeper, torso dips lower, hands still up in guard. Feet slightly shifted (a small motion indicator near the feet) to show ongoing footwork. Gaze forward."
+      "Continuous motion \u2014 bobbing. Figure sinks down slightly by bending both knees deeper, torso dips lower, hands still up in guard. Feet slightly shifted (a small motion indicator near the feet) to show ongoing footwork. Gaze forward."
     ],
     "shoulder-rolls": [
       "Camera: close-up 3/4 front view of the head and upper torso. Figure is standing or seated upright, arms relaxed at the sides, spine vertical, shoulders in neutral. Gaze forward.",
@@ -292,13 +292,13 @@
     "side-lunges": [
       "Side profile facing right (camera slightly angled to see both feet). Figure stands upright, feet together and flat on the floor, arms at the sides, gaze forward.",
       "Stepping wide to the RIGHT. Right foot stepped out to the right (feet now about 1.5x shoulder-width apart), both feet flat on the floor pointing forward. Knees not yet bent significantly.",
-      "Side lunge position. Weight shifted to the RIGHT leg — right knee bent deeply to ~90 degrees, right thigh near parallel to the floor, right foot flat and pointing forward. LEFT leg fully straight with the left foot flat, left leg acting as the outstretched balance. Hips pushed back, chest forward, arms extended forward for counterbalance.",
+      "Side lunge position. Weight shifted to the RIGHT leg \u2014 right knee bent deeply to ~90 degrees, right thigh near parallel to the floor, right foot flat and pointing forward. LEFT leg fully straight with the left foot flat, left leg acting as the outstretched balance. Hips pushed back, chest forward, arms extended forward for counterbalance.",
       "Driving back up to center. Pushing through the right heel, right leg straightening, left leg still straight, torso rising back upright. Small upward motion arrows beside the right hip.",
       "Mirrored side. LEFT leg bent in the side lunge, right leg straight and outstretched. Feet flat, torso slightly forward, arms forward for balance."
     ],
     "side-neck-stretch": [
       "Camera: close-up 3/4 front view of the head and shoulders. Figure standing or seated upright, arms relaxed at the sides. Spine vertical, shoulders level, head centered, gaze forward.",
-      "Right ear dropped toward the right shoulder — head tilted sideways along the coronal plane. Right ear visibly close to (but not touching) the right shoulder; left ear highest. Shoulders still level (the left shoulder has NOT lifted). Gaze stays forward.",
+      "Right ear dropped toward the right shoulder \u2014 head tilted sideways along the coronal plane. Right ear visibly close to (but not touching) the right shoulder; left ear highest. Shoulders still level (the left shoulder has NOT lifted). Gaze stays forward.",
       "Hand on head gently. The RIGHT hand reaches up and rests lightly on the LEFT side of the head (fingers on the left side above the ear), NOT pulling. Head remains tilted with the right ear toward the right shoulder. Shoulders level.",
       "Mirrored. Head tilted with LEFT ear toward LEFT shoulder. LEFT hand resting lightly on the RIGHT side of the head. Shoulders level, gaze forward."
     ],
@@ -316,14 +316,14 @@
     ],
     "single-leg-glute-bridges": [
       "Camera: side profile facing right. Figure lies supine on the floor line. Both knees bent, both feet flat on the floor close to the glutes. Arms straight at the sides, palms down. Head on the floor, gaze up.",
-      "Right leg extended. RIGHT leg lifted and extended straight so that the right foot hovers at the height of the left knee — right leg straight, right toes softly pointed, right knee not bent. LEFT foot still flat on the floor with left knee bent. Hips still on the floor. Arms at the sides.",
+      "Right leg extended. RIGHT leg lifted and extended straight so that the right foot hovers at the height of the left knee \u2014 right leg straight, right toes softly pointed, right knee not bent. LEFT foot still flat on the floor with left knee bent. Hips still on the floor. Arms at the sides.",
       "Lifting the hips. Pressing through the LEFT heel, hips rise off the floor. Hips halfway up. Right leg stays straight and extended at an angle. Left shin vertical, left foot flat.",
-      "Top of the bridge with level hips. Left shoulder-hip-knee form one straight line. Right leg still extended straight in line with the torso (so the right thigh is in line with the left thigh). Hips are perfectly level — no dipping on the right side. Subtle horizontal emphasis line across the pelvis to show level hips.",
+      "Top of the bridge with level hips. Left shoulder-hip-knee form one straight line. Right leg still extended straight in line with the torso (so the right thigh is in line with the left thigh). Hips are perfectly level \u2014 no dipping on the right side. Subtle horizontal emphasis line across the pelvis to show level hips.",
       "Switched legs. LEFT leg extended straight, right foot flat on the floor driving the bridge. Hips lifted and level. Right shoulder-hip-knee line."
     ],
     "skater-hops": [
       "Side profile facing right. Figure stands on the RIGHT leg, right knee slightly bent. Left foot lifted slightly behind the right ankle. Torso upright, arms relaxed.",
-      "Airborne lateral push. Pushed off the right foot laterally to the left — figure now airborne with both feet off the ground, body moving leftward through space. Small motion lines trail behind the push-off foot.",
+      "Airborne lateral push. Pushed off the right foot laterally to the left \u2014 figure now airborne with both feet off the ground, body moving leftward through space. Small motion lines trail behind the push-off foot.",
       "Landing on the LEFT foot in a skater pose. Left knee bent softly, left foot flat. Right leg swings behind the left leg, right foot hovers off the floor, right toes pointed down-behind. Opposite arm (right arm) reaches across the body for balance.",
       "Mirrored hop, landing on the RIGHT foot. Right knee softly bent, right foot flat, left leg swings behind, left foot off the floor. Opposite arm (left arm) reaches across for balance."
     ],
@@ -335,9 +335,9 @@
     ],
     "stair-calf-raises": [
       "Side profile facing right. A simple stair step drawn on the floor line. Figure stands on the edge of the step with the BALLS of both feet on the step and the HEELS hanging off the back edge (visible space behind the heels below the step edge). A handrail line is drawn to the side; figure's hand rests lightly on it for balance.",
-      "Same stair edge. Heels are lowered BELOW the step edge for a deep stretch — visible downward drop of the heels below the level of the step surface, about 5 cm. Legs straight, torso upright, hand on handrail. Calves visibly stretched (emphasis line along the back of the lower legs).",
+      "Same stair edge. Heels are lowered BELOW the step edge for a deep stretch \u2014 visible downward drop of the heels below the level of the step surface, about 5 cm. Legs straight, torso upright, hand on handrail. Calves visibly stretched (emphasis line along the back of the lower legs).",
       "Pressing up. Heels have risen from the stretched-low position to even with the step (neutral).",
-      "Top of the raise. Heels lifted as high as possible above the step level (6–8 cm above). Figure on the balls of the feet, calves visibly contracted (emphasis shading at the back of the lower legs). Hand still on the handrail."
+      "Top of the raise. Heels lifted as high as possible above the step level (6\u20138 cm above). Figure on the balls of the feet, calves visibly contracted (emphasis shading at the back of the lower legs). Hand still on the handrail."
     ],
     "stair-climb-fast": [
       "Camera: 3/4 front view with a flight of stairs going up and away from the viewer. Figure at the bottom with one foot planted on the first step, the other on the ground, body angled forward, arms bent in running-ready position. Gaze up the stairs.",
@@ -356,21 +356,21 @@
       "Pressing back up. Elbows partially extended, chest rising away from the stair edge. Body still straight. Small upward motion arrows at the shoulders."
     ],
     "stair-lunges": [
-      "Camera: 3/4 front view of a small set of stairs. Figure stands on the floor 1–2 steps below a landing or higher stair, feet hip-width, arms at the sides, gaze up.",
+      "Camera: 3/4 front view of a small set of stairs. Figure stands on the floor 1\u20132 steps below a landing or higher stair, feet hip-width, arms at the sides, gaze up.",
       "Lunge up. LEAD foot planted fully on a higher step (entire sole on the step). The back foot stays on a lower step, heel slightly lifted. Front knee bent 90 degrees with shin vertical, back leg long.",
       "Driving up. Weight driven through the front (lead) heel, back foot lifting off the lower step to step up to the same level as the lead foot. Small upward motion arrows beside the lead hip.",
       "Back to start. Figure has stepped back down to the starting step, feet together, ready to repeat with the other lead leg. Arms at the sides, gaze up."
     ],
     "stair-stride-descents": [
       "Camera: 3/4 view with a flight of stairs descending away from the viewer. Figure at the top of the stairs, one foot already on a lower step, the other still on the top step, torso upright, gaze forward and slightly down. Hand resting on a handrail line.",
-      "Mid-descent. Figure stepping down with controlled slightly-slower-than-normal pace. Landing foot contacts the step on the FRONT of the foot (ball of the foot), not the heel — subtle emphasis curve under the ball of the foot. Knee slightly bent to absorb.",
+      "Mid-descent. Figure stepping down with controlled slightly-slower-than-normal pace. Landing foot contacts the step on the FRONT of the foot (ball of the foot), not the heel \u2014 subtle emphasis curve under the ball of the foot. Knee slightly bent to absorb.",
       "Another step down. Hand on the handrail for safety. Torso remains upright, gaze slightly down and forward.",
       "At the bottom. Both feet on the floor, ready to walk back up between reps. Arms relaxed, gaze forward."
     ],
     "stair-tricep-dips": [
       "Camera: side profile facing right. A stair step (or low bench-like ledge) drawn on the floor line. Figure sits on the front edge of the step with hands gripping the edge next to the hips, fingers forward. Feet flat on the floor hip-width, knees bent ~90 degrees. Arms straight. Torso vertical, gaze forward.",
       "Slide-off setup. Hips have slid off the step edge forward. Arms straight, supporting the body weight; palms still gripping the stair edge. Feet flat on the floor with shins vertical. Hips hovering just in front of the step.",
-      "Bottom of the dip. Elbows bent to ~90 degrees and pointing straight back (tucked, not flared). Hips lowered toward the stair below — hips now close to the step surface or slightly below. Back stays close to the stair edge. Shins still vertical, feet flat.",
+      "Bottom of the dip. Elbows bent to ~90 degrees and pointing straight back (tucked, not flared). Hips lowered toward the stair below \u2014 hips now close to the step surface or slightly below. Back stays close to the stair edge. Shins still vertical, feet flat.",
       "Pressing back up. Elbows extending back toward straight, hips rising to just below the stair edge again. Small upward motion arrows beside the triceps."
     ],
     "standard-push-ups": [
@@ -382,7 +382,7 @@
     "standing-back-extension": [
       "Side profile facing right. Figure stands upright, feet hip-width and flat on the floor, arms at the sides, spine vertical, gaze forward.",
       "Hands placed on the lower back with fingers pointing DOWN toward the tailbone, thumbs on the sides of the waist. Torso still upright, feet hip-width flat on the floor.",
-      "Gently arching backward. Torso leans backward from the lower back — upper body tilted back about 20 degrees, chest lifted, hands still on the lower back pressing slightly forward. Gaze goes up toward the ceiling. Knees stay soft and straight-ish.",
+      "Gently arching backward. Torso leans backward from the lower back \u2014 upper body tilted back about 20 degrees, chest lifted, hands still on the lower back pressing slightly forward. Gaze goes up toward the ceiling. Knees stay soft and straight-ish.",
       "Held arch. Identical to previous panel with a tiny curved pause indicator at the top of the chest, then returning to neutral. Show the figure mid-return: torso at about 10 degrees backward tilt on the way back to vertical."
     ],
     "star-jumps": [
@@ -407,10 +407,10 @@
       "Upward salute. Arms swept out and up overhead, biceps beside the ears, palms together or facing each other. Slight backward arch of the upper spine, chest lifted, gaze slightly up toward the hands.",
       "Standing forward fold. Torso hinged forward from the hips until the head is near or below the knees. Fingers touching the floor in front of the feet (or hands on the shins if less flexible). Feet still flat, hip-width, legs nearly straight. Head hangs.",
       "Half-lift. Torso lifted halfway so the back is FLAT and parallel to the floor. Fingertips on the shins or floor near the feet. Legs still nearly straight. Gaze forward along the floor. Spine long.",
-      "Plank and lower halfway. Figure has jumped/stepped both feet back into a high plank, then lowered halfway (chaturanga) — elbows bent 90 degrees tucked close to the ribs, forearms vertical, chest hovering above the floor, body straight from heels to head.",
+      "Plank and lower halfway. Figure has jumped/stepped both feet back into a high plank, then lowered halfway (chaturanga) \u2014 elbows bent 90 degrees tucked close to the ribs, forearms vertical, chest hovering above the floor, body straight from heels to head.",
       "Upward dog / cobra. Chest lifted high off the floor with arms straight (upward dog) or slightly bent elbows close to the ribs (cobra). Legs extended back, tops of the feet on the floor (upward dog: thighs lifted off the floor; cobra: thighs on the floor). Gaze forward and slightly up.",
       "Downward-facing dog. Hips piked high, body forms an inverted V. Arms straight with palms flat on the floor, legs straight with feet flat (or heels pressing down), head hanging between the arms, ears beside the biceps, gaze toward the knees or belly.",
-      "Half-lift (step forward). Figure has stepped or jumped forward so the feet are at the hands, then lifted the torso halfway — flat back parallel to the floor, fingertips on the shins. Legs nearly straight, gaze forward along the floor.",
+      "Half-lift (step forward). Figure has stepped or jumped forward so the feet are at the hands, then lifted the torso halfway \u2014 flat back parallel to the floor, fingertips on the shins. Legs nearly straight, gaze forward along the floor.",
       "Standing forward fold again. Torso folded down over straight legs, head near knees, fingertips on the floor.",
       "Rising to standing with arms overhead. Torso uprighting, arms sweeping up overhead to biceps-beside-ears. Slight back-bend, gaze slightly up.",
       "Hands to heart. Back in mountain pose with arms drawn together at the chest in prayer. Feet together, spine vertical, gaze forward."
@@ -419,7 +419,7 @@
       "Camera: 3/4 front view (slight overhead angle) so the rotation of the torso is visible. Figure on all fours on the floor line: hands under shoulders, knees under hips, shins flat, spine neutral, gaze down.",
       "Right hand behind the head. Figure's RIGHT hand is lifted from the floor and placed behind the head with the right elbow pointing OUT to the side (parallel to the floor, roughly at shoulder height). LEFT hand still flat on the floor under the left shoulder supporting the weight. Knees and hips unchanged.",
       "Rotating down. Torso rotates so the RIGHT elbow comes across the body toward the LEFT arm (right elbow drops down and crosses under the left elbow). Right side of the torso closes and rotates inward. Hips stay square to the floor.",
-      "Rotating up. Torso rotates the opposite way — RIGHT elbow lifts up and points toward the CEILING, chest opens to the right side, gaze follows the right elbow upward. Hips still square. Spine clearly twisted open.",
+      "Rotating up. Torso rotates the opposite way \u2014 RIGHT elbow lifts up and points toward the CEILING, chest opens to the right side, gaze follows the right elbow upward. Hips still square. Spine clearly twisted open.",
       "Mirror setup. LEFT hand behind the head with left elbow pointing out, right hand flat on the floor. Ready to repeat the rotation on the left side."
     ],
     "two-step-stair-climb": [
@@ -431,7 +431,7 @@
     "v-ups": [
       "Camera: side profile facing right. Figure lies supine on the floor line, legs straight and together, arms reached overhead on the floor with arms straight, biceps beside the ears. Body is a long straight horizontal line.",
       "V-shape lift. Simultaneously the upper body and legs lift toward each other. Torso sits up at about 45 degrees, legs lift straight up to about 45 degrees. Fingertips reach toward the toes. The body forms a clear V with hips on the floor as the hinge point.",
-      "Lowering back with control. Body between the V and flat — upper body partway down (about 20 degrees above the floor), legs partway down (20 degrees above the floor). Arms overhead near the floor. Small downward motion arrows beside the ankles and shoulders."
+      "Lowering back with control. Body between the V and flat \u2014 upper body partway down (about 20 degrees above the floor), legs partway down (20 degrees above the floor). Arms overhead near the floor. Small downward motion arrows beside the ankles and shoulders."
     ],
     "wall-push-ups": [
       "Camera: side profile facing right. A vertical wall line drawn on the RIGHT side of the panel. Figure stands facing the wall with arms extended at shoulder height, both palms flat on the wall at shoulder height shoulder-width apart, fingers up. Feet on the floor near the wall, torso vertical.",
@@ -441,25 +441,25 @@
     ],
     "wall-sits": [
       "Camera: side profile facing right. A vertical wall line drawn on the LEFT side of the panel. Figure stands with the back against the wall, feet flat on the floor hip-width and about 60 cm out from the wall. Arms relaxed at the sides. Torso vertical, back flat against the wall.",
-      "Sliding down. Back still flat against the wall, figure slides downward — hips lowering, knees bending. Currently knees bent about 45 degrees.",
+      "Sliding down. Back still flat against the wall, figure slides downward \u2014 hips lowering, knees bending. Currently knees bent about 45 degrees.",
       "Full wall sit position. Thighs parallel to the floor, knees bent to 90 degrees exactly, shins vertical, feet flat on the floor directly under the knees. Back pressed flat against the wall, torso upright. Arms relaxed at the sides or hands on the thighs.",
-      "Held position. Identical to previous panel. Add a small curved pause indicator above the head — no text. Subtle pressure line along the lower back against the wall."
+      "Held position. Identical to previous panel. Add a small curved pause indicator above the head \u2014 no text. Subtle pressure line along the lower back against the wall."
     ],
     "wide-push-ups": [
-      "Camera: side profile facing right (slightly angled to show the hand spacing). Figure in a high plank with hands placed WIDER than the shoulders — hands are visibly outside the line of the shoulders (about 1.5x shoulder-width). Arms straight, body straight from heels to head, toes curled, gaze down.",
+      "Camera: side profile facing right (slightly angled to show the hand spacing). Figure in a high plank with hands placed WIDER than the shoulders \u2014 hands are visibly outside the line of the shoulders (about 1.5x shoulder-width). Arms straight, body straight from heels to head, toes curled, gaze down.",
       "Bottom of the wide push-up. Chest lowers toward the floor between the wide-set hands. Elbows bend outward and backward, flaring out to near 90 degrees from the torso (wider than a standard push-up because of the hand position). Body remains one straight line. Gaze down.",
       "Pressing back up. Elbows partially extended, chest rising, hand position unchanged. Body still straight. Small upward motion arrows at the shoulders."
     ],
     "worlds-greatest-stretch": [
       "Side profile facing right. Deep lunge: RIGHT foot stepped forward, right knee bent 90 degrees with right shin vertical, right foot flat. LEFT leg extended long behind, left knee hovering above the floor, ball of the left foot on the floor, heel up. Torso upright, arms at the sides.",
       "Same lunge. LEFT hand placed flat on the floor INSIDE the right foot (left palm between the right foot and the midline of the body). Right hand still at the right thigh or resting. Torso folded forward over the front thigh, gaze down at the floor.",
-      "Same lunge with left hand on the floor. RIGHT arm rotates up toward the ceiling — right hand reaches straight up, right fingers pointing toward the ceiling, chest opens and rotates to the right. Gaze follows the right hand upward. Left hand still on the floor inside the right foot.",
+      "Same lunge with left hand on the floor. RIGHT arm rotates up toward the ceiling \u2014 right hand reaches straight up, right fingers pointing toward the ceiling, chest opens and rotates to the right. Gaze follows the right hand upward. Left hand still on the floor inside the right foot.",
       "Right hand returned inside the foot. Both hands on the floor inside the right foot again, torso folded forward, gaze down. Same lunge legs configuration.",
       "Stepped back. Figure returned to a standing starting position, feet hip-width, torso upright, arms at the sides. Ready to switch sides (next rep would mirror with the left foot forward)."
     ],
     "wrist-circles": [
       "Camera: 3/4 front view of the upper body. Figure sits or stands upright with both arms extended straight FORWARD at shoulder height, palms facing down, fingers extended. Shoulders level and relaxed.",
-      "Mid-rotation. Both wrists rolling — the hands drawn with the palms angled slightly to one side as part of a circular motion. Small circular motion arcs drawn around each wrist indicating clockwise rotation.",
+      "Mid-rotation. Both wrists rolling \u2014 the hands drawn with the palms angled slightly to one side as part of a circular motion. Small circular motion arcs drawn around each wrist indicating clockwise rotation.",
       "Reversed rotation. Hands shown with palms angled in the opposite direction, small circular motion arcs around each wrist going counter-clockwise to indicate the reversal.",
       "Interlaced-fingers variant. The fingers of both hands interlaced together in front of the body at chest height. A circular motion arc drawn around the interlaced hands indicating a combined rotation of the wrists."
     ]

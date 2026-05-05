@@ -26,8 +26,41 @@
     "cat-cow": {
       "steps": 4
     },
+    "chair-tricep-dips": {
+      "steps": 4
+    },
+    "childs-pose": {
+      "steps": 5
+    },
+    "chin-tucks": {
+      "steps": 4
+    },
+    "cobra-pose": {
+      "steps": 5
+    },
+    "dead-bug": {
+      "steps": 4
+    },
+    "decline-push-ups": {
+      "steps": 4
+    },
+    "diamond-push-ups": {
+      "steps": 3
+    },
+    "doorway-chest-stretch": {
+      "steps": 4
+    },
+    "downward-dog": {
+      "steps": 5
+    },
+    "eye-20-20-20": {
+      "steps": 3
+    },
     "neck-rolls": {
       "steps": 4
+    },
+    "shoulder-rolls": {
+      "steps": 3
     }
   }
 }
