@@ -1,39 +1,34 @@
-"""Rig-specific bone constants and joint mappings for casual_man_rigged.blend.
-
-The rig uses "Base Human" naming (not Mixamo). Bone names were verified by
-inspecting the actual armature: blender --background casual_man_rigged.blend
---python list_bones.py.
-"""
+"""Rig-specific bone constants and joint mappings for casual_man_rigged.blend (Mixamo)."""
 from dataclasses import dataclass
 
 
 class Bones:
-    HIPS = "Base HumanPelvis_01"
-    SPINE = "Base HumanSpine1_011"
-    SPINE_1 = "Base HumanSpine2_012"
-    SPINE_2 = "Base HumanSpine3_013"
-    NECK = "Base HumanNeck1_054"
-    HEAD = "Base HumanHead_056"
+    HIPS = "mixamorig:Hips"
+    SPINE = "mixamorig:Spine"
+    SPINE_1 = "mixamorig:Spine1"
+    SPINE_2 = "mixamorig:Spine2"
+    NECK = "mixamorig:Neck"
+    HEAD = "mixamorig:Head"
 
-    LEFT_UP_LEG = "Base HumanLThigh_02"
-    LEFT_LEG = "Base HumanLCalf_00"
-    LEFT_FOOT = "Base HumanLFoot_03"
-    LEFT_TOE_BASE = "Base HumanLDigit11_04"
+    LEFT_UP_LEG = "mixamorig:LeftUpLeg"
+    LEFT_LEG = "mixamorig:LeftLeg"
+    LEFT_FOOT = "mixamorig:LeftFoot"
+    LEFT_TOE_BASE = "mixamorig:LeftToeBase"
 
-    RIGHT_UP_LEG = "Base HumanRThigh_06"
-    RIGHT_LEG = "Base HumanRCalf_07"
-    RIGHT_FOOT = "Base HumanRFoot_08"
-    RIGHT_TOE_BASE = "Base HumanRDigit11_09"
+    RIGHT_UP_LEG = "mixamorig:RightUpLeg"
+    RIGHT_LEG = "mixamorig:RightLeg"
+    RIGHT_FOOT = "mixamorig:RightFoot"
+    RIGHT_TOE_BASE = "mixamorig:RightToeBase"
 
-    LEFT_SHOULDER = "Base HumanLCollarbone_016"
-    LEFT_ARM = "Base HumanLUpperarm_017"
-    LEFT_FORE_ARM = "Base HumanLForearm_018"
-    LEFT_HAND = "Base HumanLPalm_019"
+    LEFT_SHOULDER = "mixamorig:LeftShoulder"
+    LEFT_ARM = "mixamorig:LeftArm"
+    LEFT_FORE_ARM = "mixamorig:LeftForeArm"
+    LEFT_HAND = "mixamorig:LeftHand"
 
-    RIGHT_SHOULDER = "Base HumanRCollarbone_035"
-    RIGHT_ARM = "Base HumanRUpperarm_036"
-    RIGHT_FORE_ARM = "Base HumanRForearm_037"
-    RIGHT_HAND = "Base HumanRPalm_038"
+    RIGHT_SHOULDER = "mixamorig:RightShoulder"
+    RIGHT_ARM = "mixamorig:RightArm"
+    RIGHT_FORE_ARM = "mixamorig:RightForeArm"
+    RIGHT_HAND = "mixamorig:RightHand"
 
 
 @dataclass(frozen=True)
