@@ -9,6 +9,21 @@ expo-env.d.ts
 scripts/exercise-images/raw/
 scripts/exercise-images/prompts/
 
+# Blender build intermediates (regenerable from FBX via scripts/render-exercises.py)
+assets/blender/*.blend
+assets/blender/*.blend1
+assets/exercise-renders/*/
+
+# Mixamo workflow debug screenshots
+mixamo-*.png
+search-*.png
+
+# Playwright MCP cache
+.playwright-mcp/
+
+# Python bytecode
+scripts/__pycache__/
+
 GoogleService-Info.plist
 google-services.json
 gym-ai-google.zip

@@ -24,6 +24,8 @@ import { cancelSession } from "@src/lib/scheduler";
 import { nowIso } from "@src/lib/dates";
 import { ExerciseImageCarousel } from "@src/components/ExerciseImageCarousel";
 import { ExerciseImageThumbnail } from "@src/components/ExerciseImageThumbnail";
+import { ExerciseVideoPlayer } from "@src/components/ExerciseVideoPlayer";
+import { getExerciseVideo } from "@src/lib/exerciseVideos";
 
 export default function WorkoutRunner() {
   const theme = useTheme();
@@ -416,6 +418,7 @@ function SetView({
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
+  const videoSource = getExerciseVideo(step.exerciseId);
   const progress =
     step.unit === "seconds" && step.amount > 0
       ? 1 - secondsLeft / step.amount
@@ -444,7 +447,11 @@ function SetView({
       </Text>
 
       <View style={{ marginTop: 16 }}>
-        <ExerciseImageCarousel exerciseId={step.exerciseId} />
+        {videoSource !== undefined ? (
+          <ExerciseVideoPlayer source={videoSource} />
+        ) : (
+          <ExerciseImageCarousel exerciseId={step.exerciseId} />
+        )}
       </View>
 
       <View style={{ marginTop: 20 }}>

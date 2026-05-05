@@ -71,6 +71,7 @@
           "photosPermission": "Allow Fitness to pick a profile photo from your library."
         }
       ],
+      "expo-video",
       "expo-audio",
       "expo-asset",
       "@react-native-community/datetimepicker",
