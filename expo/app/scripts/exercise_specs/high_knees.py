@@ -23,42 +23,44 @@ LIGHTING = "studio"
 
 # Use raw (bone, axis) tuples directly — rig.py's joint accessors map to axes
 # that don't all match this rig's bind pose conventions, so the spec is explicit.
-_HIP_L      = ("mixamorig:LeftUpLeg",  "X")
-_HIP_R      = ("mixamorig:RightUpLeg", "X")
-_KNEE_L     = ("mixamorig:LeftLeg",    "X")
-_KNEE_R     = ("mixamorig:RightLeg",   "X")
-_SHOULDER_L = ("mixamorig:LeftArm",    "X")
-_SHOULDER_R = ("mixamorig:RightArm",   "X")
-_ELBOW_L    = ("mixamorig:LeftForeArm",  "X")
-_ELBOW_R    = ("mixamorig:RightForeArm", "X")
-_SPINE      = ("mixamorig:Spine",      "X")
+_HIP_L          = ("mixamorig:LeftUpLeg",  "X")
+_HIP_R          = ("mixamorig:RightUpLeg", "X")
+_KNEE_L         = ("mixamorig:LeftLeg",    "X")
+_KNEE_R         = ("mixamorig:RightLeg",   "X")
+# Shoulder X axis = arm down/up (90° = arm hanging at side).
+# Shoulder Z axis = forward/back swing (+ forward, − backward, 0 = hanging).
+_SHOULDER_L_DN  = ("mixamorig:LeftArm",    "X")  # base "arm down" channel
+_SHOULDER_R_DN  = ("mixamorig:RightArm",   "X")
+_SHOULDER_L_SW  = ("mixamorig:LeftArm",    "Z")  # forward/back swing channel
+_SHOULDER_R_SW  = ("mixamorig:RightArm",   "Z")
+_ELBOW_L        = ("mixamorig:LeftForeArm",  "X")
+_ELBOW_R        = ("mixamorig:RightForeArm", "X")
+_SPINE          = ("mixamorig:Spine",      "X")
 
 # Runner's stance: arms down at sides + forearms bent ~90° at the elbow.
-# Both shoulders/elbows use the same sign (calibrated empirically — this rig's
-# bind pose doesn't require L/R sign mirroring).
-_RUNNER_ARMS = {
-    _SHOULDER_L: 90,  _SHOULDER_R: 90,
-    _ELBOW_L:    90,  _ELBOW_R:    90,
+_ARMS_DOWN = {
+    _SHOULDER_L_DN: 90,  _SHOULDER_R_DN: 90,
+    _ELBOW_L:       90,  _ELBOW_R:       90,
 }
-_ARMS_DOWN = _RUNNER_ARMS  # alias kept for backward-readability in the spec
 
-# Counter-rhythm arm swing: opposite arm to lifted leg comes UP/FORWARD;
-# same-side arm comes BACK. Achieved by adjusting shoulder X (lower vs higher
-# value) — base shoulder is +90° (arm down); deviations from that swing the arm.
-# Spine X +10° is a slight forward lean (runner's posture).
+# Counter-rhythm arm swing: opposite-side arm to the lifted leg swings forward
+# (hand reaches forward, in front of chest), same-side arm swings back (hand
+# behind hip). Swing happens on Z axis: +60° = arm forward, −60° = arm behind.
+# Spine X +10° = slight forward lean (running posture).
 _LEFT_PEAK = {
+    **_ARMS_DOWN,
     _HIP_L: 125, _KNEE_L: -130,
     _HIP_R: 0,   _KNEE_R: 0,
-    # right arm forward (counter to left knee), left arm back
-    _SHOULDER_R: 60,  _ELBOW_R: 90,   # arm forward from neutral 90° → 60°
-    _SHOULDER_L: 120, _ELBOW_L: 90,   # arm back from neutral 90° → 120°
+    _SHOULDER_R_SW:  60,   # right arm SWINGS FORWARD (hand near chest)
+    _SHOULDER_L_SW: -60,   # left arm SWINGS BACK (hand behind hip)
     _SPINE: 10,
 }
 _RIGHT_PEAK = {
+    **_ARMS_DOWN,
     _HIP_R: 125, _KNEE_R: -130,
     _HIP_L: 0,   _KNEE_L: 0,
-    _SHOULDER_L: 60,  _ELBOW_L: 90,
-    _SHOULDER_R: 120, _ELBOW_R: 90,
+    _SHOULDER_L_SW:  60,
+    _SHOULDER_R_SW: -60,
     _SPINE: 10,
 }
 
