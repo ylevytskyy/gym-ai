@@ -18,7 +18,7 @@ from animation_lib.validators import (
 
 NAME = "high_knees"
 FPS = 30
-CAMERA = "side_left"
+CAMERA = "front_top_left"
 LIGHTING = "studio"
 
 # Use raw (bone, axis) tuples directly — rig.py's joint accessors map to axes

@@ -16,6 +16,13 @@ def test_side_left_preset_has_correct_position():
     assert p.fov_deg == 35
 
 
+def test_front_top_left_preset_exists():
+    p = get_camera_preset("front_top_left")
+    assert p.position == (2.24, -2.24, 2.38)
+    assert p.target == (0.0, 0.0, 0.9)
+    assert p.fov_deg == 35
+
+
 def test_unknown_camera_preset_raises():
     with pytest.raises(KeyError, match="unknown camera preset"):
         get_camera_preset("nope")

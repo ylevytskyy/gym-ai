@@ -25,9 +25,13 @@ class LightingPreset:
 _CAMERAS = {
     # All presets target torso center (z=0.9) for a ~1.76m character. Camera
     # distance is tuned so head-to-toe fits at 35° FOV with margin for limb extension.
-    "front":         CameraPreset(position=( 0.0, -3.5, 0.9), target=(0.0, 0.0, 0.9), fov_deg=35),
-    "side_left":     CameraPreset(position=( 3.5,  0.0, 0.9), target=(0.0, 0.0, 0.9), fov_deg=35),
-    "three_quarter": CameraPreset(position=( 2.5, -2.5, 1.0), target=(0.0, 0.0, 0.9), fov_deg=35),
+    "front":          CameraPreset(position=( 0.0, -3.5, 0.9), target=(0.0, 0.0, 0.9), fov_deg=35),
+    "side_left":      CameraPreset(position=( 3.5,  0.0, 0.9), target=(0.0, 0.0, 0.9), fov_deg=35),
+    "three_quarter":  CameraPreset(position=( 2.5, -2.5, 1.0), target=(0.0, 0.0, 0.9), fov_deg=35),
+    # Front-top-left: 45° azimuth between front and the character's left side,
+    # elevated ~25° (looking slightly down). Cinematic "hero" angle that shows
+    # face/torso + side profile + has a sense of vertical movement.
+    "front_top_left": CameraPreset(position=( 2.24, -2.24, 2.38), target=(0.0, 0.0, 0.9), fov_deg=35),
 }
 
 _LIGHTING = {
