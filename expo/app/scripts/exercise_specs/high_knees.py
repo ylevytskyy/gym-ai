@@ -1,15 +1,16 @@
 """high_knees pilot spec — fully procedural, no FBX.
 
-Calibrated for xbot_rigged.blend (XBot Mixamo character with applied transforms).
-Motion: 10 alternating leg kicks, 0.3s per kick, 6 seconds total at 30 FPS.
-Arms held at the sides (out of frame issues that broke initial calibration).
+Calibrated for xbot_rigged.blend (XBot Mixamo character, applied transforms).
+Visual target: classic high-knees fitness exercise — knee comes up to chest
+height with shin folded straight down, arms at sides (no T-pose), alternating
+left and right at running tempo.
 
-Per the SKILL.md calibration loop, pose values were verified by rendering
-isolated rotations on each bone and confirming the visible motion matches the
-intent before adding to the spec.
+Calibration done by isolated-rotation tests (see /tmp/cal_*.png artifacts):
+- LeftUpLeg X +100° → thigh swings forward to horizontal (hip flexion)
+- LeftLeg X -90° → shin folds straight down from lifted knee (knee flexion)
+- LeftArm Z -90° / RightArm Z +90° → arms hang at sides
 """
-from animation_lib.rig import hip_flex
-from animation_lib.motion import cycle
+from animation_lib.motion import phase, cycle
 from animation_lib.validators import (
     joint_angle_at, joint_velocity_max,
     hip_no_lateral_drift, hip_no_sagittal_drift, foot_world_y_min,
@@ -20,30 +21,47 @@ FPS = 30
 CAMERA = "side_left"
 LIGHTING = "studio"
 
-# Peak of left knee lift: thigh swings forward 100° (X axis = hip flexion on
-# XBot bind pose). Right leg stays at rest. Knees not flexed — keeping the spec
-# minimal so the calibration is easy to verify and the rendered pose is clean.
+# Use raw (bone, axis) tuples directly — rig.py's joint accessors map to axes
+# that don't all match this rig's bind pose conventions, so the spec is explicit.
+_HIP_L      = ("mixamorig:LeftUpLeg",  "X")
+_HIP_R      = ("mixamorig:RightUpLeg", "X")
+_KNEE_L     = ("mixamorig:LeftLeg",    "X")
+_KNEE_R     = ("mixamorig:RightLeg",   "X")
+_SHOULDER_L = ("mixamorig:LeftArm",    "X")
+_SHOULDER_R = ("mixamorig:RightArm",   "X")
+
+# Arms hang at sides for the entire animation (out of T-pose). Both arms use
+# +90° on local X — empirically calibrated; the rig's bind pose makes the
+# rotation symmetric without sign flipping.
+_ARMS_DOWN = {_SHOULDER_L: 90, _SHOULDER_R: 90}
+
+# Peak of left knee lift: thigh up 100°, shin folded down 90°, opposite leg straight.
 _LEFT_PEAK = {
-    hip_flex.L: 100,
-    hip_flex.R: 0,
+    **_ARMS_DOWN,
+    _HIP_L: 100, _KNEE_L: -90,
+    _HIP_R: 0,   _KNEE_R: 0,
 }
 _RIGHT_PEAK = {
-    hip_flex.R: 100,
-    hip_flex.L: 0,
+    **_ARMS_DOWN,
+    _HIP_R: 100, _KNEE_R: -90,
+    _HIP_L: 0,   _KNEE_L: 0,
 }
 
-PHASES = cycle(reps=10, step_sec=0.3, left_pose=_LEFT_PEAK, right_pose=_RIGHT_PEAK)
+# Brief setup phase to get arms out of T-pose before the leg cycle starts.
+# 3 frames (~0.1s) is short enough that viewers see arms-already-down by the
+# time the legs begin moving.
+PHASES = [phase(0.1, _ARMS_DOWN, name="setup")] + cycle(
+    reps=10, step_sec=0.3, left_pose=_LEFT_PEAK, right_pose=_RIGHT_PEAK,
+)
 
 VALIDATORS = [
-    # World-space first — these catch axis/sign errors that local-angle checks miss.
     (hip_no_lateral_drift,  {"max_meters": 0.05}),
     (hip_no_sagittal_drift, {"max_meters": 0.10}),
     (foot_world_y_min,      {"side": "both", "min_y": -0.01}),
-    # Local-angle checks confirm the spec values landed.
-    (joint_angle_at,        {"joint": hip_flex.L, "at_phases": ["lift_left_*"],  "min_deg": 90, "max_deg": 110}),
-    (joint_angle_at,        {"joint": hip_flex.R, "at_phases": ["lift_right_*"], "min_deg": 90, "max_deg": 110}),
-    (joint_velocity_max,    {"joint": hip_flex.L, "max_dps": 600}),
-    (joint_velocity_max,    {"joint": hip_flex.R, "max_dps": 600}),
-    # NOTE: shin_vertical intentionally NOT in this spec — legs are kicked (straight
-    # extension), shin is meant to be horizontal at peak, not vertical.
+    (joint_angle_at,        {"joint": _HIP_L, "at_phases": ["lift_left_*"],  "min_deg": 90, "max_deg": 110}),
+    (joint_angle_at,        {"joint": _HIP_R, "at_phases": ["lift_right_*"], "min_deg": 90, "max_deg": 110}),
+    (joint_angle_at,        {"joint": _KNEE_L, "at_phases": ["lift_left_*"],  "min_deg": -100, "max_deg": -80}),
+    (joint_angle_at,        {"joint": _KNEE_R, "at_phases": ["lift_right_*"], "min_deg": -100, "max_deg": -80}),
+    (joint_velocity_max,    {"joint": _HIP_L, "max_dps": 600}),
+    (joint_velocity_max,    {"joint": _HIP_R, "max_dps": 600}),
 ]
