@@ -21,7 +21,7 @@ def _running_in_blender() -> bool:
 
 SCRIPTS_DIR = Path(__file__).parent
 APP_DIR = SCRIPTS_DIR.parent
-RIG_PATH = APP_DIR / "assets" / "blender" / "casual_man_rigged.blend"
+RIG_PATH = APP_DIR / "assets" / "blender" / "xbot_rigged.blend"
 RENDER_DIR = APP_DIR / "assets" / "exercise-renders"
 BLEND_DEBUG_DIR = APP_DIR / "assets" / "blender"
 

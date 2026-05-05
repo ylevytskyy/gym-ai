@@ -12,8 +12,9 @@ scripts/exercise-images/prompts/
 # Blender working files (regenerable from FBX or from spec modules)
 assets/blender/*.blend
 assets/blender/*.blend1
-# But keep the pristine rig source — it's the input, not a build artifact
+# But keep the pristine rig sources — they're the input, not build artifacts
 !assets/blender/casual_man_rigged.blend
+!assets/blender/xbot_rigged.blend
 assets/exercise-renders/*/
 
 # Mixamo workflow debug screenshots

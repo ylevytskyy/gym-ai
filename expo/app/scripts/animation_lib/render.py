@@ -20,15 +20,27 @@ def apply_scene_config(camera_name: str, lighting_name: str, resolution: tuple[i
         cam = bpy.data.objects.new("AnimateCamera", cam_data)
         scene.collection.objects.link(cam)
     cam.location = cam_preset.position
-    direction = (
-        cam_preset.target[0] - cam_preset.position[0],
-        cam_preset.target[1] - cam_preset.position[1],
-        cam_preset.target[2] - cam_preset.position[2],
-    )
     cam.rotation_mode = "XYZ"
-    cam.rotation_euler = _look_at_euler(direction)
+    cam.rotation_euler = (0.0, 0.0, 0.0)
     cam.data.lens = _fov_to_lens_mm(cam_preset.fov_deg, resolution[0])
     scene.camera = cam
+
+    # Use a TRACK_TO constraint pointing at an empty at the preset target. Computing
+    # the look-at Euler angles by hand is error-prone (intrinsic rotation order quirks);
+    # Blender's Track To handles it correctly.
+    target = bpy.data.objects.get("AnimateCameraTarget")
+    if target is None:
+        target = bpy.data.objects.new("AnimateCameraTarget", None)
+        scene.collection.objects.link(target)
+    target.location = cam_preset.target
+    for c in list(cam.constraints):
+        if c.name.startswith("AnimateTrack"):
+            cam.constraints.remove(c)
+    track = cam.constraints.new("TRACK_TO")
+    track.name = "AnimateTrackTo"
+    track.target = target
+    track.track_axis = "TRACK_NEGATIVE_Z"
+    track.up_axis = "UP_Y"
 
     # Clear pre-existing skill-managed lights, then create from preset.
     for obj in list(bpy.data.objects):
@@ -42,15 +54,6 @@ def apply_scene_config(camera_name: str, lighting_name: str, resolution: tuple[i
         light_obj = bpy.data.objects.new(f"AnimateLight_{i}", light_data)
         light_obj.location = ls.position
         scene.collection.objects.link(light_obj)
-
-
-def _look_at_euler(direction):
-    import math
-    dx, dy, dz = direction
-    yaw = math.atan2(dx, -dy)
-    horiz = math.sqrt(dx*dx + dy*dy)
-    pitch = math.atan2(dz, horiz)
-    return (math.pi/2 - pitch, 0.0, yaw)
 
 
 def _fov_to_lens_mm(fov_deg, sensor_width_px, sensor_width_mm=36.0):
