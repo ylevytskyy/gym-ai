@@ -47,7 +47,7 @@ _ARMS_DOWN = _RUNNER_ARMS  # alias kept for backward-readability in the spec
 # value) — base shoulder is +90° (arm down); deviations from that swing the arm.
 # Spine X +10° is a slight forward lean (runner's posture).
 _LEFT_PEAK = {
-    _HIP_L: 100, _KNEE_L: -90,
+    _HIP_L: 125, _KNEE_L: -90,
     _HIP_R: 0,   _KNEE_R: 0,
     # right arm forward (counter to left knee), left arm back
     _SHOULDER_R: 60,  _ELBOW_R: 90,   # arm forward from neutral 90° → 60°
@@ -55,7 +55,7 @@ _LEFT_PEAK = {
     _SPINE: 10,
 }
 _RIGHT_PEAK = {
-    _HIP_R: 100, _KNEE_R: -90,
+    _HIP_R: 125, _KNEE_R: -90,
     _HIP_L: 0,   _KNEE_L: 0,
     _SHOULDER_L: 60,  _ELBOW_L: 90,
     _SHOULDER_R: 120, _ELBOW_R: 90,
@@ -73,10 +73,10 @@ VALIDATORS = [
     (hip_no_lateral_drift,  {"max_meters": 0.05}),
     (hip_no_sagittal_drift, {"max_meters": 0.10}),
     (foot_world_y_min,      {"side": "both", "min_y": -0.01}),
-    (joint_angle_at,        {"joint": _HIP_L, "at_phases": ["lift_left_*"],  "min_deg": 90, "max_deg": 110}),
-    (joint_angle_at,        {"joint": _HIP_R, "at_phases": ["lift_right_*"], "min_deg": 90, "max_deg": 110}),
+    (joint_angle_at,        {"joint": _HIP_L, "at_phases": ["lift_left_*"],  "min_deg": 115, "max_deg": 135}),
+    (joint_angle_at,        {"joint": _HIP_R, "at_phases": ["lift_right_*"], "min_deg": 115, "max_deg": 135}),
     (joint_angle_at,        {"joint": _KNEE_L, "at_phases": ["lift_left_*"],  "min_deg": -100, "max_deg": -80}),
     (joint_angle_at,        {"joint": _KNEE_R, "at_phases": ["lift_right_*"], "min_deg": -100, "max_deg": -80}),
-    (joint_velocity_max,    {"joint": _HIP_L, "max_dps": 600}),
-    (joint_velocity_max,    {"joint": _HIP_R, "max_dps": 600}),
+    (joint_velocity_max,    {"joint": _HIP_L, "max_dps": 800}),
+    (joint_velocity_max,    {"joint": _HIP_R, "max_dps": 800}),
 ]
