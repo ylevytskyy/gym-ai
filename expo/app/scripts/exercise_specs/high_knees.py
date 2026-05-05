@@ -29,22 +29,37 @@ _KNEE_L     = ("mixamorig:LeftLeg",    "X")
 _KNEE_R     = ("mixamorig:RightLeg",   "X")
 _SHOULDER_L = ("mixamorig:LeftArm",    "X")
 _SHOULDER_R = ("mixamorig:RightArm",   "X")
+_ELBOW_L    = ("mixamorig:LeftForeArm",  "X")
+_ELBOW_R    = ("mixamorig:RightForeArm", "X")
+_SPINE      = ("mixamorig:Spine",      "X")
 
-# Arms hang at sides for the entire animation (out of T-pose). Both arms use
-# +90° on local X — empirically calibrated; the rig's bind pose makes the
-# rotation symmetric without sign flipping.
-_ARMS_DOWN = {_SHOULDER_L: 90, _SHOULDER_R: 90}
+# Runner's stance: arms down at sides + forearms bent ~90° at the elbow.
+# Both shoulders/elbows use the same sign (calibrated empirically — this rig's
+# bind pose doesn't require L/R sign mirroring).
+_RUNNER_ARMS = {
+    _SHOULDER_L: 90,  _SHOULDER_R: 90,
+    _ELBOW_L:    90,  _ELBOW_R:    90,
+}
+_ARMS_DOWN = _RUNNER_ARMS  # alias kept for backward-readability in the spec
 
-# Peak of left knee lift: thigh up 100°, shin folded down 90°, opposite leg straight.
+# Counter-rhythm arm swing: opposite arm to lifted leg comes UP/FORWARD;
+# same-side arm comes BACK. Achieved by adjusting shoulder X (lower vs higher
+# value) — base shoulder is +90° (arm down); deviations from that swing the arm.
+# Spine X +10° is a slight forward lean (runner's posture).
 _LEFT_PEAK = {
-    **_ARMS_DOWN,
     _HIP_L: 100, _KNEE_L: -90,
     _HIP_R: 0,   _KNEE_R: 0,
+    # right arm forward (counter to left knee), left arm back
+    _SHOULDER_R: 60,  _ELBOW_R: 90,   # arm forward from neutral 90° → 60°
+    _SHOULDER_L: 120, _ELBOW_L: 90,   # arm back from neutral 90° → 120°
+    _SPINE: 10,
 }
 _RIGHT_PEAK = {
-    **_ARMS_DOWN,
     _HIP_R: 100, _KNEE_R: -90,
     _HIP_L: 0,   _KNEE_L: 0,
+    _SHOULDER_L: 60,  _ELBOW_L: 90,
+    _SHOULDER_R: 120, _ELBOW_R: 90,
+    _SPINE: 10,
 }
 
 # Brief setup phase to get arms out of T-pose before the leg cycle starts.
