@@ -9,9 +9,11 @@ expo-env.d.ts
 scripts/exercise-images/raw/
 scripts/exercise-images/prompts/
 
-# Blender build intermediates (regenerable from FBX via scripts/render-exercises.py)
+# Blender working files (regenerable from FBX or from spec modules)
 assets/blender/*.blend
 assets/blender/*.blend1
+# But keep the pristine rig source — it's the input, not a build artifact
+!assets/blender/casual_man_rigged.blend
 assets/exercise-renders/*/
 
 # Mixamo workflow debug screenshots
