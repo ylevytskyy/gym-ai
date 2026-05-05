@@ -2,6 +2,7 @@
 
 A 'joint' identifier is a (bone_name, axis) tuple — e.g. ("mixamorig:LeftUpLeg", "X").
 """
+import math
 from dataclasses import dataclass
 
 from .pose_data import PoseHistory
@@ -221,6 +222,10 @@ def hip_no_sagittal_drift(history: PoseHistory, *, max_meters: float) -> list[Va
 
 
 _FOOT_BONES = {"left": "mixamorig:LeftFoot", "right": "mixamorig:RightFoot"}
+_SHIN_BONES = {
+    "left": ("mixamorig:LeftLeg", "mixamorig:LeftFoot"),
+    "right": ("mixamorig:RightLeg", "mixamorig:RightFoot"),
+}
 
 # Blender world-coordinate Z is "up". The function exposes "y" in its public API
 # because that's the screen-vertical convention exercise authors think in,
@@ -261,5 +266,122 @@ def foot_world_y_min(history: PoseHistory, *, side: str, min_y: float) -> list[V
             side=side, frame=-1, observed=0.0,
             expected=f"≥ {min_y} m for all frames",
             passed=True,
+        ))
+    return results
+
+
+def shin_vertical(
+    history: PoseHistory,
+    *,
+    side: str,
+    at_phases: list[str],
+    threshold_deg: float,
+) -> list[ValidationResult]:
+    """Check angle between shin (knee→foot) world-vector and (0,0,-1) is within threshold.
+
+    Catches forward/backward shin tilt at peak frames in cyclic exercises like
+    high_knees. Uses Blender world Z = up convention.
+    """
+    knee_bone, foot_bone = _SHIN_BONES[side]
+    target_frames: list[int] = []
+    for pattern in at_phases:
+        target_frames.extend(history.frames_matching(pattern))
+    if not target_frames:
+        return [ValidationResult(
+            primitive=f"shin_vertical(side={side})",
+            side=side,
+            frame=-1,
+            observed=0.0,
+            expected=f"≤ {threshold_deg}° at phases matching {at_phases}",
+            passed=False,
+            message=f"no phases matched patterns {at_phases} — typo or unbuilt phase?",
+        )]
+    results: list[ValidationResult] = []
+    for f in sorted(set(target_frames)):
+        bones = history.frame(f).bones
+        if knee_bone not in bones or foot_bone not in bones:
+            results.append(ValidationResult(
+                primitive=f"shin_vertical(side={side})",
+                side=side, frame=f, observed=0.0,
+                expected=f"≤ {threshold_deg}°",
+                passed=False,
+                message=f"shin bones not captured at frame {f} ({knee_bone!r}, {foot_bone!r})",
+            ))
+            continue
+        knee = bones[knee_bone].world_pos
+        foot = bones[foot_bone].world_pos
+        # Shin direction: foot - knee.
+        dx = foot[0] - knee[0]
+        dy = foot[1] - knee[1]
+        dz = foot[2] - knee[2]
+        length = math.sqrt(dx*dx + dy*dy + dz*dz) or 1e-9
+        # Angle to (0,0,-1): cos(angle) = -dz / length.
+        cos_angle = max(-1.0, min(1.0, -dz / length))
+        angle_deg = math.degrees(math.acos(cos_angle))
+        passed = angle_deg <= threshold_deg
+        results.append(ValidationResult(
+            primitive=f"shin_vertical(side={side})",
+            side=side, frame=f, observed=angle_deg,
+            expected=f"≤ {threshold_deg}°",
+            passed=passed,
+            message=("" if passed else f"shin off-vertical by {angle_deg:.1f}°"),
+        ))
+    return results
+
+
+def mirror_symmetry(
+    history: PoseHistory,
+    *,
+    left_joint: tuple[str, str],
+    right_joint: tuple[str, str],
+    tolerance_deg: float,
+    at_phases: list[str] | None = None,
+) -> list[ValidationResult]:
+    """Verify left/right symmetric joints stay symmetric within tolerance.
+
+    If ``at_phases`` is None, checks every captured frame; otherwise only frames
+    matching the given phase wildcards.
+    """
+    l_bone, l_axis = left_joint
+    r_bone, r_axis = right_joint
+    if at_phases is None:
+        target_frames = [pf.frame for pf in history.frames]
+    else:
+        target_frames = []
+        for pattern in at_phases:
+            target_frames.extend(history.frames_matching(pattern))
+        if not target_frames:
+            return [ValidationResult(
+                primitive=f"mirror_symmetry({l_bone}/{r_bone})",
+                side=None,
+                frame=-1,
+                observed=0.0,
+                expected=f"|L−R| ≤ {tolerance_deg}° at phases matching {at_phases}",
+                passed=False,
+                message=f"no phases matched patterns {at_phases} — typo or unbuilt phase?",
+            )]
+    results: list[ValidationResult] = []
+    for f in sorted(set(target_frames)):
+        bones = history.frame(f).bones
+        if l_bone not in bones or r_bone not in bones:
+            continue  # silently skip — the all-passed sentinel below covers this case if all skipped
+        l_val = _axis_value(bones[l_bone].local_euler_deg, l_axis)
+        r_val = _axis_value(bones[r_bone].local_euler_deg, r_axis)
+        diff = abs(l_val - r_val)
+        passed = diff <= tolerance_deg
+        results.append(ValidationResult(
+            primitive=f"mirror_symmetry({l_bone}/{r_bone})",
+            side=None, frame=f, observed=diff,
+            expected=f"|L−R| ≤ {tolerance_deg}°",
+            passed=passed,
+            message=("" if passed else f"asymmetry {diff:.1f}° at f{f}"),
+        ))
+    if not results:
+        results.append(ValidationResult(
+            primitive=f"mirror_symmetry({l_bone}/{r_bone})",
+            side=None, frame=-1, observed=0.0,
+            expected=f"|L−R| ≤ {tolerance_deg}°",
+            passed=False,
+            message=f"no frames had both {l_bone!r} and {r_bone!r} — bones not captured?",
         ))
     return results
