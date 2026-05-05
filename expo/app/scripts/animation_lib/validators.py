@@ -172,3 +172,94 @@ def joint_velocity_max(
             passed=True,
         ))
     return results
+
+
+def world_position_drift_max(
+    history: PoseHistory,
+    *,
+    bone: str,
+    axis: str,  # "X", "Y", or "Z"
+    max_meters: float,
+) -> list[ValidationResult]:
+    sorted_frames = sorted(history.frames, key=lambda f: f.frame)
+    if not sorted_frames:
+        return []
+    first_pf = sorted_frames[0]
+    last_pf = sorted_frames[-1]
+    if bone not in first_pf.bones or bone not in last_pf.bones:
+        return [ValidationResult(
+            primitive=f"world_position_drift_max({bone},{axis})",
+            side=None,
+            frame=last_pf.frame,
+            observed=0.0,
+            expected=f"≤ {max_meters} m",
+            passed=False,
+            message=f"bone {bone!r} not captured at first/last frame",
+        )]
+    first = first_pf.bones[bone]
+    last = last_pf.bones[bone]
+    idx = _AXIS_INDEX[axis]
+    drift = abs(last.world_pos[idx] - first.world_pos[idx])
+    passed = drift <= max_meters
+    return [ValidationResult(
+        primitive=f"world_position_drift_max({bone},{axis})",
+        side=None,
+        frame=last_pf.frame,
+        observed=drift,
+        expected=f"≤ {max_meters} m",
+        passed=passed,
+        message=("" if passed else f"drift {drift:.3f}m between f{first_pf.frame} and f{last_pf.frame}"),
+    )]
+
+
+def hip_no_lateral_drift(history: PoseHistory, *, max_meters: float) -> list[ValidationResult]:
+    return world_position_drift_max(history, bone="mixamorig:Hips", axis="X", max_meters=max_meters)
+
+
+def hip_no_sagittal_drift(history: PoseHistory, *, max_meters: float) -> list[ValidationResult]:
+    return world_position_drift_max(history, bone="mixamorig:Hips", axis="Y", max_meters=max_meters)
+
+
+_FOOT_BONES = {"left": "mixamorig:LeftFoot", "right": "mixamorig:RightFoot"}
+
+# Blender world-coordinate Z is "up". The function exposes "y" in its public API
+# because that's the screen-vertical convention exercise authors think in,
+# but internally we read the Z index.
+_VERTICAL_AXIS = 2  # Blender world Z = up
+
+
+def foot_world_y_min(history: PoseHistory, *, side: str, min_y: float) -> list[ValidationResult]:
+    """Verify foot world-vertical position stays at or above ``min_y``.
+
+    The "y" in the name is the screen-vertical (up) convention used by exercise
+    spec authors. Internally this reads the Blender world Z axis (index 2),
+    which is the actual "up" direction in this rig's world coordinates.
+    """
+    sides = ["left", "right"] if side == "both" else [side]
+    results: list[ValidationResult] = []
+    any_failure = False
+    for s in sides:
+        bone = _FOOT_BONES[s]
+        for pf in history.frames:
+            if bone not in pf.bones:
+                continue
+            y = pf.bones[bone].world_pos[_VERTICAL_AXIS]
+            if y < min_y:
+                any_failure = True
+                results.append(ValidationResult(
+                    primitive="foot_world_y_min",
+                    side=s,
+                    frame=pf.frame,
+                    observed=y,
+                    expected=f"≥ {min_y} m",
+                    passed=False,
+                    message=f"{s} foot y={y:.3f}m below {min_y}",
+                ))
+    if not any_failure:
+        results.append(ValidationResult(
+            primitive="foot_world_y_min",
+            side=side, frame=-1, observed=0.0,
+            expected=f"≥ {min_y} m for all frames",
+            passed=True,
+        ))
+    return results
