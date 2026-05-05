@@ -17,7 +17,7 @@ from animation_lib.validators import (
 
 NAME = "high_knees"
 FPS = 30
-CAMERA = "front"
+CAMERA = "side_left"
 LIGHTING = "studio"
 
 # Peak of left knee lift: thigh swings forward 100° (X axis = hip flexion on

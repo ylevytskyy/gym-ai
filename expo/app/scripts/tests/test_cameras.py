@@ -4,15 +4,15 @@ from animation_lib.cameras import get_camera_preset, get_lighting_preset, DEFAUL
 
 def test_front_preset_has_required_fields():
     p = get_camera_preset("front")
-    assert p.position == (0.0, -3.0, 1.0)
-    assert p.target == (0.0, 0.0, 1.0)
+    assert p.position == (0.0, -3.5, 0.9)
+    assert p.target == (0.0, 0.0, 0.9)
     assert p.fov_deg == 35
 
 
 def test_side_left_preset_has_correct_position():
     p = get_camera_preset("side_left")
-    assert p.position == (3.0, 0.0, 1.0)
-    assert p.target == (0.0, 0.0, 1.0)
+    assert p.position == (3.5, 0.0, 0.9)
+    assert p.target == (0.0, 0.0, 0.9)
     assert p.fov_deg == 35
 
 
