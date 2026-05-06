@@ -27,10 +27,25 @@ def cycle(
     step_sec: float,
     left_pose: dict,
     right_pose: dict,
+    midstride_pose: dict | None = None,
+    midstride_sec: float | None = None,
 ) -> list[Phase]:
-    """Emit `reps * 2` alternating phases named lift_left_<i> and lift_right_<i>."""
+    """Emit `reps * 2` alternating phases named lift_left_<i> and lift_right_<i>.
+
+    If `midstride_pose` is given, insert a `mid_*_<i>` phase between each peak.
+    The midstride phase represents the body's mid-step position (e.g., feet near
+    ground, hips at lowest point) — useful for adding a vertical bounce by
+    setting Hips loc_Z=0 in midstride and a positive value at peaks.
+    Default midstride duration is half a step.
+    """
+    if midstride_sec is None:
+        midstride_sec = step_sec / 2
     out: list[Phase] = []
     for i in range(reps):
         out.append(phase(step_sec, left_pose, name=f"lift_left_{i}"))
+        if midstride_pose is not None:
+            out.append(phase(midstride_sec, midstride_pose, name=f"mid_l_{i}"))
         out.append(phase(step_sec, right_pose, name=f"lift_right_{i}"))
+        if midstride_pose is not None:
+            out.append(phase(midstride_sec, midstride_pose, name=f"mid_r_{i}"))
     return out

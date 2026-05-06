@@ -329,6 +329,153 @@ def shin_vertical(
     return results
 
 
+_HAND_BONES = {
+    "left": "mixamorig:LeftHand",
+    "right": "mixamorig:RightHand",
+}
+_SHOULDER_BONES = {
+    "left": "mixamorig:LeftArm",
+    "right": "mixamorig:RightArm",
+}
+
+
+def hand_forward_of_shoulder(
+    history: PoseHistory,
+    *,
+    side: str,
+    at_phases: list[str],
+    min_forward_meters: float = 0.05,
+    min_z_meters: float | None = None,
+    max_z_meters: float | None = None,
+) -> list[ValidationResult]:
+    """World-space check: hand is forward of the shoulder at specified phases.
+
+    Uses Blender world convention: -Y = forward. Verifies that
+    ``hand.world_y < shoulder.world_y - min_forward_meters`` (hand is in front
+    of shoulder by at least ``min_forward_meters``). Optionally constrains the
+    hand world Z height to [min_z_meters, max_z_meters] (world up = Z).
+
+    This catches wrong-axis elbow bugs: if the elbow axis is a twist (no actual
+    bend), the hand stays co-linear with the upper arm and never reaches forward
+    chin height. A local-angle validator cannot catch this because it passes
+    regardless of the axis being twist or flex.
+    """
+    target_frames: list[int] = []
+    for pattern in at_phases:
+        target_frames.extend(history.frames_matching(pattern))
+    if not target_frames:
+        return [ValidationResult(
+            primitive=f"hand_forward_of_shoulder({side})",
+            side=side,
+            frame=-1,
+            observed=0.0,
+            expected=f"hand forward of shoulder at phases matching {at_phases}",
+            passed=False,
+            message=f"no phases matched patterns {at_phases}",
+        )]
+    hand_bone = _HAND_BONES[side]
+    shoulder_bone = _SHOULDER_BONES[side]
+    results: list[ValidationResult] = []
+    for f in sorted(set(target_frames)):
+        bones = history.frame(f).bones
+        if hand_bone not in bones or shoulder_bone not in bones:
+            results.append(ValidationResult(
+                primitive=f"hand_forward_of_shoulder({side})",
+                side=side, frame=f, observed=0.0,
+                expected=f"hand forward of shoulder by ≥ {min_forward_meters}m",
+                passed=False,
+                message=f"hand or shoulder bone not captured at f{f}",
+            ))
+            continue
+        hand_y = bones[hand_bone].world_pos[1]        # world Y (-Y = forward)
+        shoulder_y = bones[shoulder_bone].world_pos[1]
+        forward_margin = shoulder_y - hand_y          # positive = hand is forward
+        passed_fwd = forward_margin >= min_forward_meters
+        hand_z = bones[hand_bone].world_pos[2]        # world Z = up
+        passed_z = True
+        z_msg = ""
+        if min_z_meters is not None and hand_z < min_z_meters:
+            passed_z = False
+            z_msg = f"; hand Z={hand_z:.3f}m below min {min_z_meters}m"
+        if max_z_meters is not None and hand_z > max_z_meters:
+            passed_z = False
+            z_msg = f"; hand Z={hand_z:.3f}m above max {max_z_meters}m"
+        passed = passed_fwd and passed_z
+        results.append(ValidationResult(
+            primitive=f"hand_forward_of_shoulder({side})",
+            side=side, frame=f,
+            observed=forward_margin,
+            expected=f"≥ {min_forward_meters}m forward of shoulder" + (
+                f", Z in [{min_z_meters},{max_z_meters}]" if (min_z_meters or max_z_meters) else ""
+            ),
+            passed=passed,
+            message=("" if passed else
+                     f"forward margin {forward_margin:.3f}m (need ≥ {min_forward_meters}m)"
+                     + z_msg),
+        ))
+    if not results:
+        results.append(ValidationResult(
+            primitive=f"hand_forward_of_shoulder({side})",
+            side=side, frame=-1, observed=0.0,
+            expected=f"≥ {min_forward_meters}m forward of shoulder",
+            passed=True,
+        ))
+    return results
+
+
+def hand_world_z_range(
+    history: PoseHistory,
+    *,
+    side: str,
+    at_phases: list[str],
+    min_z_meters: float,
+    max_z_meters: float,
+) -> list[ValidationResult]:
+    """World-space height check: hand Z (world up) must be in [min_z, max_z] at phases.
+
+    Use for the back-swing peak to ensure the hand lands at hip level (≈0.80–1.05m)
+    and not at chest/head height (the up-behind-head failure mode).
+    """
+    target_frames: list[int] = []
+    for pattern in at_phases:
+        target_frames.extend(history.frames_matching(pattern))
+    if not target_frames:
+        return [ValidationResult(
+            primitive=f"hand_world_z_range({side})",
+            side=side,
+            frame=-1,
+            observed=0.0,
+            expected=f"hand Z in [{min_z_meters}, {max_z_meters}] at phases matching {at_phases}",
+            passed=False,
+            message=f"no phases matched patterns {at_phases}",
+        )]
+    hand_bone = _HAND_BONES[side]
+    results: list[ValidationResult] = []
+    for f in sorted(set(target_frames)):
+        bones = history.frame(f).bones
+        if hand_bone not in bones:
+            results.append(ValidationResult(
+                primitive=f"hand_world_z_range({side})",
+                side=side, frame=f, observed=0.0,
+                expected=f"hand Z in [{min_z_meters}, {max_z_meters}]m",
+                passed=False,
+                message=f"hand bone not captured at f{f}",
+            ))
+            continue
+        hand_z = bones[hand_bone].world_pos[2]
+        passed = min_z_meters <= hand_z <= max_z_meters
+        results.append(ValidationResult(
+            primitive=f"hand_world_z_range({side})",
+            side=side, frame=f,
+            observed=hand_z,
+            expected=f"Z in [{min_z_meters}, {max_z_meters}]m",
+            passed=passed,
+            message=("" if passed else
+                     f"hand Z={hand_z:.3f}m outside [{min_z_meters}, {max_z_meters}]m"),
+        ))
+    return results
+
+
 def mirror_symmetry(
     history: PoseHistory,
     *,

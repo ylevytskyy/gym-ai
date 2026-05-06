@@ -53,6 +53,6 @@ TRACKED_BONES = (
     Bones.HIPS,
     Bones.LEFT_UP_LEG, Bones.LEFT_LEG, Bones.LEFT_FOOT,
     Bones.RIGHT_UP_LEG, Bones.RIGHT_LEG, Bones.RIGHT_FOOT,
-    Bones.LEFT_ARM, Bones.LEFT_FORE_ARM,
-    Bones.RIGHT_ARM, Bones.RIGHT_FORE_ARM,
+    Bones.LEFT_ARM, Bones.LEFT_FORE_ARM, Bones.LEFT_HAND,
+    Bones.RIGHT_ARM, Bones.RIGHT_FORE_ARM, Bones.RIGHT_HAND,
 )

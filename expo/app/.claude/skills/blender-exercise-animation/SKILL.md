@@ -9,11 +9,45 @@ Spec-driven animation authoring for the GymAI app's exercise demos. Each exercis
 
 **Output paths the app already consumes:** `assets/exercise-renders/<exercise>.mp4` (overwrite-in-place when migrating).
 
+## Biomechanical research (mandatory prerequisite)
+
+**Do this BEFORE writing a new spec or making non-trivial changes to an existing animation.** Pose values must derive from a sourced kinematic description, not from intuition or "what looks right." A single wrong axis or wrong magnitude can take hours to debug; a wrong description bakes that error in from the start.
+
+### Why this is non-negotiable
+
+The skill has a long history of doing it wrong way around: pose first, debug visually, iterate. Each iteration costs a render + visual inspection + speculation about what's off. A canonical kinematic description up front turns "is the arm wrong?" from a guess into a numerical comparison: "Source says forward-peak hand at chin level (~45–60° shoulder flexion); current render shows hand at chest level — deepen the elbow flex."
+
+### Process
+
+1. **Delegate research to a Sonnet subagent** with `ultrathink` in the prompt. Don't burn main-thread context on web reading. Instruct the subagent to:
+   - Pull from authoritative sources: ACE, NSCA, ACSM, sports-biomechanics papers (PMC, Journal of Experimental Biology), credentialed coaching outlets, reputable fitness sites (Healthline, Verywell Fit). Aim for 6–10 distinct sources.
+   - **Quote sources** — every numerical claim cites the source and URL.
+   - Self-review and iterate the description before returning.
+
+2. **Required output sections** (the subagent's brief should mandate all of these):
+   - **Posture** held throughout the cycle: torso lean (degrees, fulcrum joint — ankle vs waist matters), spine, head, shoulders, pelvic tilt, core engagement.
+   - **Lower body kinematics**: hip flexion at peak, knee flexion at peak, ankle (dorsi/plantar at swing vs strike), foot strike pattern, stance leg state (extension, hip extension at toe-off), vertical bounce.
+   - **Upper body kinematics**: shoulder flexion-extension range (degrees), abduction (does the arm stay in the sagittal plane?), elbow flex at neutral / forward peak / back peak, hand path (where exactly — chin? eye? hip? past-hip?), wrist, primary driver (shoulder pendulum vs elbow pump).
+   - **Phase relationship**: counter-rhythm (ipsilateral/contralateral?), peak alignment, what happens between peaks.
+   - **Tempo / cadence**: steps/min range, full-cycle duration, comparison to running cadence.
+   - **Common form errors**: top 3–5 — these tell you what NOT to render.
+   - **Source disagreements**: explicit, with both numbers, then resolved by picking which variant we animate.
+
+3. **Resolve variant ambiguity explicitly.** Many exercises have multiple "correct" forms (high knees has a sprint-drill variant at 90° hip flexion / 100 spm and a cardio-HIIT variant at 110–125° hip flexion / 150 spm — visibly different animations). The spec serves one variant. For the GymAI app, default to the **fitness/cardio variant** unless the exercise is explicitly a track drill. Document the choice in the spec docstring.
+
+4. **Iterate the description until it passes self-review.** Checklist: every numerical claim cited; nothing vague where it should be quantitative; covers every joint the rig exposes; no unresolved ambiguity; could a 3D animator implement it without further questions. Loop research → write → review until clean.
+
+5. **Spec values trace back to the description.** Each pose value should map to a research-backed target. Where it can't (rig-specific calibration), call it out in a comment.
+
+### Improving an existing animation uses the same process
+
+Don't tweak pose values empirically when the user reports "still not right." Run the research, build the description, compare it to the current spec line by line. Often three or four corrections surface that wouldn't have been visible from inspecting the rendered MP4.
+
 ## The rig
 
 - **Active rig:** `assets/blender/xbot_rigged.blend` — XBot (Mixamo's reference character, 65 bones, applied transforms so armature world matrix is identity). Standard Mixamo bind pose.
 - **Alternate rig:** `assets/blender/casual_man_rigged.blend` — higher-fidelity Sketchfab Casual Man with renamed bones. **Not currently wired up** — its bind pose differs from Mixamo standard, so pose values that work on XBot don't translate directly. Switching back requires either bind-pose calibration of pose values per exercise, or a Mixamo round-trip through the auto-rigger to bake a standard bind pose.
-- **Bone naming:** Mixamo (`mixamorig:LeftUpLeg`, etc.). Use `animation_lib.rig.Bones` string constants for bone names. The sided joint accessors (`hip_flex.L`, `shoulder_flex.R`, etc.) are convenient but **leaky** — each one hardcodes a single axis, and some assumptions are wrong on this rig (notably `shoulder_flex` is on X, but X is *abduction*, not the running-arm sagittal swing). When the accessor maps to the wrong axis for what you need, drop to raw `(bone, axis)` tuples — `high_knees.py` does this for the shoulders.
+- **Bone naming:** Mixamo (`mixamorig:LeftUpLeg`, etc.). Use `animation_lib.rig.Bones` string constants for bone names. The sided joint accessors (`hip_flex.L`, `shoulder_flex.R`, `elbow_flex.L`, etc.) are convenient but **systematically wrong** for the running-arm motion: they all hardcode the X axis, but the actual sagittal-plane axes for shoulder swing and elbow flex on this rig are **Y** (see "Calibrated rig conventions" below). Use raw `(bone, axis)` tuples — `high_knees.py` is the reference.
 - **Don't mutate either rig file** — they're the read-only source. All work goes through `animate.py`, which loads a copy in memory.
 
 ## Calibrated rig conventions (XBot)
@@ -25,19 +59,42 @@ Empirical mapping from local Euler axis to visible motion, calibrated by isolate
 | `LeftUpLeg` / `RightUpLeg` (hip) | X | + | Hip **flexion** — thigh swings forward / up |
 | `LeftLeg` / `RightLeg` (knee) | X | − | Knee **flexion** — shin folds toward thigh; positive extends past straight |
 | `LeftArm` / `RightArm` (shoulder) | X | + 90° | Arm **abduction down** to side (T-pose → arm-at-side); leave at 90° as the baseline |
-| `LeftArm` / `RightArm` (shoulder) | Z | + / − | Arm sagittal **swing** — `+` forward, `−` behind. **This is the running-arm axis.** |
-| `LeftForeArm` / `RightForeArm` (elbow) | X | − (when shoulder X=90°) | Elbow **flexion** — forearm comes forward / up. **Sign is context-dependent**: at T-pose (shoulder X=0) `+` flexes forward, but once shoulder X=90 brings the arm down to the side, the elbow's local axis flips and `−` is the flexion direction. Specs almost always use the rotated-down stance, so use `−` and verify with `--frame 0` that hands sit in front of the stomach, not behind the spine. |
-| `Spine` | X | + | Forward lean |
+| `LeftArm` / `RightArm` (shoulder) | **Y** | − / + | Arm sagittal **swing** — **`Y−` forward, `Y+` behind**. This is the running-arm axis. (Earlier work used Z, which is actually a TWIST around the bone's length — with elbow bent, Z swept the forearm OUTWARD to the side instead of swinging it forward/back. Z = twist, Y = swing. Don't confuse them.) |
+| `LeftArm` / `RightArm` (shoulder) | Z | varies | **Twist around bone's length** (NOT swing). Visible only with elbow bent — rotates the bent forearm sideways around the upper arm. Avoid for swing motion. |
+| `LeftForeArm` / `RightForeArm` (elbow) | **Z** | varies by side | Elbow sagittal **flexion** — Z is the flex axis in working pose (arm at side with parent X+90°). **Y is the TWIST axis** for forearm bones at all shoulder swing values (dot product = 1.000 empirically); setting Y to any value produces zero elbow angle change. Sign convention is **MIRRORED** between left and right: `LeftForeArm Z+` = forward/up toward face; `LeftForeArm Z−` = backward toward hip. `RightForeArm Z−` = forward/up toward face; `RightForeArm Z+` = backward. See `xbot_rig_axes.md` "LeftForeArm working-pose analysis" for verified world hand positions at each peak. |
+| `Spine` | X | + | Forward lean (note: lean is at the spine joint, not from the ankle as canonical biomechanics specifies — visible as a waist hinge in profile. Keep small, ≤5°.) |
+| `Spine` | Y | ± | Lateral side-bend (torso tilts left/right). Rarely used in cardio specs. |
+| `Spine` | **Z** | ± | **Axial twist** — torso rotates around the vertical axis. Use for counter-rotation in running exercises. (Local Y is parallel to the bone's length +Z up, so Y = twist at rest; local Z sweeps the torso. Confirmed: `high_knees.py` uses Spine Z for counter-rotation.) |
+| `LeftFoot` / `RightFoot` (ankle) | X | − | Dorsiflexion (toes up, swing position). Positive = plantarflexion (toes down, push-off / strike). Calibrated value is X=−30°; use X=−45° for better visibility on this rig — the motion is visually subtle at −30°. |
+| `Hips` | `loc_Y` | + meters | **Vertical bounce** (root translation). `loc_Y` maps to world +Z (up) on this rig. Use small values (0.03–0.05m) to lift at peaks; 0 at midstride. (**Not** `loc_Z` — that channel maps to world -Y (forward), producing an invisible forward shuffle instead of a bounce. This was the original bug.) |
+| `LeftHand{Finger}{1,2,3}` / `RightHand{Finger}{1,2,3}` | X | + | Finger curl toward palm. Proximal (1) at 30°, middle (2) at 45°, distal (3) at 45° gives a soft fist. Thumb lighter: 15/25/20°. Finger bones exist on this rig — use them for realistic hand poses. |
 
-The shoulder split (X for "arm down", Z for "swing") is non-obvious and was the most expensive thing to learn — `rig.Bones.shoulder_flex` does not encode it. L↔R mirror is **not** automatic; sign conventions for `RightArm` Z match `LeftArm` (positive forward, negative behind on each respective side), but verify per-bone by rendering both peaks before committing.
+**Key rule of thumb: the sagittal-plane axes are X (legs) and Y/Z (arms).** Shoulder swing is on **Y** (upper arm). Elbow flex is on **Z** (forearm) — despite sharing the same rest-pose geometry as the upper arm, the forearm's local Y stays TWIST at all working poses (empirically confirmed: dot=1.000 at shoulder Y=-45°, 0°, +20°). Sign conventions for forearm Z are mirrored between left and right — see the table row above and `xbot_rig_axes.md` for verified hand-position targets.
+
+L↔R mirror is **not** automatic; sign conventions for `RightArm` Y match `LeftArm` (negative forward, positive behind on each respective side), but verify per-bone by rendering both peaks before committing. Foot dorsiflexion likewise: `LeftFoot X = −45` is the recommended value for visibility; verify right foot independently.
 
 ## Authoring a spec
 
-1. Copy a similar exercise's module into `scripts/exercise_specs/<new_exercise>.py`. Pilot template: `high_knees.py` for cyclic-alternating motion.
-2. Required module attrs: `NAME` (must equal filename), `FPS`, `CAMERA`, `LIGHTING`, `PHASES`, `VALIDATORS`. Optional: `RESOLUTION`.
-3. Phases declare end-of-phase pose. The library interpolates from the previous phase (or T-pose for phase 0). Tempo is implicit in `duration_sec`.
-4. **Validators are mandatory.** A spec with empty `VALIDATORS` is rejected at load time. Prefer composing existing primitives over adding new ones — only add a primitive to `validators.py` when a class of failure isn't expressible by combinations.
-5. Camera and lighting are **named presets** from `animation_lib.cameras` (`front`, `side_left`, `three_quarter`, `studio`). Add new presets to `cameras.py` (with a documented angle and use case); never inline camera math in a spec.
+### Step 0: Read the rig calibration ledger
+
+**Before writing any pose values, read `assets/blender/xbot_rig_axes.md`.** It shows the world-space direction of every bone's local X/Y/Z axes at rest pose, which local axis maps to world +Z (up) for each bone, and which axes are sweep vs twist. Every pose value you write must trace to a verified axis from that ledger — not to a guess.
+
+If the rig has changed (new bones added, transforms re-baked, switched to a different `.blend`), regenerate the ledger before writing any spec values:
+
+```sh
+python3 scripts/inspect_rig.py assets/blender/xbot_rigged.blend > assets/blender/xbot_rig_axes.md
+```
+
+The ledger takes one Blender background invocation (~10s) and replaces hours of render-iterate debugging. See "Common gotchas — Render-iterate is a trap" for the full rationale.
+
+1. **Run the biomechanical research first** (see section above). The pose values you write here trace back to that document; don't skip it.
+2. Copy a similar exercise's module into `scripts/exercise_specs/<new_exercise>.py`. Pilot template: `high_knees.py` for cyclic-alternating motion.
+3. Required module attrs: `NAME` (must equal filename), `FPS`, `CAMERA`, `LIGHTING`, `PHASES`, `VALIDATORS`. Optional: `RESOLUTION`.
+4. Phases declare end-of-phase pose. The library interpolates from the previous phase (or T-pose for phase 0). Tempo is implicit in `duration_sec`.
+5. Pose dict keys are `(bone_name, axis)` tuples. Axis can be `"X"`/`"Y"`/`"Z"` for rotation (degrees) or `"loc_X"`/`"loc_Y"`/`"loc_Z"` for translation (meters; useful for vertical bounce on the `Hips` bone).
+6. For cyclic-alternating motion (running, kicking, etc.), `motion.cycle()` accepts an optional `midstride_pose` to insert a between-peaks phase — useful for vertical bounce (Hips `loc_Y` drops at midstride and rises at peaks) or any state that lives between the two main peaks.
+7. **Validators are mandatory.** A spec with empty `VALIDATORS` is rejected at load time. Prefer composing existing primitives over adding new ones — only add a primitive to `validators.py` when a class of failure isn't expressible by combinations.
+8. Camera and lighting are **named presets** from `animation_lib.cameras` (`front`, `side_left`, `three_quarter`, `studio`). Add new presets to `cameras.py` (with a documented angle and use case); never inline camera math in a spec.
 
 ### Validator design — what each primitive actually checks
 
@@ -115,6 +172,9 @@ Recurring author mistakes, not framework limits:
 - **Velocity threshold scales with peak amplitude.** `joint_velocity_max` defaults are tuned for moderate-range motion; cyclic exercises with large per-frame deltas (high_knees at hip 125°, 0.5s/step) need `max_dps` raised to ~800. Don't lower amplitude to fit the validator — raise the validator and document why.
 - **L/R mirror sign flips aren't free.** When mirroring a peak pose from one side to the other, render both peaks (`--frame <left_peak>` and `--frame <right_peak>`) before committing the spec.
 - **Render the cycle, not just one peak.** A `--frame 30` PNG that looks correct doesn't prove the in-between frames look natural. After validators pass, watch the MP4 — easing, transition tempo, and counter-rhythm coordination only show up in motion.
+- **Side view alone can't distinguish "forward swing" from "outward sweep."** From `side_left`, an arm swinging forward (-Y) and an arm abducting toward camera (+X) both project as "arm coming toward viewer." Always confirm sagittal-plane motion from a **front** view too. This is how the original spec ended up using Shoulder Z (a twist axis) for "swing" — it looked right from the side and was wrong from the front for months.
+- **Skip biomechanical research at your own risk.** If you find yourself nudging pose values while squinting at the MP4, stop. Run the research subagent, get the numerical targets, then come back. It's faster than the alternative — measured in actual session minutes, not in pride.
+- **Render-iterate is a trap. Introspect first.** If you're about to nudge a pose value because the render looks wrong, stop and check `assets/blender/xbot_rig_axes.md`. If your value implies an axis assumption not backed by the ledger, you're guessing — and renders can't falsify a wrong axis assumption, they can only confirm a right one. Every wrong-axis bug in this codebase was found the same way: 5-line Python snippet in Blender, immediate answer, no renders needed. The cure is the ledger, not more renders. Historical evidence: commit `c154eff` discovered that shoulder Z = twist (not swing) after hours of side-view renders that looked plausible; the same session that introduced `high_knees.py` discovered that `Hips loc_Y` (not `loc_Z`) is the world-up channel, that `Spine Z` is the axial-twist axis, and that finger bones exist and are animatable — all found by running `inspect_rig.py`, none by rendering.
 
 ## Known limitations
 

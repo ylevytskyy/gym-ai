@@ -52,15 +52,24 @@ def emit_phases(armature_obj, phases: list[Phase], fps: int) -> dict[str, int]:
 
         # Apply current_pose to the armature and key.
         bpy.context.scene.frame_set(end_frame)
-        for (bone_name, axis), value_deg in current_pose.items():
+        for (bone_name, axis), value in current_pose.items():
             pbone = armature_obj.pose.bones.get(bone_name)
             if pbone is None:
                 raise KeyError(f"bone {bone_name!r} not found on armature")
-            idx = {"X": 0, "Y": 1, "Z": 2}[axis]
-            euler = list(pbone.rotation_euler)
-            euler[idx] = math.radians(value_deg)
-            pbone.rotation_euler = euler
-            pbone.keyframe_insert(data_path="rotation_euler", frame=end_frame)
+            if axis.startswith("loc_"):
+                # Translation keyframe; value is in METERS along the bone's local axis.
+                idx = {"loc_X": 0, "loc_Y": 1, "loc_Z": 2}[axis]
+                loc = list(pbone.location)
+                loc[idx] = value
+                pbone.location = loc
+                pbone.keyframe_insert(data_path="location", frame=end_frame)
+            else:
+                # Rotation keyframe; value is in DEGREES around the bone's local axis.
+                idx = {"X": 0, "Y": 1, "Z": 2}[axis]
+                euler = list(pbone.rotation_euler)
+                euler[idx] = math.radians(value)
+                pbone.rotation_euler = euler
+                pbone.keyframe_insert(data_path="rotation_euler", frame=end_frame)
 
     # Set scene end frame.
     bpy.context.scene.frame_end = phase_to_frame[phases[-1].name] if phases else 0
