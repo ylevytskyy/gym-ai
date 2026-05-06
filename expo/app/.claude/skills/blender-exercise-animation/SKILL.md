@@ -139,6 +139,30 @@ This is where the work lives. Local-angle conventions are rig-specific — even 
 
 This is hours of work for a complex multi-bone exercise on a fresh rig. It's a real cost; the validator framework can't eliminate it, only constrain it.
 
+## Diagnosing a wrong-axis problem
+
+When the render looks wrong on a specific joint and you suspect an axis or sign in the spec — **do not iterate renders**. Renders can confirm a right axis but cannot falsify a wrong one (a 50% wrong sign just looks "weird," not "obviously inverted"). Use this recipe instead.
+
+### The recipe
+
+1. **Analyze the bone in its working pose, not its rest pose.** The arm chain has a baseline `LeftArm/RightArm X+90°` rotation that puts the arm at the character's side; *all* local axes rotate with the bone. What was twist at rest can become swing in the working pose, and vice versa. Legs animate near rest, so their rest-pose axes hold; arms do not.
+
+2. **Use dot product against the bone's direction to identify twist.** Run `inspect_rig.py` (or a one-off Blender script) at the working pose and dot each local axis vector against the bone's `head→tail` direction. The axis whose dot ≈ 1.0 is parallel to the bone — rotating around it is **TWIST**. Don't use it for swing motion. The two axes with dot ≈ 0.0 are perpendicular — those are the swing/flex candidates.
+
+   Example from `xbot_rig_axes.md`: `LeftForeArm` local Y reads dot=1.000 against the bone direction at shoulder Y=−45°, 0°, *and* +20°. Y is the twist axis at every working pose, not just at rest. Setting `LeftForeArm` Y to any value produces zero elbow angle change — it just spins the forearm in place. The actual elbow flex axis is Z.
+
+3. **Verify sign with one isolated test peak per side.** Set the suspect bone+axis to a small magnitude, every other bone to rest, then `python3 animate.py <test> --frame <peak>`. Read world-space hand/foot position from the rendered frame and from `inspect_rig.py`. **Never trust the side view alone** — from `side_left`, shoulder X (abduction toward camera) and shoulder Y (forward swing) both project as "limb coming forward." Always cross-check from `front`. Historical evidence: shoulder Z was wrongly used for swing for months because side-view renders looked plausible.
+
+4. **Don't assume L↔R sign symmetry.** `RightArm` points `−X (lateral left)` from rest, while `LeftArm` points `+X (lateral right)`. That inverts the sign of every rotation. The ledger spells out per-side sign conventions; read both rows, don't extrapolate from one. Same for forearms: `LeftForeArm Z+` folds toward face, `RightForeArm Z−` folds toward face.
+
+### Common false leads
+
+- **Two bones with identical rest-pose axes behaving differently in working pose.** `LeftArm` and `LeftForeArm` have the *same* rest-pose layout (Y parallel to bone, X lateral). In working pose, LeftArm Y becomes the sagittal swing axis but LeftForeArm Y stays the twist axis (dot=1.000 at every shoulder position). The forearm tracks its parent's rotation differently from how the parent's own axes rotate. Always verify the child bone's twist axis empirically; don't extrapolate from the parent.
+
+- **Suspecting the sign needs to flip at the opposite peak of a cyclic motion.** It usually doesn't. The elbow Z sign on the forearm is the same at the forward peak (hand near chin) and the back peak (hand near hip): the forearm always folds toward the face. The back peak puts the hand at hip height because the *shoulder* swing tilted the whole upper-arm chain rearward — not because the elbow re-folded the other way. Verified by full-pose introspection on 2026-05-06; earlier attempts that flipped the forearm Z sign at the back peak were chasing a phantom correction.
+
+- **A bone has a non-trivial baseline rotation but you read it from the rest-pose ledger row.** Rest-pose tables describe the bone *before* any baseline pose is applied. For arm bones with `X+90°` baseline, regenerate the ledger with that pose set, or read the explicit "working-pose analysis" notes already in `xbot_rig_axes.md` for `LeftArm` and `LeftForeArm`. New baselines need new working-pose introspections.
+
 ## Output
 
 - MP4: `assets/exercise-renders/<exercise>.mp4` — overwrites; this is what the app consumes.
