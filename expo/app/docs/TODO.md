@@ -1,93 +1,80 @@
 # Follow-ups
 
-Outstanding items from the `feat/exercise-video-detail-screen` work and adjacent.
+Outstanding items from the `feat/exercise-video-detail-screen` work and adjacent. Tick boxes as items complete; move stale items down rather than deleting them so we keep an audit trail.
+
+## Fix broken exercise renders (18 of 32)
+
+QC pass 2026-05-06: 14 OK, 18 broken. Fix in Blender, re-render, drop the MP4 into `assets/exercise-renders/` (`pnpm sync-videos` picks it up; the auto-discovery script fails loud on slug mismatches).
+
+### Wrong starting pose (11)
+
+The dominant failure mode. Specs need a setup phase that translates the character into the correct starting orientation (rotate hips, set ankles to floor contact, place hands/elbows on ground) before any per-cycle keyframes. **Not an axis-discovery problem** — don't reach for `inspect_rig.py` first.
+
+- [ ] `cat-cow` — should render kneeling on all-fours, arching and rounding the spine. Currently renders kneeling/sitting upright.
+- [ ] `dead-bug` — should render supine with limbs in tabletop, alternating opposite arm + leg extensions. Currently renders as a quadruped crawl (looks like bird-dog).
+- [ ] `diamond-push-ups` — should render prone push-up with diamond hand position. Currently standing with arms bent at chest.
+- [ ] `downward-dog` — should reach inverted-V floor position. Currently standing upright with arm motion only.
+- [ ] `flutter-kicks` — should render supine with alternating leg kicks. Currently prone (face down), nearly static.
+- [ ] `glute-bridges` — should render supine with knees bent and hips lifting. Currently standing upright.
+- [ ] `knee-push-ups` — should render with knees on floor (the differentiator from standard push-up). Currently identical to `standard-push-ups`.
+- [ ] `pike-push-ups` — should render inverted-V lowering head toward floor. Currently standing with arms overhead.
+- [ ] `plank-jacks` — should render plank with feet jumping wide/close. Currently standing/jogging with arms at chest.
+- [ ] `scissor-kicks` — should render supine with legs crossing alternately. Currently prone, nearly static.
+- [ ] `side-plank` — should render lateral ground position propped on one forearm. Currently standing upright, static.
+
+### Wrong motion (4)
+
+These are the kind of failure the "Diagnosing a wrong-axis problem" recipe in the Blender skill is for: small range or wrong joint angle, fixable by introspecting the joint and verifying the axis/sign.
+
+- [ ] `calf-raises` — add plantar flexion (heel-rise) on the cycle. Currently flat-footed throughout.
+- [ ] `hollow-hold` — switch to a straight-leg banana hold (arms overhead, legs extended and elevated). Currently a bent-knee crunch motion.
+- [ ] `lunge-jumps` — deepen knee bend and add split-stance jump. Currently legs stay close with shallow knee bend.
+- [ ] `quad-stretch` — pull foot up toward buttock with hand grab. Currently standing without an ankle grab.
+
+### Static (1)
+
+- [ ] `hamstring-stretch` — add forward fold reaching toward foot. Currently nearly motionless across the cycle.
+
+### Unclear — needs human eyes (2)
+
+- [ ] `leg-raises` — investigate. Frame-to-frame pose is incoherent (standing → crouched → sitting → supine); supine frame looks right but loop is broken. Phase boundaries probably snap rather than interpolate.
+- [ ] `side-lunges` — confirm or deepen. Lateral motion is present but depth is too shallow to distinguish from walking.
+
+### ✅ OK — no action (14)
+
+`bicycle-crunches`, `bird-dog`, `bodyweight-squats`, `burpees`, `butt-kicks`, `forearm-plank`, `high-knees`, `inchworms`, `jumping-jacks`, `mountain-climbers`, `plank-shoulder-taps`, `reverse-lunges`, `shadow-boxing`, `standard-push-ups`.
+
+## Render the remaining ~43 exercises
+
+`assets/exercise-renders/` has 32 MP4s for 75 catalog exercises. Find the unrendered list with `comm -23 <(jq -r '.exercises[].id' assets/data/exercises.json | sort) <(ls assets/exercise-renders/*.mp4 | xargs -n1 basename | sed 's/\.mp4$//' | tr '_' '-' | sort)`.
+
+- [ ] Triage the 43 unrendered exercises into priority order (cardio + most-used first; rare stretches last).
+- [ ] Render each one. Drop into `assets/exercise-renders/`; filename = catalog id (snake_case or kebab-case both work).
 
 ## Migrate remaining surfaces off the step-PNG pipeline
 
 The exercise detail screen now uses Blender video renders + a body-part-bucket placeholder. Four other surfaces still consume the legacy step-PNG pipeline:
 
-- `src/components/ExerciseImageThumbnail.tsx` — used by exercise list (`app/(tabs)/exercises.tsx`) and runner (`app/workout/[sessionId].tsx`).
-- `src/components/ExerciseImageCarousel.tsx` — used by runner during the work step.
-- `src/components/SessionCard.tsx` and `src/components/UpNextCard.tsx` — dashboard cards; each gates a thumbnail with `getExerciseImages(...).hasImages`.
-
-Once those four surfaces are migrated to videos / video stills / placeholders, delete:
-
-- `src/lib/exerciseImages.ts`
-- `src/lib/exerciseImageMap.ts`
-- `assets/data/exercise-images.json`
-- `assets/images/exercises/` (entire tree)
-- `scripts/exercise-images/`
-- `scripts/split-exercise-images.py`
-- `scripts/generate-image-prompts.ts`
+- `src/components/ExerciseImageThumbnail.tsx` — exercise list (`app/(tabs)/exercises.tsx`) and runner (`app/workout/[sessionId].tsx`).
+- `src/components/ExerciseImageCarousel.tsx` — runner during the work step.
+- `src/components/SessionCard.tsx` and `src/components/UpNextCard.tsx` — dashboard cards (each gates a thumbnail with `getExerciseImages(...).hasImages`).
 
 Needs its own brainstorm — the visual answer is different at thumbnail size (~48–80px) than at the detail-screen 220×220 card.
 
-## Render the remaining ~43 exercises
+- [ ] Brainstorm the thumbnail/carousel visual answer (tiny video preview vs poster frame vs placeholder icon at small size).
+- [ ] Migrate `ExerciseImageThumbnail` (list + runner).
+- [ ] Migrate `ExerciseImageCarousel` (runner work step).
+- [ ] Migrate `SessionCard` and `UpNextCard` (dashboard).
+- [ ] Once all four are migrated, delete the dead pipeline:
+  - [ ] `src/lib/exerciseImages.ts`
+  - [ ] `src/lib/exerciseImageMap.ts`
+  - [ ] `assets/data/exercise-images.json`
+  - [ ] `assets/images/exercises/` (entire tree)
+  - [ ] `scripts/exercise-images/`
+  - [ ] `scripts/split-exercise-images.py`
+  - [ ] `scripts/generate-image-prompts.ts`
 
-`assets/exercise-renders/` has 32 MP4s for 75 catalog exercises. Drop new MP4s into the directory (filename = catalog id, snake_case or kebab-case) and `pnpm sync-videos` picks them up. The auto-discovery script fails loud on slug mismatches and on duplicate slugs.
+## Smaller follow-ups
 
-## QC pass on existing renders
-
-QC pass on the 32 wired renders (2026-05-06): **14 OK / 18 broken** (11 wrong-position, 4 wrong-motion, 1 static, 2 unclear). Fix in Blender, re-render, replace in place.
-
-The dominant failure mode (11/18) is **wrong starting pose** — supine/prone/quadruped exercises rendered as standing-upright. These specs need a setup phase that translates the character into the right starting orientation (rotate hips, set ankles to floor contact, place hands/elbows on ground) before any per-cycle keyframes — not an axis-discovery problem.
-
-The 4 wrong-motion entries are the kind for which the "Diagnosing a wrong-axis problem" recipe in the Blender skill applies: small range or wrong-joint-angle, fixable by introspecting the joint and verifying axis/sign.
-
-### ⚠️ wrong-position (11)
-
-| Exercise | Observation |
-|---|---|
-| `cat-cow` | Kneeling/sitting upright; should be on all-fours arching/rounding spine |
-| `dead-bug` | Quadruped crawl (looks like bird-dog); should be supine with limbs in tabletop |
-| `diamond-push-ups` | Standing with arms bent at chest; should be prone push-up with diamond hands |
-| `downward-dog` | Standing upright with arm motion; never reaches inverted-V |
-| `flutter-kicks` | Prone (face down), nearly static; should be supine with alternating kicks |
-| `glute-bridges` | Standing upright; should be supine with hips lifting |
-| `knee-push-ups` | Identical to standard push-up; knees should be on floor |
-| `pike-push-ups` | Standing arms overhead; should be inverted-V lowering head to floor |
-| `plank-jacks` | Standing/jogging with arms at chest; should be plank with jumping feet |
-| `scissor-kicks` | Prone, nearly static; should be supine with legs crossing |
-| `side-plank` | Standing upright, static; should be lateral ground position |
-
-### ⚠️ wrong-motion (4)
-
-| Exercise | Observation |
-|---|---|
-| `calf-raises` | Flat-footed throughout; no plantar flexion / heel-rise |
-| `hollow-hold` | Bent-knee crunch motion; should be straight-leg banana hold (arms overhead, legs extended/elevated) |
-| `lunge-jumps` | Legs stay close, shallow knee bend; no split-stance lunge or jump |
-| `quad-stretch` | Standing without ankle grab; foot never pulled toward buttock |
-
-### ⚠️ static (1)
-
-| Exercise | Observation |
-|---|---|
-| `hamstring-stretch` | Stands nearly motionless across the cycle; no forward fold or reach toward foot |
-
-### ❓ unclear — needs human eyes (2)
-
-| Exercise | Observation |
-|---|---|
-| `leg-raises` | Frame-to-frame pose is incoherent (standing → crouched → sitting → supine); supine frame looks right but loop is broken — phase boundaries probably snap rather than interpolate |
-| `side-lunges` | Lateral motion present but depth too shallow to confirm proper side lunge vs. walking |
-
-### ✅ OK (14)
-
-`bicycle-crunches`, `bird-dog`, `bodyweight-squats`, `burpees`, `butt-kicks`, `forearm-plank`, `high-knees`, `inchworms`, `jumping-jacks`, `mountain-climbers`, `plank-shoulder-taps`, `reverse-lunges`, `shadow-boxing`, `standard-push-ups`
-
-## `ExercisePlaceholder` accessibility
-
-Component currently has no accessibility opt-out, so screen readers will announce the Ionicon's internal name. Spec marked the placeholder as decorative (the surrounding screen already has the exercise name and body-part chips). Two-line fix on `src/components/ExercisePlaceholder.tsx`:
-
-```tsx
-<View
-  accessible={false}
-  importantForAccessibility="no-hide-descendants"
-  ...
->
-```
-
-## Spec drift
-
-`docs/superpowers/specs/2026-05-06-video-first-exercise-detail-design.md` names the sync script `sync-exercise-videos.mjs`; the implementation uses `sync-exercise-videos.ts` via `npx tsx` (matches the `validate-locales.ts` convention). The spec is stale on that one line. Either update the spec or treat it as historical record.
+- [ ] **`ExercisePlaceholder` accessibility** — add `accessible={false}` and `importantForAccessibility="no-hide-descendants"` on the root `<View>` in `src/components/ExercisePlaceholder.tsx`. Currently screen readers announce the Ionicon's internal name. Spec marked the placeholder as decorative (the surrounding screen already shows the exercise name and body-part chips).
+- [ ] **Spec drift** — `docs/superpowers/specs/2026-05-06-video-first-exercise-detail-design.md` names the sync script `sync-exercise-videos.mjs`; the implementation uses `sync-exercise-videos.ts` via `npx tsx` (matches the `validate-locales.ts` convention). Either update the spec text on that line or treat it as historical record.
