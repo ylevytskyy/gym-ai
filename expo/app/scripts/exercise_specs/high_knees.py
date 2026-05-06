@@ -37,10 +37,14 @@ _ELBOW_L        = ("mixamorig:LeftForeArm",  "X")
 _ELBOW_R        = ("mixamorig:RightForeArm", "X")
 _SPINE          = ("mixamorig:Spine",      "X")
 
-# Runner's stance: arms down at sides + forearms bent ~90° at the elbow.
+# Runner's stance: arms down at sides + forearms bent ~90° at the elbow,
+# hands held in front of stomach. Note: with shoulder X=90 (arm rotated down
+# from T-pose), the elbow's local axis is flipped relative to T-pose, so
+# elbow X NEGATIVE produces forearm-forward (flexion); positive would extend
+# the forearm behind the back. See SKILL.md "Calibrated rig conventions".
 _ARMS_DOWN = {
     _SHOULDER_L_DN: 90,  _SHOULDER_R_DN: 90,
-    _ELBOW_L:       90,  _ELBOW_R:       90,
+    _ELBOW_L:      -90,  _ELBOW_R:      -90,
 }
 
 # Counter-rhythm arm swing: opposite-side arm to the lifted leg swings forward
