@@ -1,5 +1,3 @@
-// src/components/ExercisePlaceholder.tsx
-//
 // Layout-stable stand-in for ExerciseVideoPlayer. Shown on the detail screen
 // when an exercise has no Blender render yet. Same 220×220 card, same radius,
 // same surfaceAlt background — only the inner content differs (a single
@@ -15,7 +13,17 @@ interface ExercisePlaceholderProps {
   size?: number;
 }
 
-const BUCKET_BY_BODY_PART: Record<string, string> = {
+const ICON_BY_BUCKET = {
+  legs: "walk-outline",
+  core: "body-outline",
+  upper: "barbell-outline",
+  full_body: "fitness-outline",
+  mobility: "accessibility-outline",
+} as const;
+
+type Bucket = keyof typeof ICON_BY_BUCKET;
+
+const BUCKET_BY_BODY_PART: Record<string, Bucket> = {
   // legs
   calves: "legs",
   glutes: "legs",
@@ -44,14 +52,6 @@ const BUCKET_BY_BODY_PART: Record<string, string> = {
   eyes: "mobility",
 };
 
-const ICON_BY_BUCKET = {
-  legs: "walk-outline",
-  core: "body-outline",
-  upper: "barbell-outline",
-  full_body: "fitness-outline",
-  mobility: "accessibility-outline",
-} as const;
-
 const FALLBACK_ICON: keyof typeof Ionicons.glyphMap = "fitness-outline";
 
 export function ExercisePlaceholder({
@@ -62,7 +62,7 @@ export function ExercisePlaceholder({
   const primary = bodyParts[0];
   const bucket = primary ? BUCKET_BY_BODY_PART[primary] : undefined;
   const icon: keyof typeof Ionicons.glyphMap = bucket
-    ? ICON_BY_BUCKET[bucket as keyof typeof ICON_BY_BUCKET]
+    ? ICON_BY_BUCKET[bucket]
     : FALLBACK_ICON;
 
   return (
