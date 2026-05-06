@@ -7,8 +7,10 @@ import { Screen } from "@src/components/Screen";
 import { Card } from "@src/components/Card";
 import { Chip } from "@src/components/Chip";
 import { ExerciseImagePlayer } from "@src/components/ExerciseImagePlayer";
+import { ExerciseVideoPlayer } from "@src/components/ExerciseVideoPlayer";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { exerciseById, exerciseText } from "@src/lib/catalog";
+import { getExerciseVideo } from "@src/lib/exerciseVideos";
 import { useSpeech, hasVoiceFor } from "@src/lib/speech";
 import { useSettingsStore } from "@src/store/settingsStore";
 import { resolveLanguage } from "@src/i18n";
@@ -64,12 +66,18 @@ export default function ExerciseDetailScreen() {
     }
   };
 
+  const videoSource = getExerciseVideo(exercise.id);
+
   return (
     <Screen scrollable>
       <Stack.Screen options={{ title: text.name }} />
 
-      <View style={{ marginTop: theme.spacing.md }}>
-        <ExerciseImagePlayer exerciseId={exercise.id} />
+      <View style={{ marginTop: theme.spacing.md, alignItems: "center" }}>
+        {videoSource !== undefined ? (
+          <ExerciseVideoPlayer source={videoSource} />
+        ) : (
+          <ExerciseImagePlayer exerciseId={exercise.id} />
+        )}
       </View>
 
       <View style={{ marginTop: theme.spacing.lg }}>
