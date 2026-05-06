@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Screen } from "@src/components/Screen";
 import { Card } from "@src/components/Card";
 import { Chip } from "@src/components/Chip";
-import { ExerciseImagePlayer } from "@src/components/ExerciseImagePlayer";
+import { ExercisePlaceholder } from "@src/components/ExercisePlaceholder";
 import { ExerciseVideoPlayer } from "@src/components/ExerciseVideoPlayer";
 import { useTheme } from "@src/theme/ThemeProvider";
 import { exerciseById, exerciseText } from "@src/lib/catalog";
@@ -76,7 +76,7 @@ export default function ExerciseDetailScreen() {
         {videoSource !== undefined ? (
           <ExerciseVideoPlayer source={videoSource} />
         ) : (
-          <ExerciseImagePlayer exerciseId={exercise.id} />
+          <ExercisePlaceholder bodyParts={exercise.body_parts} />
         )}
       </View>
 
