@@ -1,6 +1,7 @@
 // Build-time check + codegen: scans assets/exercise-renders/ for *.mp4,
-// validates each filename's slug (snake → kebab) against the exercise catalog
-// in assets/data/exercises.json, and emits src/lib/exerciseVideoMap.generated.ts.
+// validates each filename's slug (snake_case or kebab-case → kebab) against
+// the exercise catalog in assets/data/exercises.json, and emits
+// src/lib/exerciseVideoMap.generated.ts.
 //
 // Run: npx tsx scripts/sync-exercise-videos.ts (or `pnpm sync-videos`).
 
@@ -37,6 +38,19 @@ function main(): void {
     } else {
       unmatched.push(filename);
     }
+  }
+
+  const seenIds = new Set<string>();
+  const duplicateSlugs: string[] = [];
+  for (const e of entries) {
+    if (seenIds.has(e.id)) duplicateSlugs.push(e.id);
+    seenIds.add(e.id);
+  }
+  if (duplicateSlugs.length > 0) {
+    console.error("✗ Duplicate slug(s) in assets/exercise-renders/ (multiple MP4s map to the same id):");
+    for (const s of duplicateSlugs) console.error(`  ${s}`);
+    console.error("Each catalog id must have at most one MP4 (in either snake_case or kebab-case form).");
+    process.exit(1);
   }
 
   if (unmatched.length > 0) {
