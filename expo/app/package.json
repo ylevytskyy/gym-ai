@@ -9,8 +9,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "sync-data": "./scripts/sync-data.sh",
+    "sync-videos": "npx tsx scripts/sync-exercise-videos.ts",
     "typecheck": "tsc --noEmit",
-    "prestart": "./scripts/sync-data.sh && npx tsx scripts/validate-locales.ts",
+    "prestart": "./scripts/sync-data.sh && npx tsx scripts/sync-exercise-videos.ts && npx tsx scripts/validate-locales.ts",
     "validate-locales": "npx tsx scripts/validate-locales.ts"
   },
   "dependencies": {
