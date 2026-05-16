@@ -76,56 +76,33 @@ LIGHTING = "studio"
 # Hands slightly forward (Y=-0.28); feet slightly behind (Y=+0.30).
 # Total foot-to-hand Y span ≈ 0.58 m — visibly more compact than the
 # elongated downward_dog pike (0.81 m), reinforcing the visual identity.
+# IK pins — copied from downward_dog's known-working setup. Feet pinned
+# at floor level, no rotation lock (the rig's foot IK picks a natural
+# orientation that DD already validates visually). The previous attempts
+# (rotation lock + pole target + chain-count tweaks) each fixed one
+# visual artifact while introducing another (backwards knees, flipped
+# feet, mesh clipping). Reverting to DD's setup ships the pose that
+# already works for an inverted-V exercise, plus the arm-cycle motion.
 IK_PINS = {
-    "mixamorig:LeftHand":  ( 0.152, -0.360, 0.00),
-    "mixamorig:RightHand": (-0.152, -0.360, 0.00),
-    # Feet: ball-of-foot bone pinned just 2 cm above the floor — the
-    # rotation lock below (Euler X=-30°) tilts the foot into ~30°
-    # plantarflexion (balls-of-feet contact, heel raised). At this
-    # angle the bone position 2 cm up keeps the entire shoe MESH at
-    # or above the floor (verified mesh-vertex introspection
-    # 2026-05-16: lowest foot mesh Z = +0.003 m). Without the rotation
-    # lock the IK chose a near-horizontal foot angle that dropped the
-    # ankle MESH 7 cm below the floor at deep-hip-drop frames.
-    "mixamorig:LeftFoot":  ( 0.082, +0.420, 0.02),
-    "mixamorig:RightFoot": (-0.082, +0.420, 0.02),
+    "mixamorig:LeftHand":  ( 0.152, -0.360, 0.0),
+    "mixamorig:RightHand": (-0.152, -0.360, 0.0),
+    "mixamorig:LeftFoot":  ( 0.082, +0.420, 0.0),
+    "mixamorig:RightFoot": (-0.082, +0.420, 0.0),
 }
 
-# Palms flat on floor for hands; plantarflexion for feet.
+# Palms flat on floor for hands; no rotation lock on feet (IK chooses
+# foot orientation naturally — matches DD's working approach).
 IK_PIN_ROTATIONS = {
     "mixamorig:LeftHand":  (180, 0, 0),
     "mixamorig:RightHand": (180, 0, 0),
-    # Feet: world Euler X = -30° locks the foot bone into ~30° of
-    # plantarflexion regardless of leg position. Ball stays on floor,
-    # ankle ~9 cm up, toe just clear of floor — anatomically correct
-    # balls-of-feet pike push-up stance. L and R use the same Euler
-    # because at rest both foot bones have the same skewed world axes
-    # (the lateral X component is shared — see xbot_rig_axes.md
-    # "LeftFoot/RightFoot" rows).
-    "mixamorig:LeftFoot":  (-30, 0, 0),
-    "mixamorig:RightFoot": (-30, 0, 0),
 }
 
-# Per-bone chain counts: hands include shoulder (so elbow can flex/extend
-# during the cycle); feet exclude Hips so the Hips drop drives the
-# shoulder lowering rather than getting absorbed into leg/hip rotation.
+# Per-bone chain counts — same as DD.
 IK_CHAIN_COUNTS = {
     "mixamorig:LeftHand":  4,
     "mixamorig:RightHand": 4,
     "mixamorig:LeftFoot":  3,
     "mixamorig:RightFoot": 3,
-}
-
-# Pole targets for the leg IK chains — biases knee bend direction.
-# Without these, the solver picked knee-FORWARD (toward hands, -Y) — the
-# backwards-knee anatomy that made the legs look like a "Z" from the side.
-# In pike pose the body is flipped via Hips X=+90°, so the anatomical
-# "front of knee" direction (where the knee should bend toward) is world
-# +Z (up). Pole target placed high above the leg's midpoint pulls the
-# knee up to the natural position.
-IK_POLE_TARGETS = {
-    "mixamorig:LeftFoot":  ( 0.082, +0.15, +1.5),
-    "mixamorig:RightFoot": (-0.082, +0.15, +1.5),
 }
 
 
@@ -164,33 +141,27 @@ _TOP = {
 }
 
 
-# Bottom-of-rep: head forward-and-down, elbows bent ~90°.
-# Hip drop is the dominant mechanism for elbow flex (introspection
-# 2026-05-16: spine-straightening + Hips X swing cancel at the shoulder
-# Y axis; only the hip Z drop reliably brings the shoulder closer to
-# the wrist pin). Hips loc_Y -0.42 drops the apex 17 cm — enough to
-# fold the elbow to ~90°. Hips X rotates 15° forward (90° → 105°) for
-# a small additional pike-forward translation; spine bend held at DD
-# levels (18° each) for IK arm reach.
-# Trade-off: 17 cm hip drop pulls the legs out of full extension —
-# expect ~40° of knee flex at the bottom (accepted per the design call
-# to prioritize elbow depth over knee straightness).
-# Head extends strongly forward — neck/head counter-rotation reduced
-# so the crown leads forward of the hand line ("nose past fingertips"
-# per Antranik / mpcalisthenics).
+# Bottom-of-rep: shallower mid-rep, prioritizing visual identity over
+# textbook elbow depth. The deep-drop version (Hips loc_Y=-0.42,
+# elbow ≈90°) forced the knees to flex 60-90°; every IK trick to bias
+# the knee bend direction either left the legs "Z"-shaped or flipped
+# the foot orientation. With a 5 cm hip drop the IK puts the knee in
+# its natural position (between hip and ankle) and the elbow flexes
+# to ~130° — a clearly visible bend even if it falls short of the
+# research-textbook 90°. Recognizable pike-push-up motion without
+# anatomically broken leg geometry.
 _BOTTOM = {
     **_TOE_FK,
-    ("mixamorig:Hips", "loc_Y"): -0.420,   # apex drops to Z ≈ 0.62 m (17 cm)
-    ("mixamorig:Hips", "X"):     105,      # 15° additional pike-forward rock
+    ("mixamorig:Hips", "loc_Y"): -0.300,   # apex drops 5 cm to Z ≈ 0.74 m
+    ("mixamorig:Hips", "X"):     100,      # 10° additional pike-forward rock
 
-    ("mixamorig:Spine",  "X"): 18,
-    ("mixamorig:Spine1", "X"): 18,
-    ("mixamorig:Spine2", "X"): 18,
+    ("mixamorig:Spine",  "X"): 20,
+    ("mixamorig:Spine1", "X"): 20,
+    ("mixamorig:Spine2", "X"): 20,
 
-    # Strong head extension — crown leads forward of the hand line,
-    # gaze toward the floor just past the fingertips.
-    ("mixamorig:Neck", "X"): -10,
-    ("mixamorig:Head", "X"):  +5,
+    # Head extends moderately forward.
+    ("mixamorig:Neck", "X"): -25,
+    ("mixamorig:Head", "X"): -15,
 }
 
 
@@ -213,9 +184,9 @@ PHASES = [
 
 
 VALIDATORS = [
-    # Hips X swings between 90° (top) and 105° (bottom). Tolerance ±3°.
+    # Hips X swings between 90° (top) and 100° (bottom). Tolerance ±3°.
     (joint_angle_at, {"joint": ("mixamorig:Hips", "X"), "at_phases": ["hold_top_*"],    "min_deg":  87, "max_deg":  93}),
-    (joint_angle_at, {"joint": ("mixamorig:Hips", "X"), "at_phases": ["hold_bottom_*"], "min_deg": 102, "max_deg": 108}),
+    (joint_angle_at, {"joint": ("mixamorig:Hips", "X"), "at_phases": ["hold_bottom_*"], "min_deg":  97, "max_deg": 103}),
 
     # Spine at DD-style 18-20° per segment across both phases — needed
     # for IK arm reach (less back-bend leaves the shoulder out of
