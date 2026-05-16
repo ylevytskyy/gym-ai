@@ -23,6 +23,8 @@ def apply_ik_pins(
     rotations: dict[str, tuple[float, float, float]] | None = None,
     chain_count: int = 3,
     chain_counts: dict[str, int] | None = None,
+    pole_targets: dict[str, tuple[float, float, float]] | None = None,
+    pole_angles: dict[str, float] | None = None,
 ) -> set[str]:
     """Install IK constraints on each bone in `pins`, targeting a static Empty at world XYZ.
 
@@ -37,6 +39,18 @@ def apply_ik_pins(
     hands need chain=4 to include the shoulder, but feet need chain=3 so the
     IK never rotates Hips).
 
+    `pole_targets`: optional `{bone_name: (x, y, z)}` — world position of a
+    pole-target Empty that biases the IK chain's bend direction toward this
+    point. Use this when the chain has multiple valid solutions and the
+    solver picks the wrong one (e.g., knee bending forward instead of
+    backward in pike_push_ups). Without a pole target, the IK solver picks
+    a bend direction based on the bones' starting orientation, which is
+    not always anatomically correct.
+
+    `pole_angles`: optional `{bone_name: degrees}` — angular offset for the
+    pole. Defaults to 0. Adjust if the knee/elbow still bends sideways
+    instead of toward the pole.
+
     Returns the set of bone names inside each IK chain; callers pass it to
     `emit_phases(skip_bones=...)` so the chain isn't FK-keyed (FK keyframes on
     IK-driven bones cause solver jitter and conflicting interpolation).
@@ -47,6 +61,8 @@ def apply_ik_pins(
 
     rotations = rotations or {}
     chain_counts = chain_counts or {}
+    pole_targets = pole_targets or {}
+    pole_angles = pole_angles or {}
     skip: set[str] = set()
     scene_collection = bpy.context.scene.collection
     for bone_name, target_pos in pins.items():
@@ -69,6 +85,16 @@ def apply_ik_pins(
         ik.target = target
         ik.chain_count = cc
         ik.use_rotation = bone_name in rotations
+
+        if bone_name in pole_targets:
+            pole_pos = pole_targets[bone_name]
+            pole_empty = bpy.data.objects.new(f"IK_pole_{safe}", None)
+            pole_empty.location = mathutils.Vector(pole_pos)
+            pole_empty.empty_display_type = "SPHERE"
+            pole_empty.empty_display_size = 0.05
+            scene_collection.objects.link(pole_empty)
+            ik.pole_target = pole_empty
+            ik.pole_angle = math.radians(pole_angles.get(bone_name, 0))
 
         cur = pbone
         for _ in range(cc):

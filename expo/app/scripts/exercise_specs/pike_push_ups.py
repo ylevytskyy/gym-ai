@@ -116,6 +116,18 @@ IK_CHAIN_COUNTS = {
     "mixamorig:RightFoot": 3,
 }
 
+# Pole targets for the leg IK chains — biases knee bend direction.
+# Without these, the solver picked knee-FORWARD (toward hands, -Y) — the
+# backwards-knee anatomy that made the legs look like a "Z" from the side.
+# In pike pose the body is flipped via Hips X=+90°, so the anatomical
+# "front of knee" direction (where the knee should bend toward) is world
+# +Z (up). Pole target placed high above the leg's midpoint pulls the
+# knee up to the natural position.
+IK_POLE_TARGETS = {
+    "mixamorig:LeftFoot":  ( 0.082, +0.15, +1.5),
+    "mixamorig:RightFoot": (-0.082, +0.15, +1.5),
+}
+
 
 # Toe FK keys (shared across all phases — foot is static during the rep).
 # ToeBase X=-15° curls the toe down so the tip rests at Z≈+0.011 m
