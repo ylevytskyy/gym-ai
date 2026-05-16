@@ -137,8 +137,19 @@ IK_POLE_ANGLES = {
 }
 
 
+# Toe flatten: ToeBase rest direction propagates as (0, -0.775, +0.632)
+# through Hips X=-90 + foot rotation lock, so the toes naturally tilt
+# UP by ~39° off the floor. ToeBase X=-40 in FK rotates around local X
+# (= -X world) to bring the toe direction back to horizontal -Y.
+_TOES_FLAT = {
+    ("mixamorig:LeftToeBase",  "X"): -40,
+    ("mixamorig:RightToeBase", "X"): -40,
+}
+
+
 # Start: hips on floor (supine, no extra tilt).
 _DOWN = {
+    **_TOES_FLAT,
     ("mixamorig:Hips", "loc_Y"): -0.95,
     ("mixamorig:Hips", "X"):     -90,
 }
@@ -148,6 +159,7 @@ _DOWN = {
 # tilt that drops spine end Z by ~0.19 m so the head/shoulders stay
 # near the floor as the pelvis rises).
 _UP = {
+    **_TOES_FLAT,
     ("mixamorig:Hips", "loc_Y"): -0.83,
     ("mixamorig:Hips", "X"):     -110,
 }
