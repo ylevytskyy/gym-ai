@@ -52,7 +52,7 @@ def main_in_blender(args: argparse.Namespace) -> int:
     import bpy
     sys.path.insert(0, str(SCRIPTS_DIR))
     from animation_lib.cameras import DEFAULT_RESOLUTION
-    from animation_lib.keyframe_emitter import emit_phases, reset_to_t_pose
+    from animation_lib.keyframe_emitter import apply_ik_pins, emit_phases, reset_to_t_pose
     from animation_lib.pose_capture import capture_history
     from animation_lib.render import apply_scene_config, render_mp4, render_single_frame_png, save_blend
     from animation_lib.validators import run_validators
@@ -88,8 +88,19 @@ def main_in_blender(args: argparse.Namespace) -> int:
     # --- 3. Reset to T-pose ---
     reset_to_t_pose(armature)
 
+    # --- 3a. Install IK constraints if the spec declares IK_PINS ---
+    ik_pins = getattr(spec_module, "IK_PINS", {})
+    ik_rotations = getattr(spec_module, "IK_PIN_ROTATIONS", {})
+    ik_chain_count = getattr(spec_module, "IK_CHAIN_COUNT", 3)
+    skip_bones = (
+        apply_ik_pins(armature, ik_pins, rotations=ik_rotations, chain_count=ik_chain_count)
+        if ik_pins else set()
+    )
+
     # --- 4-5. Emit keyframes ---
-    phase_to_frame = emit_phases(armature, spec_module.PHASES, fps=spec_module.FPS)
+    phase_to_frame = emit_phases(
+        armature, spec_module.PHASES, fps=spec_module.FPS, skip_bones=skip_bones
+    )
 
     # --- 6. Capture + run validators ---
     history = capture_history(armature, phase_to_frame)

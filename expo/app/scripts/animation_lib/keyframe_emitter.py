@@ -17,7 +17,65 @@ def reset_to_t_pose(armature_obj):
         pbone.location = (0.0, 0.0, 0.0)
 
 
-def emit_phases(armature_obj, phases: list[Phase], fps: int) -> dict[str, int]:
+def apply_ik_pins(
+    armature_obj,
+    pins: dict[str, tuple[float, float, float]],
+    rotations: dict[str, tuple[float, float, float]] | None = None,
+    chain_count: int = 3,
+) -> set[str]:
+    """Install IK constraints on each bone in `pins`, targeting a static Empty at world XYZ.
+
+    `rotations`: optional `{bone_name: (rx_deg, ry_deg, rz_deg)}` — when provided
+    for a bone, the IK constraint also locks the bone's WORLD orientation to
+    match the target Empty's rotation (use_rotation=True). Use this when the
+    bone's orientation matters (e.g. palm flat on floor for cat_cow tabletop).
+
+    Returns the set of bone names inside each IK chain; callers pass it to
+    `emit_phases(skip_bones=...)` so the chain isn't FK-keyed (FK keyframes on
+    IK-driven bones cause solver jitter and conflicting interpolation).
+    """
+    import bpy
+    import math
+    import mathutils
+
+    rotations = rotations or {}
+    skip: set[str] = set()
+    scene_collection = bpy.context.scene.collection
+    for bone_name, target_pos in pins.items():
+        safe = bone_name.replace(":", "_")
+        target = bpy.data.objects.new(f"IK_target_{safe}", None)
+        target.location = mathutils.Vector(target_pos)
+        target.empty_display_type = "PLAIN_AXES"
+        target.empty_display_size = 0.05
+        if bone_name in rotations:
+            rx, ry, rz = rotations[bone_name]
+            target.rotation_euler = mathutils.Euler(
+                (math.radians(rx), math.radians(ry), math.radians(rz)),
+                "XYZ",
+            )
+        scene_collection.objects.link(target)
+
+        pbone = armature_obj.pose.bones[bone_name]
+        ik = pbone.constraints.new("IK")
+        ik.target = target
+        ik.chain_count = chain_count
+        ik.use_rotation = bone_name in rotations
+
+        cur = pbone
+        for _ in range(chain_count):
+            if cur is None:
+                break
+            skip.add(cur.name)
+            cur = cur.parent
+    return skip
+
+
+def emit_phases(
+    armature_obj,
+    phases: list[Phase],
+    fps: int,
+    skip_bones: set[str] | None = None,
+) -> dict[str, int]:
     """Set keyframes for each phase's end frame; returns {phase_name: end_frame_idx}.
 
     Phase 0 emits from the rest pose; subsequent phases linearly interpolate
@@ -27,13 +85,45 @@ def emit_phases(armature_obj, phases: list[Phase], fps: int) -> dict[str, int]:
     import bpy
     import math
 
+    skip_bones = skip_bones or set()
     phase_to_frame: dict[str, int] = {}
     current_pose: dict[tuple[str, str], float] = {}
     accum_sec = 0.0
 
-    # Insert keyframe at frame 0 for the rest pose.
+    # Apply the first phase's pose values to the armature so frame 0
+    # holds the exercise's starting pose rather than the T-pose rest state.
+    # This eliminates the T-pose→tabletop interpolation glitch that appears
+    # when the MP4 loops (last frame → frame 0 = jarring jump otherwise).
+    # Bones NOT mentioned in the first phase keep their reset_to_t_pose()
+    # identity values at frame 0, which is correct (they never move).
+    if phases:
+        for joint, value_deg in phases[0].pose.items():
+            if not (isinstance(joint, tuple) and len(joint) == 2):
+                continue
+            bone_name, axis = joint
+            if bone_name in skip_bones:
+                continue
+            pbone = armature_obj.pose.bones.get(bone_name)
+            if pbone is None:
+                continue
+            if axis.startswith("loc_"):
+                idx = {"loc_X": 0, "loc_Y": 1, "loc_Z": 2}[axis]
+                loc = list(pbone.location)
+                loc[idx] = value_deg
+                pbone.location = loc
+            else:
+                idx = {"X": 0, "Y": 1, "Z": 2}[axis]
+                euler = list(pbone.rotation_euler)
+                euler[idx] = math.radians(value_deg)
+                pbone.rotation_euler = euler
+
+    # Insert keyframe at frame 0 — exercise bones now have first-phase values;
+    # background bones keep rest-pose (rotation 0, location 0). IK-chain bones
+    # are skipped: FK keyframes on them would conflict with the IK solver.
     bpy.context.scene.frame_set(0)
     for pbone in armature_obj.pose.bones:
+        if pbone.name in skip_bones:
+            continue
         pbone.keyframe_insert(data_path="rotation_euler", frame=0)
         pbone.keyframe_insert(data_path="location", frame=0)
 
@@ -53,6 +143,8 @@ def emit_phases(armature_obj, phases: list[Phase], fps: int) -> dict[str, int]:
         # Apply current_pose to the armature and key.
         bpy.context.scene.frame_set(end_frame)
         for (bone_name, axis), value in current_pose.items():
+            if bone_name in skip_bones:
+                continue
             pbone = armature_obj.pose.bones.get(bone_name)
             if pbone is None:
                 raise KeyError(f"bone {bone_name!r} not found on armature")
