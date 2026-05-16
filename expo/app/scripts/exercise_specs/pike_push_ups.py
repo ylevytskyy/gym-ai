@@ -117,6 +117,20 @@ IK_CHAIN_COUNTS = {
 }
 
 
+# Toe FK keys (shared across all phases — foot is static during the rep).
+# ToeBase X=-15° curls the toe down so the tip rests at Z≈+0.011 m
+# (essentially on the floor). Without it, the toe lifts to Z=+0.035 m
+# above the floor at the default rest orientation, looking unnaturally
+# "kicked back" — the metatarsal joint reads as bending the wrong way.
+# Verified by sweep introspection 2026-05-16: X=-15° is the sweet spot
+# between toe-touching-floor (X=0 leaves toe in air) and toe-clipping-
+# below-floor (X≤-30° pushes toe through).
+_TOE_FK = {
+    ("mixamorig:LeftToeBase",  "X"): -15,
+    ("mixamorig:RightToeBase", "X"): -15,
+}
+
+
 # Top-of-rep: pike apex, arms extended, head in line with spine.
 # Reuses DD's body-flip + back-bend geometry (Spine X=20° each) so the
 # IK arm chain reaches the floor pins with palms flat (verified working
@@ -124,6 +138,7 @@ IK_CHAIN_COUNTS = {
 # cycle (below) — not from the TOP geometry, which is intentionally
 # inherited from a known-good configuration.
 _TOP = {
+    **_TOE_FK,
     ("mixamorig:Hips", "loc_Y"): -0.253,   # apex Z ≈ 0.79 m (DD-match)
     ("mixamorig:Hips", "X"):      90,
 
@@ -152,6 +167,7 @@ _TOP = {
 # so the crown leads forward of the hand line ("nose past fingertips"
 # per Antranik / mpcalisthenics).
 _BOTTOM = {
+    **_TOE_FK,
     ("mixamorig:Hips", "loc_Y"): -0.420,   # apex drops to Z ≈ 0.62 m (17 cm)
     ("mixamorig:Hips", "X"):     105,      # 15° additional pike-forward rock
 
