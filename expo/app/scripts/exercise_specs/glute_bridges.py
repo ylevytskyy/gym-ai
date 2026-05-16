@@ -68,6 +68,15 @@ CAMERA = "side_left"
 LIGHTING = "studio"
 
 
+# Foot orientation lock: without it, the IK solver picks a "toes
+# pointing back and up" pose (heels lifted ballet-pointe-style) because
+# the foot bone's rest direction is skewed (-Y, -Z). Lock to (0, 0, 180)
+# so the foot bone points -Y world (toes toward feet-end) horizontally
+# with top-of-foot facing +Z (up). The cat_cow/downward_dog hand recipe
+# uses (180, 0, 0), but that's for hands pointing forward palms-down —
+# different bone, different axis convention.
+_FOOT_ROTATION_FLAT = (0, 0, 180)
+
 # Floor pins: feet near glutes, hands by sides at full arm-length so
 # the arm chain stays naturally straight.
 # Hand pin at Y=-0.25: shoulder Y≈+0.40 minus arm chain length 0.644 m
@@ -81,6 +90,12 @@ IK_PINS = {
     "mixamorig:RightFoot": (-0.082, -0.46,  0.0),
     "mixamorig:LeftHand":  (+0.152, -0.25,  0.0),
     "mixamorig:RightHand": (-0.152, -0.25,  0.0),
+}
+
+# Lock foot bone orientation so feet stay flat on floor.
+IK_PIN_ROTATIONS = {
+    "mixamorig:LeftFoot":  _FOOT_ROTATION_FLAT,
+    "mixamorig:RightFoot": _FOOT_ROTATION_FLAT,
 }
 
 # Per-bone chain counts: hands chain through 3 bones (hand+forearm+arm
@@ -117,8 +132,8 @@ IK_POLE_TARGETS = {
 }
 
 IK_POLE_ANGLES = {
-    "mixamorig:LeftFoot":  -90,
-    "mixamorig:RightFoot": -90,
+    "mixamorig:LeftFoot":  +90,
+    "mixamorig:RightFoot": +90,
 }
 
 
