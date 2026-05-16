@@ -92,8 +92,14 @@ def main_in_blender(args: argparse.Namespace) -> int:
     ik_pins = getattr(spec_module, "IK_PINS", {})
     ik_rotations = getattr(spec_module, "IK_PIN_ROTATIONS", {})
     ik_chain_count = getattr(spec_module, "IK_CHAIN_COUNT", 3)
+    ik_chain_counts = getattr(spec_module, "IK_CHAIN_COUNTS", {})
     skip_bones = (
-        apply_ik_pins(armature, ik_pins, rotations=ik_rotations, chain_count=ik_chain_count)
+        apply_ik_pins(
+            armature, ik_pins,
+            rotations=ik_rotations,
+            chain_count=ik_chain_count,
+            chain_counts=ik_chain_counts,
+        )
         if ik_pins else set()
     )
 

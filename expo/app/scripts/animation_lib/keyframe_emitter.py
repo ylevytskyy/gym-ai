@@ -22,6 +22,7 @@ def apply_ik_pins(
     pins: dict[str, tuple[float, float, float]],
     rotations: dict[str, tuple[float, float, float]] | None = None,
     chain_count: int = 3,
+    chain_counts: dict[str, int] | None = None,
 ) -> set[str]:
     """Install IK constraints on each bone in `pins`, targeting a static Empty at world XYZ.
 
@@ -29,6 +30,12 @@ def apply_ik_pins(
     for a bone, the IK constraint also locks the bone's WORLD orientation to
     match the target Empty's rotation (use_rotation=True). Use this when the
     bone's orientation matters (e.g. palm flat on floor for cat_cow tabletop).
+
+    `chain_count`: default solver chain length for every pin.
+    `chain_counts`: optional `{bone_name: int}` overriding `chain_count` per
+    bone. Use this when hands and feet need different chain depths (e.g.,
+    hands need chain=4 to include the shoulder, but feet need chain=3 so the
+    IK never rotates Hips).
 
     Returns the set of bone names inside each IK chain; callers pass it to
     `emit_phases(skip_bones=...)` so the chain isn't FK-keyed (FK keyframes on
@@ -39,6 +46,7 @@ def apply_ik_pins(
     import mathutils
 
     rotations = rotations or {}
+    chain_counts = chain_counts or {}
     skip: set[str] = set()
     scene_collection = bpy.context.scene.collection
     for bone_name, target_pos in pins.items():
@@ -55,14 +63,15 @@ def apply_ik_pins(
             )
         scene_collection.objects.link(target)
 
+        cc = chain_counts.get(bone_name, chain_count)
         pbone = armature_obj.pose.bones[bone_name]
         ik = pbone.constraints.new("IK")
         ik.target = target
-        ik.chain_count = chain_count
+        ik.chain_count = cc
         ik.use_rotation = bone_name in rotations
 
         cur = pbone
-        for _ in range(chain_count):
+        for _ in range(cc):
             if cur is None:
                 break
             skip.add(cur.name)
