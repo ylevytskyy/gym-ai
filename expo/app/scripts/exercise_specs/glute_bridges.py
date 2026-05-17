@@ -83,16 +83,13 @@ _FOOT_ROTATION_FLAT = (0, 0, 180)
 # = -0.244, rounded to -0.25 → arm is straight at start, slightly
 # elbow-bent at peak as body tilts.
 IK_PINS = {
-    # Foot pin Y=-0.50, Z=+0.025: trade-off between three constraints.
-    # Y=-0.50 puts ankle at Y=-0.363 (= -0.50 + foot length 0.137), so
-    # heel is ~29 cm from hip joint (slightly more than research's
-    # 15-20 cm but the next-closer pin position makes the knee shift
-    # FORWARD even more at peak). Z=+0.025 lifts the foot bone 2.5 cm
-    # above the floor so the heel mesh (which extends behind the ankle
-    # and below the bone centerline) clears the floor instead of
-    # clipping into it.
-    "mixamorig:LeftFoot":  (+0.082, -0.50,  +0.025),
-    "mixamorig:RightFoot": (-0.082, -0.50,  +0.025),
+    # Foot pin Y=-0.50, Z=0: foot bone (and visible mesh sole) sits on
+    # the floor. Y=-0.50 puts ankle at Y=-0.363 (= -0.50 + foot length
+    # 0.137), heel ~29 cm from hip joint — slightly more than research's
+    # 15-20 cm, but moving the pin closer makes the knee shift forward
+    # more at peak (geometry of the IK chain triangle).
+    "mixamorig:LeftFoot":  (+0.082, -0.50,  0.0),
+    "mixamorig:RightFoot": (-0.082, -0.50,  0.0),
     "mixamorig:LeftHand":  (+0.152, -0.25,  0.0),
     "mixamorig:RightHand": (-0.152, -0.25,  0.0),
 }
