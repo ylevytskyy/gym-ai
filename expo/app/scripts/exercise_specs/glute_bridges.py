@@ -70,12 +70,19 @@ LIGHTING = "studio"
 
 # Foot orientation lock: without it, the IK solver picks a "toes
 # pointing back and up" pose (heels lifted ballet-pointe-style) because
-# the foot bone's rest direction is skewed (-Y, -Z). Lock to (0, 0, 180)
-# so the foot bone points -Y world (toes toward feet-end) horizontally
-# with top-of-foot facing +Z (up). The cat_cow/downward_dog hand recipe
-# uses (180, 0, 0), but that's for hands pointing forward palms-down —
-# different bone, different axis convention.
-_FOOT_ROTATION_FLAT = (0, 0, 180)
+# the foot bone's rest direction is skewed (-Y, -Z).
+#
+# Lock to (-27, 0, 180): foot bone points (0, -0.89, -0.45) world —
+# tilted downward 27° from horizontal so the ankle (bone HEAD) is
+# ~6 cm ABOVE the floor and toe base (bone TAIL = pin position) is
+# on the floor. Anatomically correct flat foot: heel pad fills the gap
+# between elevated ankle and floor, so the heel mesh (which extends in
+# +Y behind the ankle) sits at floor level instead of floating above.
+#
+# A pure horizontal lock (0, 0, 180) leaves the heel mesh suspended ~6
+# cm above the floor because the rest mesh shape places the heel BELOW
+# the bone, and a horizontal bone at Z=0 puts heel at Z>0 in supine.
+_FOOT_ROTATION_FLAT = (-27, 0, 180)
 
 # Floor pins: feet near glutes, hands by sides at full arm-length so
 # the arm chain stays naturally straight.
@@ -139,13 +146,12 @@ IK_POLE_ANGLES = {
 }
 
 
-# Toe flatten: ToeBase rest direction propagates as (0, -0.775, +0.632)
-# through Hips X=-90 + foot rotation lock, so the toes naturally tilt
-# UP by ~39° off the floor. ToeBase X=-40 in FK rotates around local X
-# (= -X world) to bring the toe direction back to horizontal -Y.
+# Toe flatten: with the new foot tilt (foot bone direction has -Z
+# component -0.45), the toes need LESS counter-rotation than before.
+# ToeBase X=-13 brings toe direction back to horizontal (-Y world).
 _TOES_FLAT = {
-    ("mixamorig:LeftToeBase",  "X"): -40,
-    ("mixamorig:RightToeBase", "X"): -40,
+    ("mixamorig:LeftToeBase",  "X"): -13,
+    ("mixamorig:RightToeBase", "X"): -13,
 }
 
 
