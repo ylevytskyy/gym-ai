@@ -83,11 +83,16 @@ _FOOT_ROTATION_FLAT = (0, 0, 180)
 # = -0.244, rounded to -0.25 → arm is straight at start, slightly
 # elbow-bent at peak as body tilts.
 IK_PINS = {
-    # Foot Y=-0.46: derived geometrically — with hip joint Z=0.09 m and
-    # shin length 0.44 m, this puts the knee directly above the foot at
-    # Z=0.44 m with thigh length exactly 0.44 m (shins vertical at start).
-    "mixamorig:LeftFoot":  (+0.082, -0.46,  0.0),
-    "mixamorig:RightFoot": (-0.082, -0.46,  0.0),
+    # Foot pin Y=-0.50, Z=+0.025: trade-off between three constraints.
+    # Y=-0.50 puts ankle at Y=-0.363 (= -0.50 + foot length 0.137), so
+    # heel is ~29 cm from hip joint (slightly more than research's
+    # 15-20 cm but the next-closer pin position makes the knee shift
+    # FORWARD even more at peak). Z=+0.025 lifts the foot bone 2.5 cm
+    # above the floor so the heel mesh (which extends behind the ankle
+    # and below the bone centerline) clears the floor instead of
+    # clipping into it.
+    "mixamorig:LeftFoot":  (+0.082, -0.50,  +0.025),
+    "mixamorig:RightFoot": (-0.082, -0.50,  +0.025),
     "mixamorig:LeftHand":  (+0.152, -0.25,  0.0),
     "mixamorig:RightHand": (-0.152, -0.25,  0.0),
 }
@@ -123,8 +128,8 @@ IK_POLE_TARGETS = {
     # vertical at start), so the pole sits at the same X/Y as the foot
     # but high in +Z. Pole angle 90° aligns the chain's bend reference
     # to the pole direction in supine pose.
-    "mixamorig:LeftFoot":  (+0.082, -0.46, +1.5),
-    "mixamorig:RightFoot": (-0.082, -0.46, +1.5),
+    "mixamorig:LeftFoot":  (+0.082, -0.50, +1.5),
+    "mixamorig:RightFoot": (-0.082, -0.50, +1.5),
     # Elbows lateral at floor — biases any small arm bend away from the
     # body's centerline.
     "mixamorig:LeftHand":  (+1.5,    0.0,   0.0),
@@ -154,13 +159,15 @@ _DOWN = {
     ("mixamorig:Hips", "X"):     -90,
 }
 
-# Peak: hips lifted with spine angled down toward shoulders on floor.
-# Hips Z ≈ 0.21 m (lift ~12 cm), Hips X=-110 (additional -20° backward
-# tilt that drops spine end Z by ~0.19 m so the head/shoulders stay
-# near the floor as the pelvis rises).
+# Peak: hips lifted with spine angled so shoulders stay on the floor
+# and body forms a straight knee→hip→shoulder line.
+# Hips Z = 0.183 m (lift ~9 cm — moderate, keeps knee shift modest).
+# Hips X=-117 (additional -27° tilt): geometric requirement is
+# arcsin(Hips_Z / (shoulder_fraction × spine_length)) = arcsin(0.183 /
+# (0.71 × 0.557)) ≈ 27.6° of additional tilt to put shoulders at Z≈0.
 _UP = {
     **_TOES_FLAT,
-    ("mixamorig:Hips", "loc_Y"): -0.83,
+    ("mixamorig:Hips", "loc_Y"): -0.86,
     ("mixamorig:Hips", "X"):     -110,
 }
 
