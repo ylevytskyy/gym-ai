@@ -154,3 +154,70 @@ _LIFT_L = mirror of _LIFT_R (Left=HIGH, Right=LOW; Z values same as OPEN_V)
 | CROSS_L   | 60 (high)   | 30 (low)     | 0.84       | 0.52       | 0.32    |
 
 Between `lift_*` and `cross_*` only Z changes — vertical 0.32 m gap is constant during the lateral cross.
+
+---
+
+## Iteration 3 — vertical scissor IN the V phase
+
+User feedback after v2 visual review: the height *change* (one leg going up, the other going down) should be a visible motion **inside the V (spread) phase**, not jammed into the V→X or X→V transitions. In v2 the V phases were held at equal heights (HIP_BASE for both) and the height differential only appeared at the LIFT/CROSS poses. From the user's perspective the visible "scissor" should be the vertical swap of which leg is on top, happening while the legs are spread laterally.
+
+A side-finding during the v2 review: the OPEN_V pose (both legs at HIP_BASE with Z=±15°) does not render as a visible "V" from the `front_top_left` camera — the lateral abduction projects mostly into screen-depth, so the legs appear stacked even though they're 60 cm apart in world coords. Only when heights are differentiated does the V become visually unambiguous.
+
+### Decision (v3)
+
+- **Drop the OPEN_V (equal-heights) pose entirely.** Heights are always differentiated.
+- **Rename LIFT_R / LIFT_L → V_R_HIGH / V_L_HIGH** to reflect that these are the V positions (legs spread + heights differentiated).
+- **The "scissor" motion is the height swap during a V phase.** Phase `swap_to_L` morphs `V_R_HIGH → V_L_HIGH` — both X values change simultaneously while Z stays at ±15° (legs remain laterally spread). At the swap midpoint, both legs are momentarily at HIP_BASE=45° but laterally 60 cm apart → they pass each other vertically with full clearance, no clipping geometrically possible.
+- **Lateral cross to X happens with heights held constant.** Phase `cross_in_L` morphs `V_L_HIGH → X_L_OVER` (only Z changes; heights stay at 60°/30°). Phase `cross_out_L` mirrors back.
+
+### Timing (user-selected)
+
+Each cycle = 2.4 s, distributed:
+- `swap_to_L` 0.9 s (slow, deliberate vertical scissor)
+- `cross_in_L` 0.15 s + `cross_out_L` 0.15 s (fast lateral cross + return)
+- `swap_to_R` 0.9 s (slow scissor back)
+- `cross_in_R` 0.15 s + `cross_out_R` 0.15 s
+
+V scissor consumes 75% of each cycle (1.8 s of 2.4 s); the lateral cross is a quick punctuation.
+
+4 cycles × 2.4 s + 0.2 s settle = **9.8 s** (unchanged).
+
+### Phase structure
+
+```
+settle (0.2 s)               hold _V_R_HIGH
+for i in 4 cycles:
+    swap_to_L_i  (0.9 s)     _V_R_HIGH → _V_L_HIGH  (X swap; Z held at ±15°)
+    cross_in_L_i (0.15 s)    _V_L_HIGH → _X_L_OVER  (Z only; X held)
+    cross_out_L_i (0.15 s)   _X_L_OVER → _V_L_HIGH  (Z back; X held)
+    swap_to_R_i  (0.9 s)     _V_L_HIGH → _V_R_HIGH  (X swap; Z held at ±15°)
+    cross_in_R_i (0.15 s)    _V_R_HIGH → _X_R_OVER
+    cross_out_R_i (0.15 s)   _X_R_OVER → _V_R_HIGH
+```
+
+Final phase ends at `_V_R_HIGH` (matches settle) for seamless loop.
+
+### Pose dictionaries (v3)
+
+| Pose       | LeftUpLeg X | RightUpLeg X | LeftUpLeg Z | RightUpLeg Z |
+|------------|-------------|--------------|-------------|--------------|
+| `_V_R_HIGH`| 30 (LOW)    | 60 (HIGH)    | −15 (spread)| +15 (spread) |
+| `_V_L_HIGH`| 60 (HIGH)   | 30 (LOW)     | −15 (spread)| +15 (spread) |
+| `_X_R_OVER`| 30 (LOW)    | 60 (HIGH)    | +10 (cross) | −10 (cross)  |
+| `_X_L_OVER`| 60 (HIGH)   | 30 (LOW)     | +10 (cross) | −10 (cross)  |
+
+Note: `_V_R_HIGH == _LIFT_R` from v2 (same numerical values, renamed for clarity). Same for `_V_L_HIGH == _LIFT_L`. The `_OPEN_V` from v1/v2 is removed.
+
+### Validator updates
+
+- Drop the `settle, open_*` validators (no more OPEN_V pose).
+- Replace `lift_R_*` / `lift_L_*` validators with `V_R_*` / `V_L_*` (matching the new phase names — they validate the SAME pose values, just under new wildcard).
+- Wildcards for new phase names: `swap_to_L_*`, `swap_to_R_*`, `cross_in_L_*`, `cross_out_L_*`, `cross_in_R_*`, `cross_out_R_*`.
+- Hips X validator's `at_phases` list: include `settle` and all the new phase wildcards.
+- `joint_angle_range` on `LeftUpLeg/RightUpLeg X` keeps `[27, 63]` (covers 30°/45°/60° including swap-midpoint baseline + 3° Bezier overshoot).
+
+### What disappears from the v2 implementation
+
+- `_OPEN_V` pose dict.
+- Validators referencing `at_phases: ["settle", "open_*"]` for OPEN_V.
+- The `lift_R_in / lift_R_out / open_R / lift_L_in / lift_L_out / open_L` phase names are replaced by `swap_to_L / cross_in_L / cross_out_L / swap_to_R / cross_in_R / cross_out_R`.
