@@ -143,7 +143,13 @@ def main_in_blender(args: argparse.Namespace) -> int:
 
     RENDER_DIR.mkdir(parents=True, exist_ok=True)
     BLEND_DEBUG_DIR.mkdir(parents=True, exist_ok=True)
-    mp4_path = RENDER_DIR / f"{args.exercise}.mp4"
+    # MP4 filename uses kebab-case to match the catalog id convention
+    # (exercises.json ids are kebab-case). The Python spec module name
+    # has to be snake_case (Python identifier rule), so we translate
+    # here. sync-exercise-videos.ts accepts either form, but writing
+    # kebab-case avoids the visible filename/catalog-id mismatch.
+    exercise_slug = args.exercise.replace("_", "-")
+    mp4_path = RENDER_DIR / f"{exercise_slug}.mp4"
     blend_path = BLEND_DEBUG_DIR / f"casual_man_{args.exercise}.blend"
     try:
         render_mp4(str(mp4_path))
