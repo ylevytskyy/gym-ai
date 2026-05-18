@@ -64,11 +64,11 @@ for the leg-after-supine-flip:
 - Z=∓10 at cross puts ankles at ±(0.082 - 0.149) = ∓0.067 m — both
   ankles ~7 cm past midline on opposite sides. Clear visual cross.
 - "Over" differentiation: at each cross, the elevated leg's hip flex is
-  +47 (slightly higher), the under leg's hip flex is +43. The 4° hip-
-  flex differential moves the elevated heel ~6 cm further up than the
-  under heel — subtle but enough to read which leg is "on top" from a
-  3/4 camera. Heels never drop (both legs stay at ≥43° flex, well
-  above any floor-contact threshold).
+  +55 (heel ≈ 0.79 m), the under leg's hip flex is +35 (heel ≈ 0.58 m).
+  The 20° hip-flex differential produces a ~21 cm heel-Z gap at the
+  cross moment — large enough that the leg meshes cleanly pass above/
+  below each other with no clipping. The under leg's heel stays at
+  0.58 m, well above any floor-contact threshold.
 
 Camera: front_top_left. Three-quarter elevated view captures the
 lateral leg motion (which side_left would compress along the camera
@@ -102,12 +102,14 @@ _SUPINE = {
     ("mixamorig:Hips", "X"):     -90,
 }
 
-# Hip-flexion levels — both legs held high throughout. ±2° around the
+# Hip-flexion levels — both legs held high throughout. ±10° around the
 # canonical 45° working angle differentiates which leg is "on top" at
-# each cross without dropping either heel.
-_HIP_HIGH = +47    # the "over" leg at each cross
-_HIP_BASE = +45    # the open-V both-equal elevation
-_HIP_LOW  = +43    # the "under" leg at each cross
+# each cross by ~21 cm of heel-Z separation, so leg meshes cleanly pass
+# above/below each other instead of clipping. Under leg never drops a
+# heel (35° → heel ≈ 0.58 m, well above any floor-contact threshold).
+_HIP_HIGH = +55    # the "over" leg at each cross (heel ≈ 0.79 m)
+_HIP_BASE = +45    # the open-V both-equal elevation (heel ≈ 0.70 m)
+_HIP_LOW  = +35    # the "under" leg at each cross (heel ≈ 0.58 m)
 
 # Lateral abduction angles.
 _Z_OPEN  = 15    # open V: ~60 cm ankle separation
@@ -200,13 +202,13 @@ VALIDATORS = [
                       "min_deg": -93, "max_deg": -87}),
 
     # Hip flexion stays in the elevated working range across the whole
-    # animation (no heel drop). The four discrete pose values are 43,
-    # 45, 47; range gate [40, 50] covers all three + tolerance for
+    # animation (no heel drop). The three discrete pose values are 35,
+    # 45, 55; range gate [32, 58] covers all three + 3° tolerance for
     # Bezier overshoot during transitions.
     (joint_angle_range, {"joint": ("mixamorig:LeftUpLeg", "X"),
-                         "min_deg": 40, "max_deg": 50}),
+                         "min_deg": 32, "max_deg": 58}),
     (joint_angle_range, {"joint": ("mixamorig:RightUpLeg", "X"),
-                         "min_deg": 40, "max_deg": 50}),
+                         "min_deg": 32, "max_deg": 58}),
 
     # Open V — both legs at base elevation, spread laterally.
     (joint_angle_at, {"joint": ("mixamorig:LeftUpLeg", "X"),
