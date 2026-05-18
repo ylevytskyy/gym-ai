@@ -84,3 +84,73 @@ This becomes outdated. Update to reflect the new values:
 - No catalog / locale string changes.
 - No changes to `flutter_kicks` (already correct for its variant).
 - No changes to camera, timing, IK rig setup, or the `inner_thighs` targeting in `exercises.json`.
+
+---
+
+## Iteration 2 — endpoint fix was insufficient
+
+Visual review of the v1 render (commit `ace5d27`) confirmed that the cross **endpoints** (frames 24, 60, 168, 276) had clean ~21 cm separation as designed — but the **transitions between them** still clip. The user provided a screenshot showing legs stacked near the body midline. Frame 15 (midpoint of `cross_R_0` phase, t≈0.5s) reproduces the clip exactly.
+
+### Root cause
+
+The 0.6 s cross phase animates **both** axes simultaneously:
+- Hip-flex X: 45° → 55° (over) and 45° → 35° (under) — heights diverge gradually
+- Hip-Z: ±15° → ∓10° — passes through 0 (legs aligned at body midline) at transition midpoint
+
+At t ≈ 0.5 of the cross phase:
+- Heights are only halfway differentiated: HIGH ≈ 50°, LOW ≈ 40° → heel gap ≈ 11 cm
+- Lateral Z is near 0 → both feet at the body midline laterally
+- Thigh midpoints are ~5.6 cm apart → less than thigh diameter → **mesh intersection**
+
+The endpoints clear because the full 21 cm gap is established before any lateral overlap occurs at the extreme cross positions. The endpoints' validators caught nothing because they only sample phase boundaries, not interior frames where Bezier interpolation produces the in-betweens.
+
+### Decision
+
+Apply **both** of the user-approved fixes simultaneously:
+
+1. **Widen the differential further** to `HIGH = +60°` / `LOW = +30°` (was +55° / +35°). New endpoint heel gap ≈ 31 cm. Transition midpoint heel gap (if the old single-phase structure were kept) would rise from 11 cm to ~16 cm — borderline, but the next fix removes the problem entirely.
+2. **Route the cross through an intermediate `LIFT` pose** that has heights already differentiated but legs still laterally spread. Each 0.6 s cross phase splits into two 0.3 s sub-phases:
+   - `lift_R_in`  (0.3 s): `OPEN_V → LIFT_R`. Only X (height) changes; legs stay at Z=±15° abduction.
+   - `cross_R`    (0.3 s): `LIFT_R → CROSS_R_OVER`. Only Z (lateral) changes; heights stay at 60°/30°.
+   - `lift_R_out` (0.3 s): `CROSS_R_OVER → LIFT_R`. Mirror of cross_R — legs un-cross laterally.
+   - `open_R`     (0.3 s): `LIFT_R → OPEN_V`. Heights return to base.
+
+With this routing, whenever the legs are laterally close (Z near 0), the full 31 cm vertical gap is already established. No Bezier midpoint can co-locate both legs.
+
+### New constants and poses
+
+```python
+_HIP_HIGH = +60    # over leg at each cross (heel ≈ 0.84 m)
+_HIP_BASE = +45    # open-V both-equal elevation (heel ≈ 0.70 m)
+_HIP_LOW  = +30    # under leg at each cross (heel ≈ 0.52 m)
+
+_LIFT_R = {  # heights diverged, legs still laterally spread
+    **_SUPINE,
+    LeftUpLeg X = _HIP_LOW,   LeftUpLeg Z = -_Z_OPEN,
+    RightUpLeg X = _HIP_HIGH, RightUpLeg Z = +_Z_OPEN,
+    knees straight,
+}
+_LIFT_L = mirror of _LIFT_R (Left=HIGH, Right=LOW; Z values same as OPEN_V)
+```
+
+### New phase structure
+
+`0.2 s settle + 4 × [lift_R_in, cross_R, lift_R_out, open_R, lift_L_in, cross_L, lift_L_out, open_L] × 0.3 s` = **9.8 s total** (unchanged).
+
+### Validator updates
+
+- `joint_angle_range` on `LeftUpLeg/RightUpLeg X`: widen from `[32, 58]` to `[27, 63]` (covers 30°/45°/60° + 3° Bezier overshoot).
+- Add new `joint_angle_at` validators for `lift_R_*` and `lift_L_*` phases checking each leg's X and Z at the LIFT pose.
+- Existing per-phase validators on `cross_R_*`, `cross_L_*`, `open_*` keep working unchanged (the wildcards match the new `open_R_*` and `open_L_*` phase names).
+
+### Geometry sanity (v2)
+
+| Pose      | LeftUpLeg X | RightUpLeg X | Heel L (m) | Heel R (m) | Gap (m) |
+|-----------|-------------|--------------|------------|------------|---------|
+| OPEN_V    | 45          | 45           | 0.70       | 0.70       | 0       |
+| LIFT_R    | 30 (low)    | 60 (high)    | 0.52       | 0.84       | 0.32    |
+| CROSS_R   | 30 (low)    | 60 (high)    | 0.52       | 0.84       | 0.32    |
+| LIFT_L    | 60 (high)   | 30 (low)     | 0.84       | 0.52       | 0.32    |
+| CROSS_L   | 60 (high)   | 30 (low)     | 0.84       | 0.52       | 0.32    |
+
+Between `lift_*` and `cross_*` only Z changes — vertical 0.32 m gap is constant during the lateral cross.

@@ -64,20 +64,28 @@ for the leg-after-supine-flip:
 - Z=∓10 at cross puts ankles at ±(0.082 - 0.149) = ∓0.067 m — both
   ankles ~7 cm past midline on opposite sides. Clear visual cross.
 - "Over" differentiation: at each cross, the elevated leg's hip flex is
-  +55 (heel ≈ 0.79 m), the under leg's hip flex is +35 (heel ≈ 0.58 m).
-  The 20° hip-flex differential produces a ~21 cm heel-Z gap at the
-  cross moment — large enough that the leg meshes cleanly pass above/
-  below each other with no clipping. The under leg's heel stays at
-  0.58 m, well above any floor-contact threshold.
+  +60 (heel ≈ 0.84 m), the under leg's hip flex is +30 (heel ≈ 0.52 m).
+  The 30° hip-flex differential produces a ~31 cm heel-Z gap at the
+  cross moment.
+- Cross-transition routing: the 0.6 s "open V → cross" move is split
+  into two 0.3 s sub-phases through an intermediate LIFT pose where
+  heights have already diverged but legs are still laterally spread.
+  (lift_R_in: only X changes, heights diverge while legs stay at
+  Z=±15° abduction. cross_R: only Z changes, lateral cross happens
+  while heights stay at HIGH/LOW). This guarantees that at the moment
+  legs cross the body midline laterally (Z passing through 0), the
+  full 31 cm vertical gap is already established — no single-axis
+  Bezier midpoint can put both legs at midline and same height.
 
 Camera: front_top_left. Three-quarter elevated view captures the
 lateral leg motion (which side_left would compress along the camera
 axis) while keeping the supine body silhouette visible.
 
 Phase structure: 0.2 s settle (OPEN V) then 4 full crisscross cycles
-at 2.4 s/cycle (4 phases × 0.6 s each: cross_R_over → open → cross_L_
-over → open). Total: 0.2 + 4×2.4 = 9.8 s. Final phase = OPEN matches
-frame 0 (settle = OPEN) for a seamless loop.
+at 2.4 s/cycle (8 sub-phases × 0.3 s each: lift_R_in → cross_R →
+lift_R_out → open_R → lift_L_in → cross_L → lift_L_out → open_L).
+Total: 0.2 + 4×2.4 = 9.8 s. Final phase = OPEN matches frame 0
+(settle = OPEN) for a seamless loop.
 """
 from animation_lib.motion import phase
 from animation_lib.validators import (
@@ -102,14 +110,15 @@ _SUPINE = {
     ("mixamorig:Hips", "X"):     -90,
 }
 
-# Hip-flexion levels — both legs held high throughout. ±10° around the
+# Hip-flexion levels — both legs held high throughout. ±15° around the
 # canonical 45° working angle differentiates which leg is "on top" at
-# each cross by ~21 cm of heel-Z separation, so leg meshes cleanly pass
-# above/below each other instead of clipping. Under leg never drops a
-# heel (35° → heel ≈ 0.58 m, well above any floor-contact threshold).
-_HIP_HIGH = +55    # the "over" leg at each cross (heel ≈ 0.79 m)
+# each cross by ~31 cm of heel-Z separation. The cross is routed
+# through an intermediate LIFT pose (see _LIFT_R / _LIFT_L) so the
+# height differential is fully established BEFORE the lateral cross
+# happens — guarantees no mid-transition mesh intersection.
+_HIP_HIGH = +60    # the "over" leg at each cross (heel ≈ 0.84 m)
 _HIP_BASE = +45    # the open-V both-equal elevation (heel ≈ 0.70 m)
-_HIP_LOW  = +35    # the "under" leg at each cross (heel ≈ 0.58 m)
+_HIP_LOW  = +30    # the "under" leg at each cross (heel ≈ 0.52 m)
 
 # Lateral abduction angles.
 _Z_OPEN  = 15    # open V: ~60 cm ankle separation
@@ -165,6 +174,32 @@ _CROSS_L_OVER = {
 }
 
 
+# Intermediate "lift" poses — heights have diverged to HIGH/LOW but
+# legs are still laterally spread at the OPEN_V abduction (Z=±15°).
+# The lateral cross from these into _CROSS_*_OVER moves only Z while
+# heights stay differentiated, so the legs cleanly pass above/below
+# at the moment they cross the body midline.
+_LIFT_R = {
+    **_SUPINE,
+    ("mixamorig:LeftUpLeg",  "X"): _HIP_LOW,    # left = under (heel ≈ 0.52 m)
+    ("mixamorig:RightUpLeg", "X"): _HIP_HIGH,   # right = over (heel ≈ 0.84 m)
+    ("mixamorig:LeftUpLeg",  "Z"): -_Z_OPEN,    # still abducted to char-LEFT
+    ("mixamorig:RightUpLeg", "Z"): +_Z_OPEN,    # still abducted to char-RIGHT
+    ("mixamorig:LeftLeg",    "X"): _KNEE_STRAIGHT,
+    ("mixamorig:RightLeg",   "X"): _KNEE_STRAIGHT,
+}
+
+_LIFT_L = {
+    **_SUPINE,
+    ("mixamorig:LeftUpLeg",  "X"): _HIP_HIGH,   # left = over
+    ("mixamorig:RightUpLeg", "X"): _HIP_LOW,    # right = under
+    ("mixamorig:LeftUpLeg",  "Z"): -_Z_OPEN,    # still abducted to char-LEFT
+    ("mixamorig:RightUpLeg", "Z"): +_Z_OPEN,    # still abducted to char-RIGHT
+    ("mixamorig:LeftLeg",    "X"): _KNEE_STRAIGHT,
+    ("mixamorig:RightLeg",   "X"): _KNEE_STRAIGHT,
+}
+
+
 # Hands by sides — same IK pin pattern as glute_bridges / flutter_kicks.
 IK_PINS = {
     "mixamorig:LeftHand":  (+0.152, -0.25, 0.0),
@@ -183,32 +218,41 @@ IK_POLE_TARGETS = {
 
 
 # 0.2 s settle (frame 0 holds _OPEN_V) + 4 full scissor cycles at
-# 2.4 s/cycle (0.6 s per phase × 4 phases). Final = OPEN matches frame 0.
+# 2.4 s/cycle (8 sub-phases × 0.3 s each). Each cycle routes through
+# the LIFT pose so the height differential is established before the
+# lateral cross happens (see "Cross-transition routing" in docstring).
+# Final = OPEN matches frame 0 for seamless loop.
 _CYCLES = 4
 PHASES = [
     phase(0.2, _OPEN_V, name="settle"),
 ]
 for _i in range(_CYCLES):
-    PHASES.append(phase(0.6, _CROSS_R_OVER, name=f"cross_R_{_i}"))
-    PHASES.append(phase(0.6, _OPEN_V,       name=f"open_{_i}_a"))
-    PHASES.append(phase(0.6, _CROSS_L_OVER, name=f"cross_L_{_i}"))
-    PHASES.append(phase(0.6, _OPEN_V,       name=f"open_{_i}_b"))
+    # R-over half-cycle: lift R, cross R, uncross R, return to open V
+    PHASES.append(phase(0.3, _LIFT_R,       name=f"lift_R_in_{_i}"))
+    PHASES.append(phase(0.3, _CROSS_R_OVER, name=f"cross_R_{_i}"))
+    PHASES.append(phase(0.3, _LIFT_R,       name=f"lift_R_out_{_i}"))
+    PHASES.append(phase(0.3, _OPEN_V,       name=f"open_R_{_i}"))
+    # L-over half-cycle
+    PHASES.append(phase(0.3, _LIFT_L,       name=f"lift_L_in_{_i}"))
+    PHASES.append(phase(0.3, _CROSS_L_OVER, name=f"cross_L_{_i}"))
+    PHASES.append(phase(0.3, _LIFT_L,       name=f"lift_L_out_{_i}"))
+    PHASES.append(phase(0.3, _OPEN_V,       name=f"open_L_{_i}"))
 
 
 VALIDATORS = [
     # Supine baseline holds throughout — Hips X stays near -90°.
     (joint_angle_at, {"joint": ("mixamorig:Hips", "X"),
-                      "at_phases": ["settle", "open_*", "cross_*"],
+                      "at_phases": ["settle", "open_*", "lift_*", "cross_*"],
                       "min_deg": -93, "max_deg": -87}),
 
     # Hip flexion stays in the elevated working range across the whole
-    # animation (no heel drop). The three discrete pose values are 35,
-    # 45, 55; range gate [32, 58] covers all three + 3° tolerance for
+    # animation (no heel drop). Three discrete pose values are 30, 45,
+    # 60; range gate [27, 63] covers all three + 3° tolerance for
     # Bezier overshoot during transitions.
     (joint_angle_range, {"joint": ("mixamorig:LeftUpLeg", "X"),
-                         "min_deg": 32, "max_deg": 58}),
+                         "min_deg": 27, "max_deg": 63}),
     (joint_angle_range, {"joint": ("mixamorig:RightUpLeg", "X"),
-                         "min_deg": 32, "max_deg": 58}),
+                         "min_deg": 27, "max_deg": 63}),
 
     # Open V — both legs at base elevation, spread laterally.
     (joint_angle_at, {"joint": ("mixamorig:LeftUpLeg", "X"),
@@ -222,6 +266,34 @@ VALIDATORS = [
                       "min_deg": -_Z_OPEN - 2, "max_deg": -_Z_OPEN + 2}),
     (joint_angle_at, {"joint": ("mixamorig:RightUpLeg", "Z"),
                       "at_phases": ["settle", "open_*"],
+                      "min_deg": +_Z_OPEN - 2, "max_deg": +_Z_OPEN + 2}),
+
+    # Lift R — right elevated, left dropped, both still laterally spread.
+    (joint_angle_at, {"joint": ("mixamorig:LeftUpLeg", "X"),
+                      "at_phases": ["lift_R_*"],
+                      "min_deg": _HIP_LOW - 2, "max_deg": _HIP_LOW + 2}),
+    (joint_angle_at, {"joint": ("mixamorig:RightUpLeg", "X"),
+                      "at_phases": ["lift_R_*"],
+                      "min_deg": _HIP_HIGH - 2, "max_deg": _HIP_HIGH + 2}),
+    (joint_angle_at, {"joint": ("mixamorig:LeftUpLeg", "Z"),
+                      "at_phases": ["lift_R_*"],
+                      "min_deg": -_Z_OPEN - 2, "max_deg": -_Z_OPEN + 2}),
+    (joint_angle_at, {"joint": ("mixamorig:RightUpLeg", "Z"),
+                      "at_phases": ["lift_R_*"],
+                      "min_deg": +_Z_OPEN - 2, "max_deg": +_Z_OPEN + 2}),
+
+    # Lift L — mirror of Lift R; lateral abduction unchanged.
+    (joint_angle_at, {"joint": ("mixamorig:LeftUpLeg", "X"),
+                      "at_phases": ["lift_L_*"],
+                      "min_deg": _HIP_HIGH - 2, "max_deg": _HIP_HIGH + 2}),
+    (joint_angle_at, {"joint": ("mixamorig:RightUpLeg", "X"),
+                      "at_phases": ["lift_L_*"],
+                      "min_deg": _HIP_LOW - 2, "max_deg": _HIP_LOW + 2}),
+    (joint_angle_at, {"joint": ("mixamorig:LeftUpLeg", "Z"),
+                      "at_phases": ["lift_L_*"],
+                      "min_deg": -_Z_OPEN - 2, "max_deg": -_Z_OPEN + 2}),
+    (joint_angle_at, {"joint": ("mixamorig:RightUpLeg", "Z"),
+                      "at_phases": ["lift_L_*"],
                       "min_deg": +_Z_OPEN - 2, "max_deg": +_Z_OPEN + 2}),
 
     # Cross R over — right leg elevated higher, both crossed past midline.
@@ -258,8 +330,8 @@ VALIDATORS = [
     (world_position_drift_max, {"bone": "mixamorig:Hips", "axis": "Z",
                                 "max_meters": 0.02}),
 
-    # Feet (ankle bone HEAD) well above floor throughout. At base
-    # elevation X=+45, ankle Z ≈ 0.70 m; threshold of 0.40 m gives
-    # plenty of headroom while catching any catastrophic floor drop.
+    # Feet (ankle bone HEAD) well above floor throughout. At LOW elevation
+    # X=+30, ankle Z ≈ 0.52 m; threshold of 0.40 m gives headroom while
+    # catching any catastrophic floor drop.
     (foot_world_y_min, {"side": "both", "min_y": 0.40}),
 ]
