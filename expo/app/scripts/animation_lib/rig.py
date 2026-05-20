@@ -48,9 +48,10 @@ head_pitch    = (Bones.HEAD, "X")
 head_yaw      = (Bones.HEAD, "Z")
 
 
-# Bones whose world position validators read.
+# Bones whose world position and local Euler validators read.
 TRACKED_BONES = (
     Bones.HIPS,
+    Bones.SPINE, Bones.SPINE_1, Bones.SPINE_2, Bones.NECK, Bones.HEAD,
     Bones.LEFT_UP_LEG, Bones.LEFT_LEG, Bones.LEFT_FOOT,
     Bones.RIGHT_UP_LEG, Bones.RIGHT_LEG, Bones.RIGHT_FOOT,
     Bones.LEFT_ARM, Bones.LEFT_FORE_ARM, Bones.LEFT_HAND,
