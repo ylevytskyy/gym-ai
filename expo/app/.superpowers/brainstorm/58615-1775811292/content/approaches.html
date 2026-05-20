@@ -1,0 +1,71 @@
+<h2>Three Approaches for Exercise Image System</h2>
+<p class="subtitle">Prompt template design, generation workflow, and app integration</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Comic Strip Prompt (Recommended)</h3>
+      <p><strong>Prompt:</strong> Generate a single horizontal comic-strip-style image with numbered panels (one per instruction step). The prompt template includes exercise name, step descriptions, and a fixed style block.</p>
+      <p><strong>Splitting:</strong> Script that detects panel boundaries (whitespace/dividers between panels) and crops into individual square images.</p>
+      <p><strong>Storage:</strong> Images saved as <code>assets/images/exercises/{id}/step-{n}.png</code></p>
+      <p><strong>App UI:</strong> Horizontal swipeable carousel with dot indicators, synced to the instruction text below.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>One prompt per exercise (75 total)</li>
+          <li>Steps are spatially consistent within one generation</li>
+          <li>Easiest to maintain style consistency</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Panel splitting may need manual adjustment</li>
+          <li>Gemini may struggle with many panels (5-6 steps)</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Grid Layout Prompt</h3>
+      <p><strong>Prompt:</strong> Generate a 2x2 or 2x3 grid image showing all steps. Each cell is one step, read left-to-right, top-to-bottom.</p>
+      <p><strong>Splitting:</strong> Simple grid-based cropping (uniform cell sizes) — very reliable splitting.</p>
+      <p><strong>Storage:</strong> Same as A: <code>assets/images/exercises/{id}/step-{n}.png</code></p>
+      <p><strong>App UI:</strong> Same carousel as A.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Grid splitting is trivial (equal rectangles)</li>
+          <li>Gemini handles grids well</li>
+          <li>Consistent cell sizes guaranteed</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Square grid cells may waste space for some step counts (e.g., 5 steps in a 2x3 = 1 empty cell)</li>
+          <li>Slightly less natural than comic strip flow</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Per-Step Prompting with Style Lock</h3>
+      <p><strong>Prompt:</strong> Generate each step as a separate image. Use a detailed style-lock prefix to maintain consistency across all prompts.</p>
+      <p><strong>Splitting:</strong> Not needed — each image is already individual.</p>
+      <p><strong>Storage:</strong> Same path structure.</p>
+      <p><strong>App UI:</strong> Same carousel.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>No splitting/cropping needed</li>
+          <li>Each image gets full resolution</li>
+          <li>More control per step</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>300-400 individual prompts to paste manually</li>
+          <li>Style drift between steps very likely</li>
+          <li>5x the manual work</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>

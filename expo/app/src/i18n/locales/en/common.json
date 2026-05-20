@@ -1,0 +1,322 @@
+{
+  "app": {
+    "loading": "Loading…",
+    "notFound": "Not found",
+    "back": "Back",
+    "done": "Done"
+  },
+  "tabs": {
+    "plan": "Plan",
+    "settings": "Settings",
+    "exercises": "Exercises"
+  },
+  "wizard": {
+    "continue": "Continue",
+    "back": "← Back",
+    "skip": "Skip",
+    "stepOf": "Step {{current}} of {{total}}"
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create account",
+    "signInCta": "Sign in",
+    "signUpCta": "Create account",
+    "toggleToSignUp": "New here? Create an account",
+    "toggleToSignIn": "Already have an account? Sign in",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "checkEmail": "Check your email to confirm the account.",
+    "signOut": "Sign out"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Fitness",
+      "subtitle": "Home workouts built around your workday.\nNo equipment. Reminds you to move. Survives meetings.",
+      "cta": "Get started"
+    },
+    "name": {
+      "title": "What should I call you?",
+      "subtitle": "Just a first name is fine — shown in greetings.",
+      "placeholder": "Your name"
+    },
+    "photo": {
+      "title": "Add a profile photo?",
+      "subtitle": "Optional. Shown on the dashboard.",
+      "choose": "Choose from library",
+      "replace": "Replace photo",
+      "remove": "Remove",
+      "pickError": "Couldn't pick photo"
+    },
+    "dob": {
+      "title": "When were you born?",
+      "subtitle": "Used to age-adjust exercise selection and targets."
+    },
+    "body": {
+      "title": "A few body measurements",
+      "subtitle": "Used to compute calorie burn during workouts.",
+      "weightLabel": "Weight (kg)",
+      "weightPlaceholder": "e.g. 75",
+      "weightError": "Between 20 and 300 kg",
+      "heightLabel": "Height (cm)",
+      "heightPlaceholder": "e.g. 178",
+      "heightError": "Between 100 and 250 cm"
+    },
+    "fitnessLevel": {
+      "title": "What's your fitness level?",
+      "subtitle": "Shapes exercise difficulty and progression rate."
+    },
+    "goals": {
+      "title": "What are you here for?",
+      "subtitle": "Pick one or more. Shapes how your plan is put together.",
+      "finish": "Finish setup"
+    }
+  },
+  "dashboard": {
+    "hello": "Hello",
+    "friend": "friend",
+    "restDay": "Rest day",
+    "restDaySubtitle": "Recover, hydrate, walk the stairs if you feel like it.",
+    "allSessionsToday": "ALL SESSIONS TODAY",
+    "caloriesToday": "CALORIES TODAY",
+    "emptyTitle": "No plan yet",
+    "emptySubtitle": "Generate a personalized plan with your goals, schedule, and constraints. Takes about a minute.",
+    "generateCta": "Generate Plan"
+  },
+  "upNext": {
+    "eyebrow": "UP NEXT",
+    "rightNow": "RIGHT NOW",
+    "inMinutes": "IN {{minutes}} MIN",
+    "startsAt": "STARTS AT {{time}}",
+    "start": "Start",
+    "postpone": "Postpone"
+  },
+  "dayStrip": {
+    "today": "TODAY",
+    "rest": "Rest"
+  },
+  "exercises": {
+    "listTitle": "Exercises",
+    "playInstructions": "Play instructions",
+    "stop": "Stop",
+    "instructionsHeading": "Instructions",
+    "commonMistakesHeading": "Common mistakes",
+    "modificationsHeading": "Modifications",
+    "easier": "Easier",
+    "harder": "Harder",
+    "ukVoiceMissing": "Ukrainian voice not installed on this device — using default voice.",
+    "difficultyLabel": "Difficulty",
+    "bodyPartSeparator": " · "
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "profile": "PROFILE",
+      "appearance": "APPEARANCE",
+      "reminders": "REMINDERS & POLISH",
+      "postpone": "POSTPONE",
+      "language": "LANGUAGE"
+    },
+    "profileRow": {
+      "label": "User profile",
+      "notSet": "Not set"
+    },
+    "planRow": {
+      "edit": "Edit plan",
+      "editSubtitle": "Update schedule and re-generate",
+      "generate": "Generate plan",
+      "generateSubtitle": "Create your first workout plan"
+    },
+    "theme": "Theme",
+    "themeOptions": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "notifications": {
+      "label": "Notifications",
+      "subtitle": "Reminders for desk breaks and workouts"
+    },
+    "haptics": {
+      "label": "Haptics",
+      "subtitle": "Rumble on rep done, set complete"
+    },
+    "audio": {
+      "label": "Audio cues",
+      "subtitle": "Countdown beeps during timed exercises"
+    },
+    "keepAwake": {
+      "label": "Keep screen on during workouts",
+      "subtitle": "Prevents dimming while you're lifting"
+    },
+    "postponeBy": "Postpone by",
+    "postponeHint": "Used when you tap Postpone on an up-next card.",
+    "postponeMinutes_one": "{{count}} min",
+    "postponeMinutes_few": "{{count}} min",
+    "postponeMinutes_many": "{{count}} min",
+    "postponeMinutes_other": "{{count}} min",
+    "language": {
+      "label": "Language",
+      "system": "System",
+      "english": "English",
+      "ukrainian": "Українська"
+    },
+    "clearAll": "Clear all data",
+    "confirmReset": {
+      "title": "Clear everything?",
+      "body": "This deletes your profile, current plan, and all progress.",
+      "confirm": "Clear",
+      "cancel": "Cancel",
+      "finalTitle": "Really clear?",
+      "finalBody": "This cannot be undone.",
+      "finalConfirm": "Yes, clear everything"
+    }
+  },
+  "profileEdit": {
+    "headerTitle": "Profile",
+    "changePhoto": "Change photo",
+    "sections": {
+      "dob": "DATE OF BIRTH",
+      "body": "BODY",
+      "fitnessLevel": "FITNESS LEVEL",
+      "goals": "GOALS"
+    },
+    "nameLabel": "Name",
+    "weightLabel": "Weight (kg)",
+    "heightLabel": "Height (cm)",
+    "save": "Save",
+    "validationTitle": "Check your inputs",
+    "validationBody": "Name, weight, height, and at least one goal are required.",
+    "photoErrorTitle": "Could not save photo"
+  },
+  "plan": {
+    "generateHeader": "Generate Plan",
+    "pasteHeader": "Paste Plan",
+    "previewHeader": "Session Preview",
+    "generate": {
+      "title": "Plan settings",
+      "subtitle": "A few details about your workday so the plan fits around real life.",
+      "sections": {
+        "timeBudget": "DAILY TIME BUDGET",
+        "workHours": "WORK HOURS",
+        "meetingDensity": "MEETING DENSITY",
+        "lunchBreak": "LUNCH BREAK",
+        "limitations": "LIMITATIONS",
+        "disliked": "DISLIKED EXERCISES",
+        "period": "PERIOD"
+      },
+      "timeBudgetValue": "{{minutes}} min / day",
+      "timeBudgetHint": "Main workout + desk breaks together.",
+      "timeBudgetMinutes_one": "{{count}} min",
+      "timeBudgetMinutes_few": "{{count}} min",
+      "timeBudgetMinutes_many": "{{count}} min",
+      "timeBudgetMinutes_other": "{{count}} min",
+      "workStart": "Start",
+      "workEnd": "End",
+      "meetingDensityHint": "How busy is your calendar on a typical day?",
+      "lunchToggle": "I take a lunch break",
+      "yes": "Yes",
+      "no": "No",
+      "limitationsHint": "Any of these? Pick all that apply. Exercises with matching contraindications will be skipped.",
+      "dislikedHint": "Ones to never include. Tap to toggle.",
+      "dislikedCount": "(showing first {{shown}} of {{total}})",
+      "buildPrompt": "Build prompt",
+      "promptReady": "Your prompt is ready",
+      "promptReadySubtitle": "Copy this, paste it into Claude (or another LLM), and bring the JSON response back here.",
+      "copyToClipboard": "Copy prompt to clipboard",
+      "copied": "Copied!",
+      "havePlan": "I have my plan — paste it",
+      "backToForm": "Back to form",
+      "buildErrorTitle": "Couldn't build prompt",
+      "generatePlan": "Generate plan",
+      "pasteFallback": "Paste a plan instead",
+      "validationErrorTitle": "Plan didn't validate",
+      "generateErrorTitle": "Couldn't generate plan"
+    },
+    "paste": {
+      "title": "Paste your plan",
+      "subtitle": "Paste the JSON the LLM produced. We'll validate it against the schema and make sure every exercise is in the catalog.",
+      "placeholder": "Paste the JSON here…",
+      "pasteFromClipboard": "Paste from clipboard",
+      "validate": "Validate",
+      "errorsFound_one": "{{count}} error found",
+      "errorsFound_few": "{{count}} errors found",
+      "errorsFound_many": "{{count}} errors found",
+      "errorsFound_other": "{{count}} errors found",
+      "moreErrors": "… and {{count}} more.",
+      "looksGood": "✓ Looks good",
+      "save": "Save plan",
+      "stats": {
+        "period": "Period",
+        "days": "Days",
+        "daysValue": "{{total}} ({{active}} active)",
+        "sessions": "Sessions",
+        "exercisesTotal": "Exercises total",
+        "estimatedCalories": "Estimated calories",
+        "estimatedCaloriesValue": "{{min}}–{{max}} kcal"
+      }
+    },
+    "preview": {
+      "notFound": "Session not found.",
+      "start": "Start Workout",
+      "back": "Back",
+      "watchOut": "Watch out: {{mistakes}}",
+      "unknownExercise": "Unknown exercise: {{id}}",
+      "rounds_one": "{{count}} round",
+      "rounds_few": "{{count}} rounds",
+      "rounds_many": "{{count}} rounds",
+      "rounds_other": "{{count}} rounds",
+      "exerciseMeta": "{{sets}} × {{amount}} · rest {{rest}}s · ~{{kcal}} kcal"
+    }
+  },
+  "workout": {
+    "sessionNotFound": "Session not found.",
+    "getReady": "GET READY",
+    "rest": "REST",
+    "upNext": "Up next: {{name}}",
+    "setOf": "SET {{current}} OF {{total}}",
+    "roundOf": "ROUND {{current}}/{{total}} · ",
+    "setsProgress": "{{done}} / {{total}} sets",
+    "done": "Done",
+    "skip": "Skip",
+    "skipRest": "Skip rest",
+    "exit": {
+      "title": "Exit workout?",
+      "body": "Your progress so far will be saved.",
+      "keepGoing": "Keep going",
+      "confirm": "Exit"
+    },
+    "summary": {
+      "title": "Nice work!",
+      "kcal": "Actual calories",
+      "kcalValue": "{{kcal}} kcal",
+      "duration": "Duration",
+      "durationValue": "{{min}} min",
+      "completed": "Exercises completed",
+      "completion": "Session completion",
+      "completionValue": "{{pct}}%",
+      "cta": "Done"
+    },
+    "units": {
+      "reps_one": "{{count}} rep",
+      "reps_few": "{{count}} reps",
+      "reps_many": "{{count}} reps",
+      "reps_other": "{{count}} reps",
+      "seconds": "{{count}}s",
+      "metersClimbed": "{{count}} m climbed",
+      "secondsSublabel": "seconds",
+      "repsSublabel": "reps · tap Done when finished",
+      "metersSublabel": "meters climbed"
+    },
+    "stepOf": "Step {{current}} of {{total}}"
+  },
+  "notifications": {
+    "title": "Time for your {{sessionType}}",
+    "body": "{{duration}} min · ~{{kcal}} kcal · window closes {{windowClose}}"
+  },
+  "errors": {
+    "permissionDeniedTitle": "Permission denied",
+    "permissionDeniedBody": "Enable notifications in your system Settings to get reminders."
+  }
+}

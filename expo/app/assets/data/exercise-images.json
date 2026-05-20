@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "placeholder": "assets/images/exercises/placeholder.png",
+  "exercises": {
+    "ankle-circles": {
+      "steps": 4
+    },
+    "bicycle-crunches": {
+      "steps": 4
+    },
+    "bird-dog": {
+      "steps": 5
+    },
+    "bodyweight-squats": {
+      "steps": 5
+    },
+    "burpees": {
+      "steps": 6
+    },
+    "butt-kicks": {
+      "steps": 3
+    },
+    "calf-raises": {
+      "steps": 4
+    },
+    "cat-cow": {
+      "steps": 4
+    },
+    "neck-rolls": {
+      "steps": 4
+    }
+  }
+}

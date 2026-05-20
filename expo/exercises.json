@@ -1,0 +1,1852 @@
+{
+  "_comment": "Exercise catalog for the home/desk fitness app. MET values sourced from the Compendium of Physical Activities (Ainsworth et al. 2011) — https://pacompendium.com/. When an exact match is unavailable, the nearest analog is used and noted in the exercise's 'notes' field. All exercises are equipment-free and assume only chair, wall, stairs, or doorway are available.",
+  "version": "1.0.0",
+  "calorie_model": {
+    "formula": "kcal_per_minute = MET * weight_kg / 60",
+    "intensity_multipliers": {
+      "low": 0.85,
+      "medium": 1,
+      "high": 1.2
+    },
+    "rest_intervals_excluded": true,
+    "notes": "Apply session.intensity multiplier. Rest seconds NOT counted as work time. For rep-based exercises: work_seconds = sets * amount * seconds_per_rep."
+  },
+  "exercises": [
+    {
+      "id": "neck-rolls",
+      "category": "desk_break",
+      "body_parts": [
+        "neck"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 5,
+      "default_sets": 2,
+      "default_rest_seconds": 10,
+      "met_value": 2.3,
+      "seconds_per_rep": 5,
+      "contraindications": [
+        "neck_injury",
+        "vertigo"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "shoulder-rolls",
+      "category": "desk_break",
+      "body_parts": [
+        "shoulders",
+        "upper_back"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.3,
+      "seconds_per_rep": 2,
+      "contraindications": [
+        "shoulder_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "chin-tucks",
+      "category": "desk_break",
+      "body_parts": [
+        "neck",
+        "upper_back"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 2,
+      "default_rest_seconds": 10,
+      "met_value": 2,
+      "seconds_per_rep": 4,
+      "contraindications": [
+        "neck_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "seated-spinal-twist",
+      "category": "desk_break",
+      "body_parts": [
+        "lower_back",
+        "obliques",
+        "upper_back"
+      ],
+      "equipment": [
+        "chair"
+      ],
+      "difficulty": 1,
+      "default_unit": "seconds",
+      "default_amount": 20,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.3,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "lower_back_injury",
+        "pregnancy_late_term"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "seated-cat-cow",
+      "category": "desk_break",
+      "body_parts": [
+        "lower_back",
+        "upper_back",
+        "core"
+      ],
+      "equipment": [
+        "chair"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.5,
+      "seconds_per_rep": 4,
+      "contraindications": [],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "wrist-circles",
+      "category": "desk_break",
+      "body_parts": [
+        "wrists",
+        "forearms"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2,
+      "seconds_per_rep": 1.5,
+      "contraindications": [
+        "wrist_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "eye-20-20-20",
+      "category": "desk_break",
+      "body_parts": [
+        "eyes"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "seconds",
+      "default_amount": 20,
+      "default_sets": 1,
+      "default_rest_seconds": 0,
+      "met_value": 1,
+      "seconds_per_rep": null,
+      "contraindications": [],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "standing-back-extension",
+      "category": "desk_break",
+      "body_parts": [
+        "lower_back",
+        "hip_flexors"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.3,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "seated-forward-fold",
+      "category": "desk_break",
+      "body_parts": [
+        "hamstrings",
+        "lower_back"
+      ],
+      "equipment": [
+        "chair"
+      ],
+      "difficulty": 1,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 1,
+      "default_rest_seconds": 0,
+      "met_value": 2.3,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "lower_back_injury",
+        "high_blood_pressure"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "ankle-circles",
+      "category": "desk_break",
+      "body_parts": [
+        "ankles",
+        "calves"
+      ],
+      "equipment": [
+        "chair"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2,
+      "seconds_per_rep": 2,
+      "contraindications": [
+        "ankle_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "seated-leg-extensions",
+      "category": "desk_break",
+      "body_parts": [
+        "quads",
+        "hip_flexors"
+      ],
+      "equipment": [
+        "chair"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 2,
+      "default_rest_seconds": 15,
+      "met_value": 2.5,
+      "seconds_per_rep": 2,
+      "contraindications": [
+        "knee_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "doorway-chest-stretch",
+      "category": "desk_break",
+      "body_parts": [
+        "chest",
+        "shoulders"
+      ],
+      "equipment": [
+        "doorway"
+      ],
+      "difficulty": 1,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 1,
+      "default_rest_seconds": 0,
+      "met_value": 2.3,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "hip-flexor-lunge-stretch",
+      "category": "desk_break",
+      "body_parts": [
+        "hip_flexors",
+        "quads"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.5,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "side-neck-stretch",
+      "category": "desk_break",
+      "body_parts": [
+        "neck"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "seconds",
+      "default_amount": 20,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.3,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "neck_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "scapular-squeezes",
+      "category": "desk_break",
+      "body_parts": [
+        "upper_back",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 2,
+      "default_rest_seconds": 10,
+      "met_value": 2.5,
+      "seconds_per_rep": 3,
+      "contraindications": [],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "bodyweight-squats",
+      "category": "strength_lower",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "hamstrings"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 5,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "knee_injury",
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "quiet"
+    },
+    {
+      "id": "sumo-squats",
+      "category": "strength_lower",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "hips",
+        "hamstrings"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 5,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "knee_injury",
+        "hip_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "quiet"
+    },
+    {
+      "id": "reverse-lunges",
+      "category": "strength_lower",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "hamstrings"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 4,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "quiet"
+    },
+    {
+      "id": "side-lunges",
+      "category": "strength_lower",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "inner_thighs",
+        "hamstrings"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 4,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "knee_injury",
+        "hip_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "quiet"
+    },
+    {
+      "id": "single-leg-deadlifts",
+      "category": "strength_lower",
+      "body_parts": [
+        "hamstrings",
+        "glutes",
+        "lower_back",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 4,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 3.8,
+      "seconds_per_rep": 4,
+      "contraindications": [
+        "lower_back_injury",
+        "balance_issues"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "glute-bridges",
+      "category": "strength_lower",
+      "body_parts": [
+        "glutes",
+        "hamstrings",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 15,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 3.8,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "single-leg-glute-bridges",
+      "category": "strength_lower",
+      "body_parts": [
+        "glutes",
+        "hamstrings",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 4,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "calf-raises",
+      "category": "strength_lower",
+      "body_parts": [
+        "calves",
+        "ankles"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 20,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 2.5,
+      "seconds_per_rep": 2,
+      "contraindications": [
+        "ankle_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "wall-sits",
+      "category": "strength_lower",
+      "body_parts": [
+        "quads",
+        "glutes"
+      ],
+      "equipment": [
+        "wall"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 4.5,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "step-ups",
+      "category": "strength_lower",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "hamstrings"
+      ],
+      "equipment": [
+        "chair",
+        "stairs"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 5.5,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "knee_injury",
+        "balance_issues"
+      ],
+      "desk_friendly": false,
+      "noise_level": "quiet"
+    },
+    {
+      "id": "standard-push-ups",
+      "category": "strength_upper",
+      "body_parts": [
+        "chest",
+        "triceps",
+        "shoulders",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 60,
+      "met_value": 3.8,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "knee-push-ups",
+      "category": "strength_upper",
+      "body_parts": [
+        "chest",
+        "triceps",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 3.5,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "wrist_injury",
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "incline-push-ups",
+      "category": "strength_upper",
+      "body_parts": [
+        "chest",
+        "triceps",
+        "shoulders"
+      ],
+      "equipment": [
+        "chair"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 3.5,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "decline-push-ups",
+      "category": "strength_upper",
+      "body_parts": [
+        "chest",
+        "shoulders",
+        "triceps",
+        "core"
+      ],
+      "equipment": [
+        "chair"
+      ],
+      "difficulty": 4,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 3,
+      "default_rest_seconds": 60,
+      "met_value": 5,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury",
+        "neck_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "wide-push-ups",
+      "category": "strength_upper",
+      "body_parts": [
+        "chest",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 60,
+      "met_value": 4,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "diamond-push-ups",
+      "category": "strength_upper",
+      "body_parts": [
+        "triceps",
+        "chest",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 4,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 3,
+      "default_rest_seconds": 60,
+      "met_value": 4.5,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "wrist_injury",
+        "elbow_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "wall-push-ups",
+      "category": "strength_upper",
+      "body_parts": [
+        "chest",
+        "shoulders",
+        "triceps"
+      ],
+      "equipment": [
+        "wall"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 15,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 2.8,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "wrist_injury"
+      ],
+      "desk_friendly": true,
+      "noise_level": "silent"
+    },
+    {
+      "id": "pike-push-ups",
+      "category": "strength_upper",
+      "body_parts": [
+        "shoulders",
+        "triceps"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 4,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 3,
+      "default_rest_seconds": 60,
+      "met_value": 5,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "shoulder_injury",
+        "wrist_injury",
+        "high_blood_pressure"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "chair-tricep-dips",
+      "category": "strength_upper",
+      "body_parts": [
+        "triceps",
+        "shoulders"
+      ],
+      "equipment": [
+        "chair"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 4,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "shoulder_injury",
+        "wrist_injury",
+        "elbow_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "inchworms",
+      "category": "strength_upper",
+      "body_parts": [
+        "shoulders",
+        "core",
+        "hamstrings",
+        "chest"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 4,
+      "seconds_per_rep": 5,
+      "contraindications": [
+        "wrist_injury",
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "forearm-plank",
+      "category": "core",
+      "body_parts": [
+        "core",
+        "abs",
+        "shoulders",
+        "glutes"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 3.8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "lower_back_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "side-plank",
+      "category": "core",
+      "body_parts": [
+        "obliques",
+        "core",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "seconds",
+      "default_amount": 20,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 3.8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "shoulder_injury",
+        "wrist_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "flutter-kicks",
+      "category": "core",
+      "body_parts": [
+        "abs",
+        "hip_flexors",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 3.8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "leg-raises",
+      "category": "core",
+      "body_parts": [
+        "abs",
+        "hip_flexors",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 3.8,
+      "seconds_per_rep": 4,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "bicycle-crunches",
+      "category": "core",
+      "body_parts": [
+        "abs",
+        "obliques",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 16,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 3.8,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "neck_injury",
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "mountain-climbers",
+      "category": "core",
+      "body_parts": [
+        "core",
+        "shoulders",
+        "hip_flexors",
+        "full_body"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "dead-bug",
+      "category": "core",
+      "body_parts": [
+        "core",
+        "abs",
+        "lower_back"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 3,
+      "seconds_per_rep": 4,
+      "contraindications": [],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "bird-dog",
+      "category": "core",
+      "body_parts": [
+        "core",
+        "lower_back",
+        "glutes",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 3,
+      "seconds_per_rep": 4,
+      "contraindications": [
+        "wrist_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "hollow-hold",
+      "category": "core",
+      "body_parts": [
+        "abs",
+        "core",
+        "hip_flexors"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 4,
+      "default_unit": "seconds",
+      "default_amount": 20,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 4,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "v-ups",
+      "category": "core",
+      "body_parts": [
+        "abs",
+        "core",
+        "hip_flexors"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 4,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 5,
+      "seconds_per_rep": 4,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "scissor-kicks",
+      "category": "core",
+      "body_parts": [
+        "abs",
+        "hip_flexors",
+        "inner_thighs"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 3.8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "plank-shoulder-taps",
+      "category": "core",
+      "body_parts": [
+        "core",
+        "shoulders",
+        "obliques"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 20,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 4,
+      "seconds_per_rep": 2,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "jumping-jacks",
+      "category": "cardio",
+      "body_parts": [
+        "full_body",
+        "calves",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 45,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury",
+        "ankle_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "high-knees",
+      "category": "cardio",
+      "body_parts": [
+        "quads",
+        "hip_flexors",
+        "calves",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "butt-kicks",
+      "category": "cardio",
+      "body_parts": [
+        "hamstrings",
+        "calves"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 7,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "burpees",
+      "category": "cardio",
+      "body_parts": [
+        "full_body",
+        "chest",
+        "quads",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 5,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 3,
+      "default_rest_seconds": 60,
+      "met_value": 8,
+      "seconds_per_rep": 5,
+      "contraindications": [
+        "knee_injury",
+        "wrist_injury",
+        "shoulder_injury",
+        "high_blood_pressure"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "squat-jumps",
+      "category": "cardio",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "calves",
+        "hamstrings"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 4,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 8,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "knee_injury",
+        "ankle_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "lunge-jumps",
+      "category": "cardio",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "calves"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 4,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 60,
+      "met_value": 8,
+      "seconds_per_rep": 3,
+      "contraindications": [
+        "knee_injury",
+        "ankle_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "star-jumps",
+      "category": "cardio",
+      "body_parts": [
+        "full_body"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 8,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "knee_injury",
+        "ankle_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "shadow-boxing",
+      "category": "cardio",
+      "body_parts": [
+        "shoulders",
+        "core",
+        "full_body"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 60,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 6,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "quiet"
+    },
+    {
+      "id": "plank-jacks",
+      "category": "cardio",
+      "body_parts": [
+        "core",
+        "shoulders",
+        "calves",
+        "full_body"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "skater-hops",
+      "category": "cardio",
+      "body_parts": [
+        "glutes",
+        "quads",
+        "calves",
+        "core"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 16,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 8,
+      "seconds_per_rep": 1.5,
+      "contraindications": [
+        "knee_injury",
+        "ankle_injury",
+        "balance_issues"
+      ],
+      "desk_friendly": false,
+      "noise_level": "quiet"
+    },
+    {
+      "id": "stair-climb-steady",
+      "category": "stair",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "calves",
+        "full_body"
+      ],
+      "equipment": [
+        "stairs"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 300,
+      "default_sets": 1,
+      "default_rest_seconds": 0,
+      "met_value": 4,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury",
+        "balance_issues",
+        "high_blood_pressure"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "stair-climb-fast",
+      "category": "stair",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "calves",
+        "full_body"
+      ],
+      "equipment": [
+        "stairs"
+      ],
+      "difficulty": 4,
+      "default_unit": "seconds",
+      "default_amount": 60,
+      "default_sets": 4,
+      "default_rest_seconds": 90,
+      "met_value": 8.8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury",
+        "balance_issues",
+        "high_blood_pressure"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "two-step-stair-climb",
+      "category": "stair",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "hip_flexors"
+      ],
+      "equipment": [
+        "stairs"
+      ],
+      "difficulty": 4,
+      "default_unit": "seconds",
+      "default_amount": 60,
+      "default_sets": 3,
+      "default_rest_seconds": 90,
+      "met_value": 8,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury",
+        "balance_issues"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "stair-lunges",
+      "category": "stair",
+      "body_parts": [
+        "quads",
+        "glutes",
+        "hamstrings"
+      ],
+      "equipment": [
+        "stairs"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 6,
+      "seconds_per_rep": 4,
+      "contraindications": [
+        "knee_injury",
+        "balance_issues"
+      ],
+      "desk_friendly": false,
+      "noise_level": "quiet"
+    },
+    {
+      "id": "stair-calf-raises",
+      "category": "stair",
+      "body_parts": [
+        "calves",
+        "ankles"
+      ],
+      "equipment": [
+        "stairs"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 15,
+      "default_sets": 3,
+      "default_rest_seconds": 30,
+      "met_value": 3.5,
+      "seconds_per_rep": 2,
+      "contraindications": [
+        "ankle_injury",
+        "balance_issues"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "stair-incline-push-ups",
+      "category": "stair",
+      "body_parts": [
+        "chest",
+        "shoulders",
+        "triceps"
+      ],
+      "equipment": [
+        "stairs"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 12,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 4,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "stair-tricep-dips",
+      "category": "stair",
+      "body_parts": [
+        "triceps",
+        "shoulders"
+      ],
+      "equipment": [
+        "stairs"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 3,
+      "default_rest_seconds": 45,
+      "met_value": 4,
+      "seconds_per_rep": 2.5,
+      "contraindications": [
+        "shoulder_injury",
+        "wrist_injury",
+        "elbow_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "stair-stride-descents",
+      "category": "stair",
+      "body_parts": [
+        "quads",
+        "calves",
+        "glutes"
+      ],
+      "equipment": [
+        "stairs"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 1,
+      "default_sets": 5,
+      "default_rest_seconds": 30,
+      "met_value": 3.5,
+      "seconds_per_rep": 30,
+      "contraindications": [
+        "knee_injury",
+        "balance_issues"
+      ],
+      "desk_friendly": false,
+      "noise_level": "moderate"
+    },
+    {
+      "id": "hamstring-stretch",
+      "category": "flexibility",
+      "body_parts": [
+        "hamstrings",
+        "lower_back"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.3,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "quad-stretch",
+      "category": "flexibility",
+      "body_parts": [
+        "quads",
+        "hip_flexors"
+      ],
+      "equipment": [
+        "wall"
+      ],
+      "difficulty": 1,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.3,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "pigeon-pose",
+      "category": "flexibility",
+      "body_parts": [
+        "glutes",
+        "hips",
+        "hip_flexors"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "seconds",
+      "default_amount": 45,
+      "default_sets": 1,
+      "default_rest_seconds": 10,
+      "met_value": 2.5,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury",
+        "hip_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "childs-pose",
+      "category": "flexibility",
+      "body_parts": [
+        "lower_back",
+        "hips",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "seconds",
+      "default_amount": 60,
+      "default_sets": 1,
+      "default_rest_seconds": 0,
+      "met_value": 2,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "cat-cow",
+      "category": "mobility",
+      "body_parts": [
+        "lower_back",
+        "upper_back",
+        "core",
+        "neck"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 1,
+      "default_unit": "reps",
+      "default_amount": 10,
+      "default_sets": 2,
+      "default_rest_seconds": 5,
+      "met_value": 2.5,
+      "seconds_per_rep": 4,
+      "contraindications": [
+        "wrist_injury",
+        "knee_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "cobra-pose",
+      "category": "flexibility",
+      "body_parts": [
+        "lower_back",
+        "chest",
+        "abs"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 30,
+      "default_sets": 2,
+      "default_rest_seconds": 10,
+      "met_value": 2.5,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "lower_back_injury",
+        "wrist_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "downward-dog",
+      "category": "mobility",
+      "body_parts": [
+        "hamstrings",
+        "calves",
+        "shoulders",
+        "upper_back"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "seconds",
+      "default_amount": 45,
+      "default_sets": 2,
+      "default_rest_seconds": 10,
+      "met_value": 3,
+      "seconds_per_rep": null,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury",
+        "high_blood_pressure"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "sun-salutation-flow",
+      "category": "mobility",
+      "body_parts": [
+        "full_body"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 1,
+      "default_sets": 3,
+      "default_rest_seconds": 15,
+      "met_value": 4,
+      "seconds_per_rep": 60,
+      "contraindications": [
+        "wrist_injury",
+        "shoulder_injury",
+        "lower_back_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "thoracic-spine-rotation",
+      "category": "mobility",
+      "body_parts": [
+        "upper_back",
+        "obliques",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 2,
+      "default_unit": "reps",
+      "default_amount": 8,
+      "default_sets": 2,
+      "default_rest_seconds": 10,
+      "met_value": 2.5,
+      "seconds_per_rep": 4,
+      "contraindications": [],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    },
+    {
+      "id": "worlds-greatest-stretch",
+      "category": "mobility",
+      "body_parts": [
+        "hip_flexors",
+        "hamstrings",
+        "glutes",
+        "upper_back",
+        "shoulders"
+      ],
+      "equipment": [
+        "none"
+      ],
+      "difficulty": 3,
+      "default_unit": "reps",
+      "default_amount": 5,
+      "default_sets": 2,
+      "default_rest_seconds": 10,
+      "met_value": 3.5,
+      "seconds_per_rep": 15,
+      "contraindications": [
+        "hip_injury",
+        "shoulder_injury"
+      ],
+      "desk_friendly": false,
+      "noise_level": "silent"
+    }
+  ]
+}
