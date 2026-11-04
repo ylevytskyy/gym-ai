@@ -20,7 +20,7 @@ animated 3D person.
 |---|---|---|
 | Mobile app | Profile, today's workout, workout player, chat, history | Expo (React Native) |
 | Backend | Users, data, files, security | Supabase (Postgres, Auth, Storage) |
-| AI service | Makes and changes plans, answers questions | Node.js, two implementations: OpenRouter and Claude Agent SDK |
+| AI service | Makes and changes plans, answers questions | Node.js, two implementations: OpenRouter and Anthropic (Messages API + Batch API) |
 | Exercise catalog | The list of exercises the AI may use, grouped | JSON file |
 | Plan schema | The exact shape of a workout plan | JSON Schema (draft 2020-12) |
 | 3D pipelines | Turn an exercise into an animated demo | Blender and Three.js; we test both and keep the best |
@@ -37,7 +37,7 @@ animated 3D person.
  ┌─────────────────────────────────────────────┐             │
  │ AI service (Node.js)                        │─────────────┘
  │  one interface, two providers:              │
- │   • OpenRouter    • Claude Agent SDK        │──▶ LLM API
+ │   • OpenRouter    • Anthropic               │──▶ LLM API
  │  validates every plan against the schema    │
  └─────────────────────────────────────────────┘
 
@@ -80,10 +80,9 @@ Supabase gives us the database, sign-in and file storage, so we write very littl
 - Schema changes go in `supabase/migrations/`. Test data goes in `supabase/seed.sql`.
 - Local dev runs with the Supabase CLI (`supabase start`).
 
-**Why the AI runs in its own service, not in a Supabase Edge Function:** the Claude Agent SDK
-needs Node.js 18.14+ and starts a bundled Claude Code program as a child process (per the
-SDK hosting docs). Edge Functions run on Deno, so we expect this not to work there (not
-tested). A small Node service in a container works for both providers.
+**Why the AI runs in its own service, not in Supabase Edge Functions:** one place for both
+providers, the shared tools and checks, the LLM keys, and the background job that sends and
+collects batches. Edge Functions may work for the simple calls later; we have not tested this.
 
 ## 2. AI assistant — two implementations
 
@@ -97,7 +96,7 @@ interface Assistant {
 }
 ```
 
-Pick one with an env var: `ASSISTANT_PROVIDER=openrouter | agent-sdk`.
+Pick one with an env var: `ASSISTANT_PROVIDER=openrouter | anthropic`.
 
 **Tools both assistants can use** (same names, same inputs):
 
@@ -117,17 +116,44 @@ Pick one with an env var: `ASSISTANT_PROVIDER=openrouter | agent-sdk`.
   repeat until the model returns a final plan.
 - Good for: cheap tests, trying many models.
 
-### 2b. Claude Agent SDK
+### 2b. Anthropic — Messages API + Batch API
 
-- Package `@anthropic-ai/claude-agent-sdk` (TypeScript).
-- The SDK runs the agent loop for us. We add our tools with `tool()` and
-  `createSdkMcpServer()` and turn off the built-in file and shell tools we don't need.
-- Default model: `claude-sonnet-5-5`; set by env var.
-- Good for: multi-step work (read logs → reason → draft → validate → fix → save).
+Package `@anthropic-ai/sdk` (TypeScript). Default model `claude-sonnet-5-5`, set by env var.
+Two modes, same request format:
+
+| Mode | Use it when | How it works |
+|---|---|---|
+| **Live** — Messages API | The user is waiting: "make me a plan", chat, "my knee hurts" | We run the tool loop ourselves, like 2a. Chat replies stream. |
+| **Background** — Batch API | Nobody is waiting: weekly plan refresh for all users, test runs, plan templates | One request per user. Results come back later. |
+
+**Batch API facts** (from Anthropic's docs):
+
+- 50% cheaper than live calls.
+- Most batches finish within 1 hour; a batch can take up to 24 hours.
+- Up to 100,000 requests or 256 MB per batch.
+- No streaming. Results are kept for 29 days; we delete a batch after we save its results.
+
+**How a background run works:**
+
+1. A scheduled job builds one request per user. Each request already holds everything the
+   model needs: the catalog, the profile, recent workouts and the plan schema. A batch
+   request is one call, so the model cannot wait for our tools to answer.
+2. Each request gets a `custom_id` (the user id), so we can match results to users.
+3. The job checks the batch status until it ends, then downloads the results.
+4. Every plan goes through the same schema and catalog check as live plans. Valid → save.
+   Invalid → retry in the next batch, or with one live call if the plan is due soon.
+
+**To check before we build:** that structured outputs (forcing the reply to match our JSON
+schema) work inside a batch. The docs say "most beta features" are supported.
+
+**Later, only if needed:** the Claude Agent SDK, if the assistant grows into real multi-step
+work (read history → reason → draft → check → fix). For making one plan it adds weight we
+don't need: it runs a full agent program on the server.
 
 ### How we compare them
 
 Same test set for both: ~10 sample profiles (beginner, knee injury, 10 minutes only, and so on).
+For Anthropic we run the test set through the Batch API, at half the price.
 
 | Measure | How |
 |---|---|
@@ -271,7 +297,7 @@ apps/mobile/            Expo app
 services/assistant/     AI service
   core/                 interface, tools, validation (shared)
   openrouter/           provider 2a
-  agent-sdk/            provider 2b
+  anthropic/            provider 2b (live + batch)
   eval/                 test profiles + comparison script
 supabase/               migrations/, seed.sql, config
 catalog/                exercises.json, locales/
