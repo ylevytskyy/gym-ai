@@ -16,6 +16,7 @@ import sys
 
 import bmesh
 import bpy
+from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Matrix, Vector
 
 # Character faces -Y. Units are metres.
@@ -113,12 +114,12 @@ PLANK_INHALE, _ = prone(0.346, spine=-1.0)
 
 EXERCISES = {
     "squat": {
-        "legs": "ik", "arms": "fk", "look": (0, 0, 0.85), "zoom": 1.0,
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.85),
         "frame_end": 135,  # 2 s down, 0.5 s hold, 1.5 s up, 0.5 s pause
         "keys": [(1, STAND), (61, SQUAT_BOTTOM), (76, SQUAT_BOTTOM), (121, STAND), (136, STAND)],
     },
     "push_up": {
-        "legs": "fk", "arms": "ik", "look": (0, -0.25, 0.25), "zoom": 0.85, "raise": 0.6,
+        "legs": "fk", "arms": "ik", "look": (0, -0.25, 0.25), "raise": 0.7,
         "wrist": lambda s: (s * 0.30, PUSH_UP_HAND_Y, 0.035),
         "elbow_pole": lambda s: (s * 0.6, PUSH_UP_HAND_Y + 0.5, 0.6),  # elbows back, about 45 deg out
         "frame_end": 99,  # 1.5 s down, 0.3 s hold, 1 s up, 0.5 s pause
@@ -126,7 +127,7 @@ EXERCISES = {
                  (85, PUSH_UP_TOP), (100, PUSH_UP_TOP)],
     },
     "plank": {
-        "legs": "fk", "arms": "ik", "look": (0, -0.25, 0.2), "zoom": 0.85, "raise": 0.6,
+        "legs": "fk", "arms": "ik", "look": (0, -0.25, 0.2), "raise": 0.7,
         "wrist": lambda s: (s * 0.13, PLANK_Y - 0.24, 0.045),
         "elbow_pole": lambda s: (s * 0.2, PLANK_Y + 0.02, -1.0),  # elbows straight down under shoulders
         "frame_end": 120,  # hold; one slow breath per 4 s loop
@@ -134,7 +135,7 @@ EXERCISES = {
     },
 }
 
-# Camera offset from the exercise's look-at point, scaled by its zoom, then raised by its "raise".
+# Camera direction from the exercise's look-at point, raised by its "raise"; fit_camera sets the distance.
 VIEWS = {
     "front": Vector((0, -3.9, 0.15)),
     "side": Vector((3.9, 0, 0.15)),
@@ -287,7 +288,7 @@ def build_stage(view, ex):
     scene.collection.objects.link(sun)
 
     target = Vector(ex["look"])
-    loc = target + VIEWS[view] * ex["zoom"] + Vector((0, 0, ex.get("raise", 0)))
+    loc = target + VIEWS[view] + Vector((0, 0, ex.get("raise", 0)))
     cam = bpy.data.objects.new("camera", bpy.data.cameras.new("camera"))
     cam.data.lens = 50
     cam.location = loc
@@ -300,6 +301,32 @@ def build_stage(view, ex):
     scene.render.fps = 30
     scene.render.image_settings.file_format = "PNG"
     scene.view_settings.view_transform = "Standard"
+
+
+def fit_camera(cam, frame_end, fill=0.84, step=5):
+    """Keep the camera's view direction; move and dolly it so the body over the whole loop
+    is centred and its larger projected side fills `fill` of the square frame."""
+    scene = bpy.context.scene
+    pts = []
+    for f in range(1, frame_end + 1, step):
+        scene.frame_set(f)
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        pts += [o.matrix_world @ v.co for o in scene.objects if o.type == "MESH" and o.name != "floor"
+                for v in o.evaluated_get(depsgraph).data.vertices]
+    scene.frame_set(1)
+    rot = cam.matrix_world.to_quaternion()
+    back, right, up = rot @ Vector((0, 0, 1)), rot @ Vector((1, 0, 0)), rot @ Vector((0, 1, 0))
+    target = sum(pts, Vector()) / len(pts)
+    dist = (cam.location - target).length
+    for _ in range(6):  # perspective makes it non-linear; a few passes converge
+        cam.location = target + back * dist
+        bpy.context.view_layer.update()
+        ndc = [world_to_camera_view(scene, cam, p) for p in pts]
+        xs, ys = [c.x for c in ndc], [c.y for c in ndc]
+        width = 2 * dist * math.tan(cam.data.angle / 2)  # frame width at the target's depth
+        target += right * ((min(xs) + max(xs)) / 2 - 0.5) * width + up * ((min(ys) + max(ys)) / 2 - 0.5) * width
+        dist *= max(max(xs) - min(xs), max(ys) - min(ys)) / fill
+    cam.location = target + back * dist
 
 
 def report(arm, keys):
@@ -334,6 +361,8 @@ def main():
     build_stage(args.view, ex)
     scene = bpy.context.scene
     scene.frame_start, scene.frame_end = 1, ex["frame_end"]
+
+    fit_camera(scene.camera, ex["frame_end"])
 
     if args.check:
         report(arm, ex["keys"])
