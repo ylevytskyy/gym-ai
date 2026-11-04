@@ -1,7 +1,7 @@
 """Render an exercise loop with a procedural mannequin.
 
 Usage:
-  blender -b -P pipelines/blender/render.py -- <squat|push_up|plank> [--view front|side|three_quarter]
+  blender -b -P pipelines/blender/render.py -- <exercise> [--view front|side|three_quarter]
           [--frames 1,61] [--out ./out] [--check]
 
 --frames renders only those frames as PNG (for review); without it the whole loop is rendered.
@@ -17,13 +17,12 @@ import sys
 import bmesh
 import bpy
 from bpy_extras.object_utils import world_to_camera_view
-from mathutils import Matrix, Vector
+from mathutils import Euler, Matrix, Vector
 
 # Character faces -Y. Units are metres.
 STANCE_X = 0.17  # ankle half-width, about shoulder width
-TOE_OUT = math.radians(15)
 ANKLE_TO_HIP, HIP_TO_SHOULDER = 0.87, 0.45  # rest lengths along the body
-FOOT_REST_DEG = math.degrees(math.atan2(0.06, 0.17 * math.cos(TOE_OUT)))  # foot slope below horizontal
+FOOT_REST_DEG = math.degrees(math.atan2(0.06, 0.17 * math.cos(math.radians(15))))  # foot slope below horizontal
 
 
 def build_bones(ex):
@@ -38,12 +37,14 @@ def build_bones(ex):
     for side, s in (("L", 1), ("R", -1)):
         bones[f"thigh.{side}"] = ((s * 0.10, 0, 0.95), (s * 0.135, -0.02, 0.515), "pelvis")
         bones[f"shin.{side}"] = ((s * 0.135, -0.02, 0.515), (s * STANCE_X, 0, 0.08), f"thigh.{side}")
-        toe = Vector((s * STANCE_X, 0, 0.02)) + 0.17 * Vector((s * math.sin(TOE_OUT), -math.cos(TOE_OUT), 0))
+        toe_out = math.radians(ex.get("toe_out", 15))
+        toe = Vector((s * STANCE_X, 0, 0.02)) + 0.17 * Vector((s * math.sin(toe_out), -math.cos(toe_out), 0))
         if ex["legs"] == "ik":  # feet planted on the floor, knees solved
-            bones[f"foot.{side}"] = ((s * STANCE_X, 0, 0.08), tuple(toe), "root")
+            # The foot and knee pole ride on the IK target, so keying its location moves the whole foot.
             bones[f"foot_ik.{side}"] = ((s * STANCE_X, 0, 0.08), (s * STANCE_X, 0.1, 0.08), "root")
-            pole = Vector((s * STANCE_X, 0, 0.5)) + 0.6 * Vector((s * math.sin(TOE_OUT), -math.cos(TOE_OUT), 0))
-            bones[f"knee_pole.{side}"] = (tuple(pole), tuple(pole + Vector((0, -0.1, 0))), "root")
+            bones[f"foot.{side}"] = ((s * STANCE_X, 0, 0.08), tuple(toe), f"foot_ik.{side}")
+            pole = Vector((s * STANCE_X, 0, 0.5)) + 0.6 * Vector((s * math.sin(toe_out), -math.cos(toe_out), 0))
+            bones[f"knee_pole.{side}"] = (tuple(pole), tuple(pole + Vector((0, -0.1, 0))), f"foot_ik.{side}")
         else:  # straight legs carried by the pelvis, foot keyed
             bones[f"foot.{side}"] = ((s * STANCE_X, 0, 0.08), tuple(toe), f"shin.{side}")
         bones[f"upper_arm.{side}"] = ((s * 0.20, 0, 1.40), (s * 0.22, 0, 1.11), "spine")
@@ -112,6 +113,59 @@ PLANK_Y = prone(0.34)[1]  # forearm plank: shoulders over elbows
 PLANK, _ = prone(0.34)
 PLANK_INHALE, _ = prone(0.346, spine=-1.0)
 
+
+
+def pose(base=STAND, **kw):
+    return {**base, **kw}
+
+
+def neck_tilt(x, y):
+    """Head tilt split over neck and head: x chin down, y toward the left shoulder."""
+    return dict(neck=(0.6 * x, 0.6 * y, 0), head=(0.4 * x, 0.4 * y, 0))
+
+
+def arm_circles(circles=2, frames_per=30, steps=6, size=18):
+    """Arms out at shoulder height tracing small forward circles."""
+    keys = []
+    for i in range(circles * steps + 1):
+        a = 2 * math.pi * i / steps
+        keys.append((1 + i * frames_per // steps,
+                     pose(abduct=90 + size * math.cos(a), arm=size * math.sin(a))))
+    return keys
+
+
+def lunge(back):
+    """Reverse lunge stepping back with `back` ("L" or "R"); returns keys from frame 0."""
+    lift = {back: dict(feet=(0, 0.42, 0.06), foot=15)}
+    down = {back: dict(feet=(0, 0.88, 0.095), foot=40, pole=(0, -0.2, -0.65))}  # on its toes, knee down
+    mid = pose(hip=(0, 0.14, -0.08), arm=10, **lift)
+    bottom = pose(hip=(0, 0.42, -0.42), spine=4, arm=15, **down)
+    return [(0, STAND), (12, mid), (30, bottom), (40, bottom), (58, mid), (70, STAND)]
+
+
+def supine(a):
+    """On the back, shoulders on the floor, hips raised so the torso rises `a` degrees."""
+    r = math.radians(a)
+    hip_y, hip_z = 0.50 - HIP_TO_SHOULDER * math.cos(r), 0.12 + HIP_TO_SHOULDER * math.sin(r)
+    return pose(hip=(0, hip_y, hip_z - 0.95), pelvis=-(90 + a), neck=a, feet=(0, -0.30, 0))
+
+
+def dip(shoulder_y, shoulder_z, lean=13):
+    """Upright torso, leaning back `lean` degrees, shoulders at the given point."""
+    r = math.radians(lean)
+    return pose(hip=(0, shoulder_y - HIP_TO_SHOULDER * math.sin(r), shoulder_z - HIP_TO_SHOULDER * math.cos(r) - 0.95),
+                pelvis=-lean, neck=8, feet=(0, -0.42, 0))
+
+
+JACK_AIR = pose(hip=(0, 0, 0.09), abduct=90, feet=(0.14, 0, 0.09), foot=25)
+JACK_OPEN = pose(hip=(0, 0, -0.06), abduct=165, feet=(0.27, 0, 0))
+JACK_LAND = pose(hip=(0, 0, -0.03))
+
+KNEE_UP = dict(thigh=85, knee=95, foot=20)
+def high_knee(up, down):
+    return pose(hip=(0, 0, 0.03), elbow=90, **{up: dict(KNEE_UP, arm=-35), down: dict(arm=35)})
+KNEES_PASS = pose(elbow=90, arm=0, thigh=20, knee=40)
+
 EXERCISES = {
     "squat": {
         "legs": "ik", "arms": "fk", "look": (0, 0, 0.85),
@@ -132,6 +186,53 @@ EXERCISES = {
         "elbow_pole": lambda s: (s * 0.2, PLANK_Y + 0.02, -1.0),  # elbows straight down under shoulders
         "frame_end": 120,  # hold; one slow breath per 4 s loop
         "keys": [(1, PLANK), (61, PLANK_INHALE), (121, PLANK)],
+    },
+    "neck_rolls": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 1.2), "frame_above": 0.95,  # waist up
+        "frame_end": 120,  # ear to shoulder, chin down, other ear, chin down: 1 s each
+        "keys": [(1, pose(**neck_tilt(0, -35))), (31, pose(**neck_tilt(35, 0))),
+                 (61, pose(**neck_tilt(0, 35))), (91, pose(**neck_tilt(35, 0))),
+                 (121, pose(**neck_tilt(0, -35)))],
+    },
+    "arm_circles": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 1.0),
+        "frame_end": 60,  # two small forward circles, one per second
+        "keys": arm_circles(),
+    },
+    "reverse_lunge": {
+        "legs": "ik", "arms": "fk", "look": (0, 0.3, 0.8), "toe_out": 5,
+        "frame_end": 140,  # right leg back, return, left leg back, return
+        "keys": [(1 + f, k) for f, k in lunge("R")] + [(71 + f, k) for f, k in lunge("L")[1:]],
+    },
+    "chair_dip": {
+        "legs": "ik", "arms": "ik", "look": (0, 0.1, 0.5), "chair": True,
+        "wrist": lambda s: (s * 0.20, 0.34, 0.49),
+        "elbow_pole": lambda s: (s * 0.25, 0.9, 0.8),  # elbows point straight back
+        "frame_end": 99,  # 1.5 s down, 0.3 s hold, 1 s up, 0.5 s pause
+        "keys": [(1, dip(0.24, 1.01)), (46, dip(0.14, 0.82)), (55, dip(0.14, 0.82)),
+                 (85, dip(0.24, 1.01)), (100, dip(0.24, 1.01))],
+    },
+    "glute_bridge": {
+        "legs": "ik", "arms": "ik", "look": (0, 0.1, 0.2), "raise": 0.7,
+        # From the feet the bent legs hide the body, so these views look in from the head end.
+        "views": {"front": Vector((-2.6, 2.0, 1.4)), "three_quarter": Vector((2.6, 2.0, 1.0))},
+        "wrist": lambda s: (s * 0.24, 0.0, 0.035),
+        "elbow_pole": lambda s: (s * 0.4, 0.25, 1.0),
+        "frame_end": 105,  # 1 s up, 1 s hold, 1 s down, 0.5 s rest
+        "keys": [(1, supine(0)), (31, supine(26)), (61, supine(26)), (91, supine(0)), (106, supine(0))],
+    },
+    "jumping_jacks": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 56,  # two jacks per loop, about one per second
+        "keys": [(1 + f, k) for rep in (0, 28) for f, k in
+                 ((rep, JACK_LAND), (rep + 7, JACK_AIR), (rep + 14, JACK_OPEN), (rep + 21, JACK_AIR))]
+                + [(57, JACK_LAND)],
+    },
+    "high_knees": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 40,  # one step per 1/3 s
+        "keys": [(1, high_knee("L", "R")), (11, KNEES_PASS), (21, high_knee("R", "L")),
+                 (31, KNEES_PASS), (41, high_knee("L", "R"))],
     },
 }
 
@@ -242,24 +343,66 @@ def local_rot(arm, bone_name, world_rot):
     return (b.inverted() @ world_rot @ b).to_quaternion()
 
 
-def key_pose(arm, frame, pose):
+def rx(deg):
+    return Matrix.Rotation(math.radians(deg), 3, "X")
+
+
+def rot(value):
+    """A number tilts about X; an (x, y, z) tuple is an XYZ Euler. Degrees, world axes."""
+    if isinstance(value, (int, float)):
+        return rx(value)
+    return Euler([math.radians(a) for a in value], "XYZ").to_matrix()
+
+
+def key_pose(arm, ex, frame, pose):
+    """Key every animated channel, so values never leak from a neighbouring key."""
     pb = arm.pose.bones
-    rx = lambda deg: Matrix.Rotation(math.radians(deg), 3, "X")
-    pb["pelvis"].location = rest_rot(arm, "pelvis").inverted() @ Vector(pose["hip"])
-    pb["pelvis"].keyframe_insert("location", frame=frame)
+
+    def key(name, prop, value):
+        setattr(pb[name], prop, value)
+        pb[name].keyframe_insert(prop, frame=frame)
+
+    def turn(name, world_rot):
+        key(name, "rotation_quaternion", local_rot(arm, name, world_rot))
+
+    key("pelvis", "location", rest_rot(arm, "pelvis").inverted() @ Vector(pose["hip"]))
     for name in ("pelvis", "spine", "neck", "head"):
-        pb[name].rotation_quaternion = local_rot(arm, name, rx(pose[name]))
-        pb[name].keyframe_insert("rotation_quaternion", frame=frame)
-    for side in "LR":
-        if "foot" in pose:
-            pb[f"foot.{side}"].rotation_quaternion = local_rot(arm, f"foot.{side}", rx(pose["foot"]))
-            pb[f"foot.{side}"].keyframe_insert("rotation_quaternion", frame=frame)
-        if "arm" not in pose:
-            continue
-        pb[f"upper_arm.{side}"].rotation_quaternion = local_rot(arm, f"upper_arm.{side}", rx(-pose["arm"]))
-        pb[f"forearm.{side}"].rotation_quaternion = local_rot(arm, f"forearm.{side}", rx(-pose["elbow"]))
-        for name in (f"upper_arm.{side}", f"forearm.{side}"):
-            pb[name].keyframe_insert("rotation_quaternion", frame=frame)
+        turn(name, rot(pose[name]))
+    for side, s in (("L", 1), ("R", -1)):
+        get = lambda k, default=0: pose.get(side, {}).get(k, pose.get(k, default))  # pose["L"] overrides
+        turn(f"foot.{side}", rx(get("foot")))
+        if ex["legs"] == "ik":
+            out, y, z = get("feet", (0, 0, 0))  # foot offset; out is away from the midline
+            key(f"foot_ik.{side}", "location",
+                rest_rot(arm, f"foot_ik.{side}").inverted() @ Vector((s * out, y, z)))
+            out, y, z = get("pole", (0, 0, 0))  # knee pole offset from its place beside the foot
+            key(f"knee_pole.{side}", "location",
+                rest_rot(arm, f"knee_pole.{side}").inverted() @ Vector((s * out, y, z)))
+        else:
+            turn(f"thigh.{side}", rx(-get("thigh")))
+            turn(f"shin.{side}", rx(get("knee")))
+        if ex["arms"] == "fk":
+            abduct = Matrix.Rotation(math.radians(-s * get("abduct")), 3, "Y")  # raise out to the side
+            turn(f"upper_arm.{side}", abduct @ rx(-get("arm")))
+            turn(f"forearm.{side}", rx(-get("elbow")))
+
+
+def build_chair():
+    """Plain chair behind the mannequin; the seat's front edge is at y=0.30, top at 0.47."""
+    mat = bpy.data.materials.new("chair")
+    mat.use_nodes = True
+    mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.45, 0.33, 0.22, 1)
+    parts = [((0, 0.50, 0.45), (0.25, 0.20, 0.02)), ((0, 0.69, 0.70), (0.25, 0.015, 0.22))]
+    parts += [((x, y, 0.22), (0.02, 0.02, 0.22)) for x in (-0.23, 0.23) for y in (0.32, 0.68)]
+    for i, (centre, half) in enumerate(parts):
+        mesh = bpy.data.meshes.new(f"chair{i}")
+        bm = bmesh.new()
+        bmesh.ops.create_cube(bm, size=2.0)
+        bmesh.ops.transform(bm, verts=bm.verts, matrix=Matrix.Translation(centre) @ Matrix.Diagonal((*half, 1)))
+        bm.to_mesh(mesh)
+        bm.free()
+        mesh.materials.append(mat)
+        bpy.context.scene.collection.objects.link(bpy.data.objects.new(f"chair{i}", mesh))
 
 
 def build_stage(view, ex):
@@ -275,6 +418,9 @@ def build_stage(view, ex):
     floor.materials.append(floor_mat)
     scene.collection.objects.link(bpy.data.objects.new("floor", floor))
 
+    if ex.get("chair"):
+        build_chair()
+
     world = bpy.data.worlds.new("world")
     world.use_nodes = True
     world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.9, 0.91, 0.93, 1)
@@ -288,7 +434,7 @@ def build_stage(view, ex):
     scene.collection.objects.link(sun)
 
     target = Vector(ex["look"])
-    loc = target + VIEWS[view] + Vector((0, 0, ex.get("raise", 0)))
+    loc = target + ex.get("views", {}).get(view, VIEWS[view]) + Vector((0, 0, ex.get("raise", 0)))
     cam = bpy.data.objects.new("camera", bpy.data.cameras.new("camera"))
     cam.data.lens = 50
     cam.location = loc
@@ -303,16 +449,18 @@ def build_stage(view, ex):
     scene.view_settings.view_transform = "Standard"
 
 
-def fit_camera(cam, frame_end, fill=0.84, step=5):
+def fit_camera(cam, frame_end, fill=0.84, step=5, above=-1.0):
     """Keep the camera's view direction; move and dolly it so the body over the whole loop
-    is centred and its larger projected side fills `fill` of the square frame."""
+    is centred and its larger projected side fills `fill` of the square frame.
+    Only body points higher than `above` are framed, so a close-up can crop the legs."""
     scene = bpy.context.scene
     pts = []
     for f in range(1, frame_end + 1, step):
         scene.frame_set(f)
         depsgraph = bpy.context.evaluated_depsgraph_get()
-        pts += [o.matrix_world @ v.co for o in scene.objects if o.type == "MESH" and o.name != "floor"
+        pts += [o.matrix_world @ v.co for o in scene.objects if o.type == "MESH" and not o.name.startswith(("floor", "chair"))
                 for v in o.evaluated_get(depsgraph).data.vertices]
+    pts = [p for p in pts if p.z > above]
     scene.frame_set(1)
     rot = cam.matrix_world.to_quaternion()
     back, right, up = rot @ Vector((0, 0, 1)), rot @ Vector((1, 0, 0)), rot @ Vector((0, 1, 0))
@@ -343,7 +491,7 @@ def report(arm, keys):
         thigh = p["shin.L"] - p["thigh.L"]
         thigh_deg = math.degrees(math.atan2(-thigh.z, math.hypot(thigh.x, thigh.y)))
         low, low_obj = min(((o.matrix_world @ v.co).z, o.name) for o in scene.objects
-                           if o.type == "MESH" and o.name != "floor"
+                           if o.type == "MESH" and not o.name.startswith(("floor", "chair"))
                            for v in o.evaluated_get(depsgraph).data.vertices)
         print(f"CHECK f{frame:>3} hip={fmt(p['thigh.L'])} knee={fmt(p['shin.L'])} ankle={fmt(ankle)} "
               f"shoulder={fmt(p['upper_arm.L'])} elbow={fmt(p['forearm.L'])} wrist={fmt(wrist)} "
@@ -357,12 +505,12 @@ def main():
     arm = build_armature(ex)
     build_mannequin(arm)
     for frame, pose in ex["keys"]:
-        key_pose(arm, frame, pose)
+        key_pose(arm, ex, frame, pose)
     build_stage(args.view, ex)
     scene = bpy.context.scene
     scene.frame_start, scene.frame_end = 1, ex["frame_end"]
 
-    fit_camera(scene.camera, ex["frame_end"])
+    fit_camera(scene.camera, ex["frame_end"], above=ex.get("frame_above", -1.0))
 
     if args.check:
         report(arm, ex["keys"])
