@@ -52,7 +52,7 @@ animated 3D person.
 - **Never trust AI output.** Every plan is checked against the schema and the catalog before we
   save it. Bad plan → one retry with the errors → else a clear error to the user.
 - **Secrets stay on the server.** LLM keys live only in the AI service. The app only has the
-  public Supabase key.
+  Supabase publishable key (`sb_publishable_...`), which is safe to ship.
 - **Start small.** A few exercises, one plan type, one screen at a time. Add more only when the
   basics work.
 - **Not medical advice.** The app asks about injuries and avoids risky exercises, and says so.
@@ -311,6 +311,24 @@ docs/                   comparisons, decisions
 
 One `pnpm` workspace for all JavaScript/TypeScript packages. Python only inside
 `pipelines/blender/`.
+
+## Configuration
+
+Each application has a `.env.example`. Copy it to `.env` next to it and fill it in. Real `.env`
+files are ignored by git.
+
+| Application | File | Secrets |
+|---|---|---|
+| Mobile app | `apps/mobile/.env.example` | None. `EXPO_PUBLIC_*` values are built into the app. |
+| AI service | `services/assistant/.env.example` | Supabase secret key, OpenRouter key, Anthropic key |
+| Supabase CLI | `supabase/.env.example` | Access token, database password (for the hosted project only) |
+| Blender pipeline | `pipelines/blender/.env.example` | Supabase secret key (only to upload) |
+| Three.js pipeline | `pipelines/threejs/.env.example` | Supabase secret key (only to upload) |
+
+Supabase keys: the **publishable** key (`sb_publishable_...`) goes in the app. The **secret** key
+(`sb_secret_...`) bypasses Row Level Security, so it goes only in the AI service and the
+pipelines. We do not use the old `anon` / `service_role` keys; Supabase is retiring them by the
+end of 2026.
 
 ## Roadmap
 
