@@ -1,0 +1,287 @@
+{
+  "schema_version": "1.0.0",
+  "id": "b7a94c20-1d3e-4f68-a2b5-9e0c6d4f7a22",
+  "created_at": "2026-11-05T08:10:00Z",
+  "goal": "build_strength",
+  "days": [
+    {
+      "day": 1,
+      "title": "Upper body push",
+      "minutes": 21,
+      "blocks": [
+        {
+          "type": "warm_up",
+          "items": [
+            {
+              "exercise_id": "neck-rolls",
+              "sets": 1,
+              "amount": 8,
+              "rest_seconds": 0
+            },
+            {
+              "exercise_id": "arm-circles",
+              "sets": 1,
+              "amount": 40,
+              "rest_seconds": 0
+            }
+          ]
+        },
+        {
+          "type": "main",
+          "items": [
+            {
+              "exercise_id": "push-up",
+              "sets": 4,
+              "amount": 10,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "chair-dip",
+              "sets": 4,
+              "amount": 8,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "plank",
+              "sets": 4,
+              "amount": 30,
+              "rest_seconds": 60
+            }
+          ]
+        },
+        {
+          "type": "cool_down",
+          "items": [
+            {
+              "exercise_id": "arm-circles",
+              "sets": 1,
+              "amount": 30,
+              "rest_seconds": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "title": "Core and glutes",
+      "minutes": 22,
+      "blocks": [
+        {
+          "type": "warm_up",
+          "items": [
+            {
+              "exercise_id": "arm-circles",
+              "sets": 1,
+              "amount": 30,
+              "rest_seconds": 0
+            }
+          ]
+        },
+        {
+          "type": "main",
+          "items": [
+            {
+              "exercise_id": "glute-bridge",
+              "sets": 5,
+              "amount": 15,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "plank",
+              "sets": 4,
+              "amount": 40,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "glute-bridge",
+              "sets": 3,
+              "amount": 12,
+              "rest_seconds": 60
+            }
+          ]
+        },
+        {
+          "type": "cool_down",
+          "items": [
+            {
+              "exercise_id": "neck-rolls",
+              "sets": 1,
+              "amount": 5,
+              "rest_seconds": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "title": "Arms and shoulders",
+      "minutes": 20,
+      "blocks": [
+        {
+          "type": "warm_up",
+          "items": [
+            {
+              "exercise_id": "neck-rolls",
+              "sets": 1,
+              "amount": 8,
+              "rest_seconds": 0
+            },
+            {
+              "exercise_id": "arm-circles",
+              "sets": 1,
+              "amount": 40,
+              "rest_seconds": 0
+            }
+          ]
+        },
+        {
+          "type": "main",
+          "items": [
+            {
+              "exercise_id": "chair-dip",
+              "sets": 4,
+              "amount": 10,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "push-up",
+              "sets": 4,
+              "amount": 8,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "plank",
+              "sets": 3,
+              "amount": 45,
+              "rest_seconds": 60
+            }
+          ]
+        },
+        {
+          "type": "cool_down",
+          "items": [
+            {
+              "exercise_id": "arm-circles",
+              "sets": 1,
+              "amount": 30,
+              "rest_seconds": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "title": "Core endurance",
+      "minutes": 21,
+      "blocks": [
+        {
+          "type": "warm_up",
+          "items": [
+            {
+              "exercise_id": "arm-circles",
+              "sets": 1,
+              "amount": 30,
+              "rest_seconds": 0
+            }
+          ]
+        },
+        {
+          "type": "main",
+          "items": [
+            {
+              "exercise_id": "plank",
+              "sets": 5,
+              "amount": 35,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "glute-bridge",
+              "sets": 4,
+              "amount": 15,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "push-up",
+              "sets": 3,
+              "amount": 8,
+              "rest_seconds": 60
+            }
+          ]
+        },
+        {
+          "type": "cool_down",
+          "items": [
+            {
+              "exercise_id": "neck-rolls",
+              "sets": 1,
+              "amount": 5,
+              "rest_seconds": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "day": 5,
+      "title": "Full upper body",
+      "minutes": 21,
+      "blocks": [
+        {
+          "type": "warm_up",
+          "items": [
+            {
+              "exercise_id": "neck-rolls",
+              "sets": 1,
+              "amount": 8,
+              "rest_seconds": 0
+            },
+            {
+              "exercise_id": "arm-circles",
+              "sets": 1,
+              "amount": 40,
+              "rest_seconds": 0
+            }
+          ]
+        },
+        {
+          "type": "main",
+          "items": [
+            {
+              "exercise_id": "push-up",
+              "sets": 4,
+              "amount": 10,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "chair-dip",
+              "sets": 4,
+              "amount": 8,
+              "rest_seconds": 60
+            },
+            {
+              "exercise_id": "glute-bridge",
+              "sets": 4,
+              "amount": 12,
+              "rest_seconds": 60
+            }
+          ]
+        },
+        {
+          "type": "cool_down",
+          "items": [
+            {
+              "exercise_id": "arm-circles",
+              "sets": 1,
+              "amount": 30,
+              "rest_seconds": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": "Built for someone with a knee injury: no squats, lunges, jumping jacks or high knees. Mixes level 1 and level 2 exercises. Minutes are estimates."
+}

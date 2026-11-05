@@ -1,0 +1,14 @@
+{
+  "id": "0a1b2c3d-2222-4a5b-8c9d-0e1f2a3b4c02",
+  "age_range": "35-44",
+  "weight_kg": 84,
+  "goal": "build_strength",
+  "fitness_level": 2,
+  "injuries": [
+    "knee_injury"
+  ],
+  "minutes_per_day": 25,
+  "language": "en",
+  "created_at": "2026-10-01T09:05:00Z",
+  "updated_at": "2026-10-01T09:05:00Z"
+}

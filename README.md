@@ -3,9 +3,10 @@
 A fitness app that builds short, equipment-free workouts with AI, and shows every exercise as an
 animated 3D person.
 
-> **Status:** fresh start. This branch (`v2`) has no code yet. This README is the plan.
-> The old implementation lives on `main` and `feat/exercise-images`. We keep its lessons,
-> not its code.
+> **Status:** early. The contracts (schemas, exercise catalog) and the validator and OpenRouter
+> plan generator in `services/assistant` exist; see "Contracts and validation foundation" below.
+> The rest of this README is still the plan. The old implementation lives on `main` and
+> `feat/exercise-images`. We keep its lessons, not its code.
 
 ## Goal
 
@@ -56,6 +57,68 @@ animated 3D person.
 - **Start small.** A few exercises, one plan type, one screen at a time. Add more only when the
   basics work.
 - **Not medical advice.** The app asks about injuries and avoids risky exercises, and says so.
+
+## Contracts and validation foundation
+
+The project is built contracts first: the data shapes are written down as files, and the code
+has to match them, not the other way round.
+
+**Source of truth**
+
+| File | Defines |
+|---|---|
+| `schemas/exercise.schema.json` | The shape of one catalog exercise |
+| `schemas/workout-plan.schema.json` | The shape of a workout plan |
+| `catalog/exercises.json` | The exercises a plan may use (10 today) |
+| `catalog/locales/en.json` | English names, descriptions and tips, keyed by `name_key` |
+
+**How the parts relate**
+
+```mermaid
+flowchart LR
+    subgraph Contracts
+        PS[workout-plan.schema.json]
+        ES[exercise.schema.json]
+        CAT[exercises.json]
+        LOC[locales/en.json]
+    end
+    ES -. describes .-> CAT
+    CAT -. name_key .-> LOC
+    subgraph Assistant["services/assistant"]
+        VAL[validator<br/>schema, references, safety]
+        GEN[OpenRouter plan generator]
+        API[HTTP API]
+    end
+    PS --> VAL
+    CAT --> VAL
+    CAT --> GEN
+    PS --> GEN
+    GEN --> VAL
+    API --> GEN
+    API --> VAL
+    API <--> DB[(Supabase)]
+    APP[Mobile app] --> API
+    GEN --> LLM[OpenRouter]
+```
+
+- The validator loads the plan schema and the catalog and checks every plan in three stages:
+  schema, then exercise references, then injury safety.
+- The plan generator puts the catalog and the plan schema into the model prompt, then runs the
+  validator on the answer. A bad answer is retried once with the errors; after that it fails with a
+  clear error.
+- The HTTP API authenticates the user with Supabase, loads the profile, calls the generator and saves
+  the plan. A plan is checked again before it is saved.
+- To change what a plan or an exercise can contain, change the schema or the catalog first, then the
+  code.
+
+**Read more**
+
+- [Validation flow](docs/validation-flow.md): the three stages, result shapes, example errors.
+- [Plan generation](docs/plan-generation.md): prompts, retry logic, call flow.
+- [AI service README](services/assistant/README.md): setup, environment variables, API, error codes,
+  and what has not been verified.
+- Examples that pass the validator: `examples/plans/` (3 plans) and `examples/profiles/` (3 profiles).
+  Each plan is safe for the profile of the same level.
 
 ---
 
