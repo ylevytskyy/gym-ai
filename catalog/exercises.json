@@ -1,0 +1,215 @@
+{
+  "version": "1.0.0",
+  "exercises": [
+    {
+      "id": "neck-rolls",
+      "group": "warm_up",
+      "name_key": "exercise.neck_rolls.name",
+      "body_parts": ["neck"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 5,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["neck_injury"],
+      "quiet": true,
+      "media": {
+        "video": "neck-rolls.mp4",
+        "poster": "neck-rolls.jpg",
+        "model": "neck-rolls.glb"
+      }
+    },
+    {
+      "id": "arm-circles",
+      "group": "warm_up",
+      "name_key": "exercise.arm_circles.name",
+      "body_parts": ["shoulders", "arms"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.5,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "arm-circles.mp4",
+        "poster": "arm-circles.jpg",
+        "model": "arm-circles.glb"
+      }
+    },
+    {
+      "id": "squat",
+      "group": "lower_body",
+      "name_key": "exercise.squat.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 5.0,
+      "avoid_if": ["knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "squat.mp4",
+        "poster": "squat.jpg",
+        "model": "squat.glb"
+      }
+    },
+    {
+      "id": "reverse-lunge",
+      "group": "lower_body",
+      "name_key": "exercise.reverse_lunge.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 5.5,
+      "avoid_if": ["knee_injury", "hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "reverse-lunge.mp4",
+        "poster": "reverse-lunge.jpg",
+        "model": "reverse-lunge.glb"
+      }
+    },
+    {
+      "id": "push-up",
+      "group": "upper_body",
+      "name_key": "exercise.push_up.name",
+      "body_parts": ["chest", "shoulders", "triceps"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 3.8,
+      "avoid_if": ["shoulder_injury", "wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "push-up.mp4",
+        "poster": "push-up.jpg",
+        "model": "push-up.glb"
+      }
+    },
+    {
+      "id": "chair-dip",
+      "group": "upper_body",
+      "name_key": "exercise.chair_dip.name",
+      "body_parts": ["triceps", "shoulders"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 8,
+        "rest_seconds": 30
+      },
+      "met": 4.0,
+      "avoid_if": ["shoulder_injury", "elbow_injury"],
+      "quiet": true,
+      "media": {
+        "video": "chair-dip.mp4",
+        "poster": "chair-dip.jpg",
+        "model": "chair-dip.glb"
+      }
+    },
+    {
+      "id": "plank",
+      "group": "core",
+      "name_key": "exercise.plank.name",
+      "body_parts": ["core", "shoulders"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 3.5,
+      "avoid_if": ["lower_back_injury", "shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "plank.mp4",
+        "poster": "plank.jpg",
+        "model": "plank.glb"
+      }
+    },
+    {
+      "id": "glute-bridge",
+      "group": "core",
+      "name_key": "exercise.glute_bridge.name",
+      "body_parts": ["glutes", "core"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "glute-bridge.mp4",
+        "poster": "glute-bridge.jpg",
+        "model": "glute-bridge.glb"
+      }
+    },
+    {
+      "id": "jumping-jacks",
+      "group": "cardio",
+      "name_key": "exercise.jumping_jacks.name",
+      "body_parts": ["full_body"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 20,
+        "rest_seconds": 30
+      },
+      "met": 8.0,
+      "avoid_if": ["knee_injury"],
+      "quiet": false,
+      "media": {
+        "video": "jumping-jacks.mp4",
+        "poster": "jumping-jacks.jpg",
+        "model": "jumping-jacks.glb"
+      }
+    },
+    {
+      "id": "high-knees",
+      "group": "cardio",
+      "name_key": "exercise.high_knees.name",
+      "body_parts": ["legs", "core"],
+      "level": 2,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 9.0,
+      "avoid_if": ["knee_injury", "hip_injury"],
+      "quiet": false,
+      "media": {
+        "video": "high-knees.mp4",
+        "poster": "high-knees.jpg",
+        "model": "high-knees.glb"
+      }
+    }
+  ]
+}

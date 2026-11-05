@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurafit.app/schemas/exercise.schema.json",
+  "title": "Exercise",
+  "description": "Schema for exercise catalog entries",
+  "type": "object",
+  "required": [
+    "id",
+    "group",
+    "name_key",
+    "body_parts",
+    "level",
+    "unit",
+    "default",
+    "met",
+    "avoid_if",
+    "quiet",
+    "media"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique exercise identifier in snake_case",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+    },
+    "group": {
+      "type": "string",
+      "description": "Exercise category",
+      "enum": ["warm_up", "lower_body", "upper_body", "core", "cardio"]
+    },
+    "name_key": {
+      "type": "string",
+      "description": "Localization key for exercise name (dot notation)"
+    },
+    "body_parts": {
+      "type": "array",
+      "description": "Body parts targeted by this exercise",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "level": {
+      "type": "integer",
+      "description": "Difficulty level (1=beginner, 2=intermediate, 3=advanced)",
+      "enum": [1, 2, 3]
+    },
+    "unit": {
+      "type": "string",
+      "description": "Measurement unit for the exercise",
+      "enum": ["reps", "seconds"]
+    },
+    "default": {
+      "type": "object",
+      "description": "Default configuration for the exercise",
+      "required": ["sets", "amount", "rest_seconds"],
+      "properties": {
+        "sets": {
+          "type": "integer",
+          "description": "Number of sets",
+          "minimum": 1
+        },
+        "amount": {
+          "type": "integer",
+          "description": "Number of reps or seconds per set",
+          "minimum": 1
+        },
+        "rest_seconds": {
+          "type": "integer",
+          "description": "Rest period between sets in seconds",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "met": {
+      "type": "number",
+      "description": "Metabolic Equivalent of Task - measure of exercise intensity",
+      "minimum": 1.0,
+      "exclusiveMinimum": true,
+      "maximum": 15.0,
+      "exclusiveMaximum": true
+    },
+    "avoid_if": {
+      "type": "array",
+      "description": "Injury identifiers for which this exercise should be avoided (snake_case)",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+      }
+    },
+    "quiet": {
+      "type": "boolean",
+      "description": "Whether the exercise can be done silently (suitable for office environments)"
+    },
+    "media": {
+      "type": "object",
+      "description": "Media files associated with the exercise",
+      "required": ["video", "poster", "model"],
+      "properties": {
+        "video": {
+          "type": "string",
+          "description": "Video filename in Storage"
+        },
+        "poster": {
+          "type": "string",
+          "description": "Poster image filename in Storage"
+        },
+        "model": {
+          "type": "string",
+          "description": "3D model filename in Storage"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

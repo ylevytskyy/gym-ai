@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurafit.app/schemas/workout-plan.schema.json",
+  "title": "Workout Plan",
+  "description": "A multi-day workout program with exercises organized into blocks",
+  "type": "object",
+  "required": ["schema_version", "id", "created_at", "goal", "days", "notes"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of the schema",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the workout plan",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO 8601 date-time when the plan was created",
+      "format": "date-time"
+    },
+    "goal": {
+      "type": "string",
+      "description": "User's fitness goal for this plan"
+    },
+    "days": {
+      "type": "array",
+      "description": "Array of workout days in the plan",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["day", "title", "minutes", "blocks"],
+        "properties": {
+          "day": {
+            "type": "integer",
+            "description": "Day number (1-based)",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string",
+            "description": "Descriptive title for this workout day"
+          },
+          "minutes": {
+            "type": "integer",
+            "description": "Estimated duration in minutes",
+            "minimum": 1
+          },
+          "blocks": {
+            "type": "array",
+            "description": "Workout blocks organizing exercises by phase",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["type", "items"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Block type indicating workout phase",
+                  "enum": ["warm_up", "main", "cool_down"]
+                },
+                "items": {
+                  "type": "array",
+                  "description": "Exercise items in this block",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": ["exercise_id", "sets", "amount"],
+                    "properties": {
+                      "exercise_id": {
+                        "type": "string",
+                        "description": "Reference to an exercise in the catalog"
+                      },
+                      "sets": {
+                        "type": "integer",
+                        "description": "Number of sets to perform",
+                        "minimum": 1
+                      },
+                      "amount": {
+                        "type": "integer",
+                        "description": "Number of reps or seconds per set",
+                        "minimum": 1
+                      },
+                      "rest_seconds": {
+                        "type": "integer",
+                        "description": "Optional rest period between sets in seconds",
+                        "minimum": 0
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "AI-generated notes and recommendations for the plan"
+    }
+  },
+  "additionalProperties": false
+}

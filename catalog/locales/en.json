@@ -1,0 +1,41 @@
+{
+  "exercise.neck_rolls.name": "Neck Rolls",
+  "exercise.neck_rolls.description": "Gentle circular neck movements to warm up the neck muscles",
+  "exercise.neck_rolls.tips": "Move slowly and smoothly. Stop if you feel pain.",
+  
+  "exercise.arm_circles.name": "Arm Circles",
+  "exercise.arm_circles.description": "Circular arm movements to warm up shoulders",
+  "exercise.arm_circles.tips": "Start small, gradually increase circle size.",
+  
+  "exercise.squat.name": "Squat",
+  "exercise.squat.description": "Lower body strength exercise targeting legs and glutes",
+  "exercise.squat.tips": "Keep your chest up, knees behind toes, and weight in your heels.",
+  
+  "exercise.reverse_lunge.name": "Reverse Lunge",
+  "exercise.reverse_lunge.description": "Step back and lower into a lunge position",
+  "exercise.reverse_lunge.tips": "Keep your front knee behind your toes. Engage your core.",
+  
+  "exercise.push_up.name": "Push-up",
+  "exercise.push_up.description": "Upper body pressing movement targeting chest, shoulders, and triceps",
+  "exercise.push_up.tips": "Keep your body in a straight line. Lower until chest nearly touches ground.",
+  
+  "exercise.chair_dip.name": "Chair Dip",
+  "exercise.chair_dip.description": "Triceps exercise using a chair for support",
+  "exercise.chair_dip.tips": "Keep elbows pointing back, not out. Lower until elbows are 90 degrees.",
+  
+  "exercise.plank.name": "Plank",
+  "exercise.plank.description": "Isometric core exercise holding a push-up position",
+  "exercise.plank.tips": "Keep your body straight from head to heels. Don't let hips sag.",
+  
+  "exercise.glute_bridge.name": "Glute Bridge",
+  "exercise.glute_bridge.description": "Hip extension exercise targeting glutes and core",
+  "exercise.glute_bridge.tips": "Squeeze glutes at the top. Keep core engaged throughout.",
+  
+  "exercise.jumping_jacks.name": "Jumping Jacks",
+  "exercise.jumping_jacks.description": "Full body cardio exercise with jumping and arm movements",
+  "exercise.jumping_jacks.tips": "Land softly on your toes. Keep a steady rhythm.",
+  
+  "exercise.high_knees.name": "High Knees",
+  "exercise.high_knees.description": "Running in place while lifting knees high",
+  "exercise.high_knees.tips": "Lift knees to hip height. Pump your arms for momentum."
+}
