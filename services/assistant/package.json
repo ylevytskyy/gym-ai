@@ -1,0 +1,50 @@
+{
+  "name": "@aura-fit/assistant",
+  "version": "0.1.0",
+  "description": "AI assistant service for Aura Fit v2 - generates validated workout plans using OpenRouter",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:properties": "vitest run --config vitest.properties.config.ts",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "ajv": "^8.0.0",
+    "ajv-formats": "^3.0.0",
+    "openai": "^4.0.0",
+    "pino": "^8.0.0",
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "fast-check": "^3.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0"
+  },
+  "keywords": [
+    "fitness",
+    "ai",
+    "workout-planning",
+    "openrouter",
+    "validation"
+  ],
+  "author": "Aura Fit",
+  "license": "MIT"
+}
