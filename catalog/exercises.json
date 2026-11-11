@@ -44,6 +44,69 @@
       }
     },
     {
+      "id": "cat-cow",
+      "group": "warm_up",
+      "name_key": "exercise.cat_cow.name",
+      "body_parts": ["back", "core"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 8,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "cat-cow.mp4",
+        "poster": "cat-cow.jpg",
+        "model": "cat-cow.glb"
+      }
+    },
+    {
+      "id": "hip-flexor-stretch",
+      "group": "warm_up",
+      "name_key": "exercise.hip_flexor_stretch.name",
+      "body_parts": ["hips", "legs"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "hip-flexor-stretch.mp4",
+        "poster": "hip-flexor-stretch.jpg",
+        "model": "hip-flexor-stretch.glb"
+      }
+    },
+    {
+      "id": "hamstring-stretch",
+      "group": "warm_up",
+      "name_key": "exercise.hamstring_stretch.name",
+      "body_parts": ["legs", "lower_back"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "hamstring-stretch.mp4",
+        "poster": "hamstring-stretch.jpg",
+        "model": "hamstring-stretch.glb"
+      }
+    },
+    {
       "id": "squat",
       "group": "lower_body",
       "name_key": "exercise.squat.name",
@@ -83,6 +146,48 @@
         "video": "reverse-lunge.mp4",
         "poster": "reverse-lunge.jpg",
         "model": "reverse-lunge.glb"
+      }
+    },
+    {
+      "id": "hip-hinge",
+      "group": "lower_body",
+      "name_key": "exercise.hip_hinge.name",
+      "body_parts": ["glutes", "legs", "lower_back"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 3.5,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "hip-hinge.mp4",
+        "poster": "hip-hinge.jpg",
+        "model": "hip-hinge.glb"
+      }
+    },
+    {
+      "id": "calf-raise",
+      "group": "lower_body",
+      "name_key": "exercise.calf_raise.name",
+      "body_parts": ["calves"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 15,
+        "rest_seconds": 30
+      },
+      "met": 2.8,
+      "avoid_if": ["ankle_injury"],
+      "quiet": true,
+      "media": {
+        "video": "calf-raise.mp4",
+        "poster": "calf-raise.jpg",
+        "model": "calf-raise.glb"
       }
     },
     {
@@ -128,6 +233,27 @@
       }
     },
     {
+      "id": "reverse-snow-angel",
+      "group": "upper_body",
+      "name_key": "exercise.reverse_snow_angel.name",
+      "body_parts": ["upper_back", "shoulders"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 2.5,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "reverse-snow-angel.mp4",
+        "poster": "reverse-snow-angel.jpg",
+        "model": "reverse-snow-angel.glb"
+      }
+    },
+    {
       "id": "plank",
       "group": "core",
       "name_key": "exercise.plank.name",
@@ -170,6 +296,90 @@
       }
     },
     {
+      "id": "superman",
+      "group": "core",
+      "name_key": "exercise.superman.name",
+      "body_parts": ["lower_back", "glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "superman.mp4",
+        "poster": "superman.jpg",
+        "model": "superman.glb"
+      }
+    },
+    {
+      "id": "bird-dog",
+      "group": "core",
+      "name_key": "exercise.bird_dog.name",
+      "body_parts": ["core", "lower_back", "glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 2.8,
+      "avoid_if": ["wrist_injury", "knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "bird-dog.mp4",
+        "poster": "bird-dog.jpg",
+        "model": "bird-dog.glb"
+      }
+    },
+    {
+      "id": "dead-bug",
+      "group": "core",
+      "name_key": "exercise.dead_bug.name",
+      "body_parts": ["core"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": [],
+      "quiet": true,
+      "media": {
+        "video": "dead-bug.mp4",
+        "poster": "dead-bug.jpg",
+        "model": "dead-bug.glb"
+      }
+    },
+    {
+      "id": "side-plank",
+      "group": "core",
+      "name_key": "exercise.side_plank.name",
+      "body_parts": ["core", "shoulders"],
+      "level": 2,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 20,
+        "rest_seconds": 30
+      },
+      "met": 3.5,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "side-plank.mp4",
+        "poster": "side-plank.jpg",
+        "model": "side-plank.glb"
+      }
+    },
+    {
       "id": "jumping-jacks",
       "group": "cardio",
       "name_key": "exercise.jumping_jacks.name",
@@ -209,6 +419,27 @@
         "video": "high-knees.mp4",
         "poster": "high-knees.jpg",
         "model": "high-knees.glb"
+      }
+    },
+    {
+      "id": "mountain-climbers",
+      "group": "cardio",
+      "name_key": "exercise.mountain_climbers.name",
+      "body_parts": ["core", "shoulders", "legs"],
+      "level": 2,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 8.0,
+      "avoid_if": ["wrist_injury", "shoulder_injury"],
+      "quiet": false,
+      "media": {
+        "video": "mountain-climbers.mp4",
+        "poster": "mountain-climbers.jpg",
+        "model": "mountain-climbers.glb"
       }
     }
   ]

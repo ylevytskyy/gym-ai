@@ -37,5 +37,49 @@
   
   "exercise.high_knees.name": "High Knees",
   "exercise.high_knees.description": "Running in place while lifting knees high",
-  "exercise.high_knees.tips": "Lift knees to hip height. Pump your arms for momentum."
+  "exercise.high_knees.tips": "Lift knees to hip height. Pump your arms for momentum.",
+  
+  "exercise.cat_cow.name": "Cat-Cow",
+  "exercise.cat_cow.description": "On hands and knees, alternately round and arch your spine to loosen the back",
+  "exercise.cat_cow.tips": "Move with your breath: exhale as you round, inhale as you arch. Keep your arms straight.",
+  
+  "exercise.hip_flexor_stretch.name": "Kneeling Hip Flexor Stretch",
+  "exercise.hip_flexor_stretch.description": "Kneel on one knee and shift your hips forward to stretch the front of the back hip",
+  "exercise.hip_flexor_stretch.tips": "Squeeze the glute of the kneeling leg and keep your torso upright. Pad the knee if needed.",
+  
+  "exercise.hamstring_stretch.name": "Standing Hamstring Stretch",
+  "exercise.hamstring_stretch.description": "Hinge forward with straight legs and reach toward your shins to stretch the back of the legs",
+  "exercise.hamstring_stretch.tips": "Bend from the hips, not the lower back. Stop at a gentle stretch, never bounce.",
+  
+  "exercise.hip_hinge.name": "Hip Hinge",
+  "exercise.hip_hinge.description": "Push your hips back with a flat back, then stand tall, hands on hips",
+  "exercise.hip_hinge.tips": "Keep a soft bend in the knees and your back flat. Squeeze your glutes to stand up.",
+  
+  "exercise.calf_raise.name": "Calf Raise",
+  "exercise.calf_raise.description": "Rise up onto the balls of your feet, then lower your heels slowly",
+  "exercise.calf_raise.tips": "Pause at the top. Hold a wall or chair for balance if needed.",
+  
+  "exercise.reverse_snow_angel.name": "Reverse Snow Angel",
+  "exercise.reverse_snow_angel.description": "Lying face down, sweep your arms from your hips to overhead, just above the floor",
+  "exercise.reverse_snow_angel.tips": "Keep your forehead down and thumbs up. Move slowly and keep the arms off the floor.",
+  
+  "exercise.superman.name": "Superman",
+  "exercise.superman.description": "Lying face down, lift your arms, chest and legs off the floor together",
+  "exercise.superman.tips": "Lift only a few centimetres. Look at the floor to keep your neck long.",
+  
+  "exercise.bird_dog.name": "Bird Dog",
+  "exercise.bird_dog.description": "On hands and knees, reach one arm forward and the opposite leg back, then switch",
+  "exercise.bird_dog.tips": "Keep your hips level and your back flat. Move slowly, don't rush the switch.",
+  
+  "exercise.dead_bug.name": "Dead Bug",
+  "exercise.dead_bug.description": "On your back, lower one arm and the opposite leg toward the floor, then switch",
+  "exercise.dead_bug.tips": "Press your lower back into the floor the whole time. Breathe out as you lower.",
+  
+  "exercise.side_plank.name": "Side Plank",
+  "exercise.side_plank.description": "Hold your body in a straight line on one forearm and the side of your feet",
+  "exercise.side_plank.tips": "Stack your elbow under your shoulder and keep your hips lifted. Switch sides each set.",
+  
+  "exercise.mountain_climbers.name": "Mountain Climbers",
+  "exercise.mountain_climbers.description": "From a high plank, drive your knees toward your chest one at a time",
+  "exercise.mountain_climbers.tips": "Keep your hips low and your hands under your shoulders. Start slow, then speed up."
 }

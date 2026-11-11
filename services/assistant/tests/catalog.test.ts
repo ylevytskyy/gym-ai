@@ -55,8 +55,9 @@ describe('getCatalog', () => {
       max_level: 1,
       exclude_injuries: ['lower_back_injury'],
     });
-    expect(result).toEqual([]); // both core exercises avoid lower_back_injury
-    const coreNoBack = getCatalog({ group: 'core', exclude_injuries: ['shoulder_injury'] });
-    expect(coreNoBack.map((ex) => ex.id)).toEqual(['glute-bridge']);
+    // Plank, glute bridge and superman avoid lower_back_injury; side plank is level 2.
+    expect(result.map((ex) => ex.id)).toEqual(['bird-dog', 'dead-bug']);
+    const coreNoShoulder = getCatalog({ group: 'core', exclude_injuries: ['shoulder_injury'] });
+    expect(coreNoShoulder.map((ex) => ex.id)).toEqual(['glute-bridge', 'superman', 'bird-dog', 'dead-bug']);
   });
 });

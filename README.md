@@ -230,15 +230,16 @@ The results go in `docs/assistant-comparison.md`. We may keep both.
 
 ## 3. Exercise catalog
 
-File: `catalog/exercises.json`. Start very small: **5 groups, 10 exercises**. Grow later.
+File: `catalog/exercises.json`. **5 groups, 21 exercises**, all without equipment (a chair at most).
+The stretches sit in `warm_up` and also fit a plan's `cool_down` block.
 
 | Group | Exercises |
 |---|---|
-| `warm_up` | Neck rolls, Arm circles |
-| `lower_body` | Squat, Reverse lunge |
-| `upper_body` | Push-up, Chair dip |
-| `core` | Plank, Glute bridge |
-| `cardio` | Jumping jacks, High knees |
+| `warm_up` | Neck rolls, Arm circles, Cat-cow, Kneeling hip flexor stretch, Standing hamstring stretch |
+| `lower_body` | Squat, Reverse lunge, Hip hinge, Calf raise |
+| `upper_body` | Push-up, Chair dip, Reverse snow angel |
+| `core` | Plank, Glute bridge, Superman, Bird dog, Dead bug, Side plank |
+| `cardio` | Jumping jacks, High knees, Mountain climbers |
 
 One exercise:
 
