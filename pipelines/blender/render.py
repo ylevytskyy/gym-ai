@@ -51,7 +51,8 @@ def build_bones(ex):
         bones[f"forearm.{side}"] = ((s * 0.22, 0, 1.11), (s * 0.23, 0, 0.86), f"upper_arm.{side}")
         if ex["arms"] == "ik":  # hands planted, elbows solved
             wrist = Vector(ex["wrist"](s))
-            bones[f"hand.{side}"] = (tuple(wrist), tuple(wrist + Vector((0, -0.09, -0.01))), "root")
+            hand = Vector(ex.get("hand", lambda s: (0, -0.09, -0.01))(s))
+            bones[f"hand.{side}"] = (tuple(wrist), tuple(wrist + hand), "root")
             bones[f"hand_ik.{side}"] = (tuple(wrist), tuple(wrist + Vector((0, 0.1, 0))), "root")
             pole = Vector(ex["elbow_pole"](s))
             bones[f"elbow_pole.{side}"] = (tuple(pole), tuple(pole + Vector((0, 0.1, 0))), "root")
@@ -216,8 +217,10 @@ EXERCISES = {
         "legs": "ik", "arms": "ik", "look": (0, 0.1, 0.2), "raise": 0.7,
         # From the feet the bent legs hide the body, so these views look in from the head end.
         "views": {"front": Vector((-2.6, 2.0, 1.4)), "three_quarter": Vector((2.6, 2.0, 1.0))},
-        "wrist": lambda s: (s * 0.24, 0.0, 0.035),
-        "elbow_pole": lambda s: (s * 0.4, 0.25, 1.0),
+        # Straight arms on the floor, 25 deg out from the body: the wrist sits a hair beyond full reach.
+        "wrist": lambda s: (s * 0.427, 0.012, 0.035),
+        "hand": lambda s: (s * 0.038, -0.082, -0.005),  # palm flat, in line with the forearm
+        "elbow_pole": lambda s: (s * 0.8, 0.25, 0.05),
         "frame_end": 105,  # 1 s up, 1 s hold, 1 s down, 0.5 s rest
         "keys": [(1, supine(0)), (31, supine(26)), (61, supine(26)), (91, supine(0)), (106, supine(0))],
     },
