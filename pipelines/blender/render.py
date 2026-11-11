@@ -135,13 +135,16 @@ def arm_circles(circles=2, frames_per=30, steps=6, size=18):
     return keys
 
 
+LUNGE_STAND = pose(abduct=40, arm=-8, elbow_in=100)  # hands on hips, clear of the front thigh
+
+
 def lunge(back):
     """Reverse lunge stepping back with `back` ("L" or "R"); returns keys from frame 0."""
     lift = {back: dict(feet=(0, 0.42, 0.06), foot=15)}
     down = {back: dict(feet=(0, 0.88, 0.095), foot=40, pole=(0, -0.2, -0.65))}  # on its toes, knee down
-    mid = pose(hip=(0, 0.14, -0.08), arm=10, **lift)
-    bottom = pose(hip=(0, 0.42, -0.42), spine=4, arm=15, **down)
-    return [(0, STAND), (12, mid), (30, bottom), (40, bottom), (58, mid), (70, STAND)]
+    mid = pose(LUNGE_STAND, hip=(0, 0.14, -0.08), **lift)
+    bottom = pose(LUNGE_STAND, hip=(0, 0.42, -0.42), spine=4, **down)
+    return [(0, LUNGE_STAND), (12, mid), (30, bottom), (40, bottom), (58, mid), (70, LUNGE_STAND)]
 
 
 def supine(a):
@@ -387,7 +390,8 @@ def key_pose(arm, ex, frame, pose):
         if ex["arms"] == "fk":
             abduct = Matrix.Rotation(math.radians(-s * get("abduct")), 3, "Y")  # raise out to the side
             turn(f"upper_arm.{side}", abduct @ rx(-get("arm")))
-            turn(f"forearm.{side}", rx(-get("elbow")))
+            elbow_in = Matrix.Rotation(math.radians(s * get("elbow_in")), 3, "Y")  # bend toward the body
+            turn(f"forearm.{side}", elbow_in @ rx(-get("elbow")))
 
 
 def build_chair():
