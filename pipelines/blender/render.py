@@ -286,6 +286,183 @@ def kneeling_stretch(push):
                 R=dict(feet=(0, 0.657, -0.025), foot=150, pole=(0, 0.05, -0.92)))
 
 
+# --- Standing mobility ---------------------------------------------------------------------------
+TWIST_ARMS = dict(arm=82, abduct=-6, elbow=8)  # arms straight ahead at chest height, palms together
+
+
+def torso_twist(deg):
+    """Hips face forward, the chest turns `deg` degrees to the left (+) or right (-)."""
+    return pose(**TWIST_ARMS, pelvis=(0, 0, 0.15 * deg), spine=(0, 0, 0.65 * deg), neck=(0, 0, 0.2 * deg))
+
+
+def side_bend(deg):
+    """Lean `deg` degrees to the left (+) or right (-); the arm on the far side reaches overhead."""
+    far, near = ("R", "L") if deg > 0 else ("L", "R")
+    a = abs(deg) / 30
+    return pose(hip=(-0.04 * deg / 30, 0, -0.01 * a), pelvis=(0, 0.2 * deg, 0), spine=(0, 0.8 * deg, 0),
+                neck=(0, 0.3 * deg, 0), **{far: dict(abduct=20 + 145 * a, elbow_in=-25 * a),
+                                           near: dict(abduct=6 * a)})
+
+
+def hip_circle(a, r=0.07, tilt=7):
+    """Hands on hips; the hips trace a horizontal circle while the shoulders stay over the feet."""
+    c, s = math.cos(math.radians(a)), math.sin(math.radians(a))
+    return pose(LUNGE_STAND, hip=(r * c, r * s, -0.02), pelvis=(tilt * s, -tilt * c, 0),
+                spine=(-1.6 * tilt * s, 1.6 * tilt * c, 0))
+
+
+# --- Floor stretches -----------------------------------------------------------------------------
+def childs_pose(sink=0.0):
+    """Kneeling, sitting back toward the heels, chest down, arms long on the floor ahead."""
+    return pose(QUAD, hip=(0, 0.62, 0.26 - sink - 0.95), pelvis=108, spine=-4, neck=-14,
+                feet=(-0.06, QUAD["feet"][1], QUAD["feet"][2]), foot=152, pole=(0.45, -0.04, -0.9),  # knees apart
+                hands=(0, -0.13, 0), elbows=(0, -0.5, 0.6))
+
+
+def knees_to_chest(x):
+    """On the back, both knees hugged toward the chest by `x` (0..1)."""
+    return pose(SUPINE_FLAT, thigh=118 + 12 * x, knee=140, foot=15, hands=(0, 0.07 * x, -0.04 * x))  # hands ride on the shins
+
+
+# --- Legs ----------------------------------------------------------------------------------------
+WALL_Y = 0.48  # wall face behind the mannequin for the wall sit
+WALL_SIT = pose(hip=(0, 0.33, -0.43), feet=(0, -0.10, 0))
+WALL_SIT_INHALE = pose(WALL_SIT, hip=(0, 0.33, -0.425), spine=-1)
+
+SUMO_OUT = 0.15  # feet this much wider than hip width
+SUMO_ARMS = dict(arm=30, elbow=80, elbow_in=25, abduct=10)  # hands together in front of the chest
+SUMO_STAND = pose(feet=(SUMO_OUT, 0, 0), **SUMO_ARMS)
+SUMO_BOTTOM = pose(SUMO_STAND, hip=(0, 0.06, -0.40), pelvis=14, spine=4, neck=-8)
+
+STEP_RISE, STEP_RUN, STAIR_EDGE = 0.17, 0.28, -0.26
+STEP_FOOT = (0, STAIR_EDGE - 0.17, STEP_RISE)  # foot on the first step, toes short of the second
+
+
+def step_up(lead):
+    """Step up onto the first stair with `lead`, bring the other foot up, then step down lead first.
+    Returns keys from frame 0 over 80 frames."""
+    trail = "L" if lead == "R" else "R"
+    ly, lz = STEP_FOOT[1], STEP_FOOT[2]
+    lift = {lead: dict(feet=(0, -0.20, 0.30), foot=-5, arm=-20), trail: dict(arm=20)}
+    plant = {lead: dict(feet=STEP_FOOT, arm=-15), trail: dict(arm=15)}
+    on_top = dict(feet=STEP_FOOT)
+    keys = [
+        (0, STAND),
+        (10, pose(hip=(0, -0.03, -0.01), spine=4, **lift)),
+        (20, pose(hip=(0, -0.10, -0.03), spine=10, **plant)),
+        (34, pose(hip=(0, ly + 0.02, lz - 0.02), spine=8,
+                  **{lead: dict(on_top, arm=15), trail: dict(feet=(0, -0.12, 0.14), foot=30, arm=-15)})),
+        (42, pose(hip=(0, ly, lz), **{lead: on_top, trail: on_top})),
+        (52, pose(hip=(0, ly + 0.08, lz - 0.04), **{lead: dict(feet=(0, ly + 0.25, lz + 0.08), foot=15), trail: on_top})),
+        (62, pose(hip=(0, -0.10, -0.06), spine=6, **{lead: dict(feet=(0, 0, 0)), trail: on_top})),
+        (72, pose(hip=(0, -0.02, -0.01), **{trail: dict(feet=(0, -0.20, 0.24), foot=10)})),
+        (80, STAND),
+    ]
+    return keys
+
+
+SIDE_LUNGE_ARMS = dict(arm=40, elbow=70, elbow_in=20, abduct=10)
+
+
+def side_lunge(side):
+    """Step `side` foot out wide and sit back into that hip; the other leg stays straight.
+    Returns keys from frame 0 over 70 frames."""
+    sx = 1 if side == "L" else -1
+    stand = pose(**SIDE_LUNGE_ARMS)
+    mid = pose(stand, hip=(sx * 0.18, 0.02, -0.05), **{side: dict(feet=(0.32, 0, 0.10), foot=10)})
+    low = pose(stand, hip=(sx * 0.42, 0.14, -0.38), pelvis=32, spine=6, neck=-14, arm=60,
+               **{side: dict(feet=(0.62, 0, 0))})
+    return [(0, stand), (12, mid), (28, low), (38, low), (56, mid), (70, stand)]
+
+
+def donkey_kick(side, x=1.0):
+    """From hands and knees, `side` keeps its knee bent at 90 deg and swings the thigh back and up
+    by `x` (0..1), so the sole of the foot rises toward the ceiling. The foot follows the arc."""
+    leg = 0.437  # thigh and shin length
+    a = math.radians(90 * x)
+    hip, fz = Vector(QUAD_HIP), QUAD["feet"][2]
+    knee = hip + leg * Vector((math.sin(a), -math.cos(a)))
+    ankle = knee + leg * Vector((math.cos(a), math.sin(a)))
+    feet = (0, ankle.x, fz + ankle.y - 0.063)  # 0.063: ankle height when kneeling
+    bend = (knee - (hip + ankle) / 2).normalized()  # the knee points away from the hip-ankle line
+    pole = knee + 0.8 * bend
+    rest_pole = Vector((-0.6, 0.5))  # knee pole beside the foot, before the foot moves
+    kick = dict(feet=feet, foot=152 + 20 * x,
+                pole=(0, pole.x - rest_pole.x - feet[1], pole.y - rest_pole.y - feet[2]))
+    return pose(QUAD, **{side: kick})
+
+
+# --- Upper body ----------------------------------------------------------------------------------
+INCLINE_EDGE = -0.62  # chair seat's front edge, the seat runs on toward -Y
+INCLINE_ANKLE = (0.62, 0.10)  # on the toes
+INCLINE_TOP, _ = prone(0.95, INCLINE_ANKLE, toe_deg=26)
+INCLINE_BOTTOM, _ = prone(0.70, INCLINE_ANKLE, toe_deg=26)
+INCLINE_HAND_Y = INCLINE_EDGE - 0.10
+
+WALL_ANGEL_Y = 0.14  # wall face, just behind the shoulder blades
+
+
+def wall_angel(x):
+    """Back on the wall; arms slide from goalpost (x=0) to overhead (x=1)."""
+    return pose(hip=(0, 0.02, -0.02), neck=-4, abduct=88 + 72 * x, elbow_in=-92 + 72 * x, arm=-6)
+
+
+# --- Core ----------------------------------------------------------------------------------------
+def crunch(x):
+    """On the back, knees bent, feet flat; the shoulders curl up by `x` (0..1), hands reach to the knees."""
+    return pose(supine(0), spine=28 * x, neck=8 + 12 * x, head=6 * x, arm=12 + 22 * x)
+
+
+HANDS_BEHIND_HEAD = dict(abduct=140, elbow_in=-130, arm=-20)
+
+
+def bicycle(side):
+    """`side` knee drawn in, the other leg long; the chest turns toward the bent knee."""
+    other = "L" if side == "R" else "R"
+    turn = -35 if side == "R" else 35
+    return pose(SUPINE_FLAT, hip=(0, -0.3, PRONE_Z - 0.95 + 0.005), spine=Matrix.Rotation(math.radians(32), 3, "X") @ Matrix.Rotation(math.radians(turn), 3, "Z"),
+                neck=10, **HANDS_BEHIND_HEAD, **{side: dict(thigh=105, knee=100, foot=15),
+                                                 other: dict(thigh=30, knee=5, foot=25)})
+
+
+BICYCLE_PASS = pose(SUPINE_FLAT, hip=(0, -0.3, PRONE_Z - 0.95 + 0.005), spine=32, neck=10, thigh=65, knee=60, foot=20,
+                    **HANDS_BEHIND_HEAD)
+
+TAP_TOP, TAP_SHOULDER_Y = prone(0.55)
+TAP_TOP = pose(TAP_TOP, spread=4)
+
+
+def shoulder_tap(side):
+    """High plank; the `side` hand lifts and taps the opposite shoulder."""
+    tap = dict(hands=(-0.37, -0.05, 0.565), elbows=(0.3, -0.1, 0.3), hand_turn=-40)
+    return pose(TAP_TOP, **{side: tap})
+
+
+# --- Cardio --------------------------------------------------------------------------------------
+def march(up, down):
+    return pose(elbow=80, **{up: dict(thigh=55, knee=65, foot=15, arm=-25), down: dict(arm=25)})
+
+
+MARCH_PASS = pose(elbow=80, thigh=10, knee=15)
+
+
+def cross_crunch(knee_side):
+    """Hands behind the head; `knee_side` knee rises as the opposite elbow twists down to meet it."""
+    turn = 35 if knee_side == "R" else -35
+    return pose(**HANDS_BEHIND_HEAD, spine=Matrix.Rotation(math.radians(30), 3, "X") @ Matrix.Rotation(math.radians(turn), 3, "Z"), neck=8,
+                **{knee_side: dict(thigh=90, knee=95, foot=15)})
+
+
+CROSS_STAND = pose(**HANDS_BEHIND_HEAD)
+
+
+def butt_kick(up, down):
+    return pose(hip=(0, 0, 0.03), elbow=90, spine=5, **{up: dict(thigh=-12, knee=135, foot=30, arm=-30), down: dict(arm=30)})
+
+
+BUTT_PASS = pose(elbow=90, spine=5, thigh=0, knee=40)
+
+
 EXERCISES = {
     "squat": {
         "legs": "ik", "arms": "fk", "look": (0, 0, 0.85),
@@ -425,6 +602,119 @@ EXERCISES = {
         "elbow_pole": lambda s: (s * 0.3, CLIMB_SHOULDER_Y + 0.5, 0.6),
         "frame_end": 30,  # one knee drive per 0.5 s
         "keys": [(1, climb("R")), (8, climb_swap()), (16, climb("L")), (23, climb_swap()), (31, climb("R"))],
+    },
+    "torso_twist": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 1.0),
+        "frame_end": 90,  # turn left, through centre, turn right: 1.5 s each way
+        "keys": [(1, torso_twist(0)), (23, torso_twist(45)), (46, torso_twist(0)), (68, torso_twist(-45)),
+                 (91, torso_twist(0))],
+    },
+    "side_bend": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 1.0),
+        "frame_end": 120,  # lean left, hold, back; then right: 1 s each
+        "keys": [(1, side_bend(0)), (31, side_bend(28)), (46, side_bend(28)), (61, side_bend(0)),
+                 (91, side_bend(-28)), (106, side_bend(-28)), (121, side_bend(0))],
+    },
+    "hip_circles": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.9), "toe_out": 5,
+        "frame_end": 90,  # one slow circle per 3 s
+        "keys": [(1 + 15 * i, hip_circle(60 * i)) for i in range(7)],
+    },
+    "childs_pose": {
+        "legs": "ik", "arms": "ik", "look": (0, 0, 0.3), "raise": 0.5, "toe_out": 0,
+        "wrist": lambda s: (s * 0.20, QUAD_SHOULDER[0], 0.035),
+        "elbow_pole": lambda s: (s * 0.25, QUAD_SHOULDER[0] + 0.5, 0.35),
+        "frame_end": 120,  # hold; sink a little on each 4 s breath
+        "keys": [(1, childs_pose()), (61, childs_pose(0.02)), (121, childs_pose())],
+    },
+    "knee_to_chest": {
+        "legs": "fk", "arms": "ik", "look": (0, 0, 0.3), "raise": 0.6,
+        "wrist": lambda s: (s * 0.17, -0.19, 0.44),  # hands hold the shins just below the knees
+        "elbow_pole": lambda s: (s * 0.7, 0.1, 0.3),  # elbows out to the sides
+        "views": {"front": Vector((-2.6, 2.0, 1.4)), "three_quarter": Vector((2.6, 2.0, 1.0))},  # from the head end
+        "frame_end": 120,  # hold; draw the knees in a little on each 4 s breath
+        "keys": [(1, knees_to_chest(0)), (61, knees_to_chest(1)), (121, knees_to_chest(0))],
+    },
+    "wall_sit": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.6), "wall": WALL_Y,
+        "frame_end": 120,  # hold; one slow breath per 4 s loop
+        "keys": [(1, WALL_SIT), (61, WALL_SIT_INHALE), (121, WALL_SIT)],
+    },
+    "sumo_squat": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.85), "toe_out": 40,
+        "frame_end": 120,  # 1.5 s down, 0.5 s hold, 1.5 s up, 0.5 s pause
+        "keys": [(1, SUMO_STAND), (46, SUMO_BOTTOM), (61, SUMO_BOTTOM), (106, SUMO_STAND), (121, SUMO_STAND)],
+    },
+    "step_up": {
+        "legs": "ik", "arms": "fk", "look": (0, -0.2, 0.9), "toe_out": 5, "stairs": STAIR_EDGE,
+        "frame_end": 160,  # right foot leads, then left: 80 frames each
+        "keys": [(1 + f, k) for f, k in step_up("R")] + [(81 + f, k) for f, k in step_up("L")[1:]],
+    },
+    "side_lunge": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.7), "toe_out": 10,
+        "frame_end": 140,  # right side, return, left side, return
+        "keys": [(1 + f, k) for f, k in side_lunge("R")] + [(71 + f, k) for f, k in side_lunge("L")[1:]],
+    },
+    "donkey_kick": {
+        "legs": "ik", "arms": "ik", "look": (0, 0, 0.45), "raise": 0.3, "toe_out": 0,
+        "wrist": lambda s: (s * 0.22, QUAD_SHOULDER[0], 0.035),
+        "elbow_pole": lambda s: (s * 0.25, QUAD_SHOULDER[0] + 0.5, 0.35),
+        "frame_end": 120,  # right leg up and down, then left: 1 s up, 0.3 s hold, 0.7 s down
+        "keys": [(1, QUAD), (16, donkey_kick("R", 0.5)), (31, donkey_kick("R")), (40, donkey_kick("R")),
+                 (51, donkey_kick("R", 0.5)), (61, QUAD), (76, donkey_kick("L", 0.5)), (91, donkey_kick("L")),
+                 (100, donkey_kick("L")), (111, donkey_kick("L", 0.5)), (121, QUAD)],
+    },
+    "incline_push_up": {
+        "legs": "fk", "arms": "ik", "look": (0, -0.2, 0.5), "chair": {"edge": INCLINE_EDGE, "facing": -1},
+        "frame_props": True,  # keep the whole chair in shot
+        "wrist": lambda s: (s * 0.27, INCLINE_HAND_Y, 0.505),
+        "elbow_pole": lambda s: (s * 0.6, INCLINE_HAND_Y + 0.5, 1.2),  # elbows back, about 45 deg out
+        "frame_end": 90,  # 1.3 s down, 0.3 s hold, 1 s up, 0.4 s pause
+        "keys": [(1, INCLINE_TOP), (40, INCLINE_BOTTOM), (49, INCLINE_BOTTOM), (79, INCLINE_TOP),
+                 (91, INCLINE_TOP)],
+    },
+    "wall_angel": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 1.1), "wall": WALL_ANGEL_Y,
+        "views": {"front": Vector((0, -3.9, 0.15)), "three_quarter": Vector((2.4, -3.1, 0.35))},
+        "frame_end": 120,  # 2 s up, 2 s down
+        "keys": [(1, wall_angel(0)), (61, wall_angel(1)), (121, wall_angel(0))],
+    },
+    "crunch": {
+        "legs": "ik", "arms": "fk", "look": (0, 0.1, 0.2), "raise": 0.7,
+        "views": {"front": Vector((-2.6, 2.0, 1.4)), "three_quarter": Vector((2.6, 2.0, 1.0))},
+        "frame_end": 75,  # 1 s up, 0.3 s hold, 1 s down, 0.2 s rest
+        "keys": [(1, crunch(0)), (31, crunch(1)), (40, crunch(1)), (70, crunch(0)), (76, crunch(0))],
+    },
+    "bicycle_crunch": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.3), "raise": 0.7,
+        "frame_end": 60,  # one elbow-to-knee per second
+        "keys": [(1, bicycle("R")), (16, BICYCLE_PASS), (31, bicycle("L")), (46, BICYCLE_PASS), (61, bicycle("R"))],
+    },
+    "plank_shoulder_tap": {
+        "legs": "fk", "arms": "ik", "look": (0, -0.25, 0.3), "raise": 0.6,
+        "wrist": lambda s: (s * 0.22, TAP_SHOULDER_Y, 0.035),
+        "elbow_pole": lambda s: (s * 0.3, TAP_SHOULDER_Y + 0.5, 0.6),
+        "frame_end": 60,  # right hand taps, back down, left hand taps: 1 s each
+        "keys": [(1, TAP_TOP), (11, shoulder_tap("R")), (21, TAP_TOP), (31, TAP_TOP), (41, shoulder_tap("L")),
+                 (51, TAP_TOP), (61, TAP_TOP)],
+    },
+    "march_in_place": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 30,  # two steps per second
+        "keys": [(1, march("L", "R")), (8, MARCH_PASS), (16, march("R", "L")), (23, MARCH_PASS),
+                 (31, march("L", "R"))],
+    },
+    "standing_cross_crunch": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 1.0),
+        "frame_end": 60,  # right knee to left elbow, back, then the other side: 0.5 s each
+        "keys": [(1, CROSS_STAND), (16, cross_crunch("R")), (31, CROSS_STAND), (46, cross_crunch("L")),
+                 (61, CROSS_STAND)],
+    },
+    "butt_kicks": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 40,  # one kick per 1/3 s
+        "keys": [(1, butt_kick("L", "R")), (11, BUTT_PASS), (21, butt_kick("R", "L")), (31, BUTT_PASS),
+                 (41, butt_kick("L", "R"))],
     },
 }
 
@@ -591,22 +881,47 @@ def key_pose(arm, ex, frame, pose):
                 rest_rot(arm, f"elbow_pole.{side}").inverted() @ Vector((s * out, y, z)))
 
 
-def build_chair():
-    """Plain chair behind the mannequin; the seat's front edge is at y=0.30, top at 0.47."""
-    mat = bpy.data.materials.new("chair")
+PROPS = ("floor", "chair", "wall", "stair")  # scenery, left out of camera framing and floor checks
+
+
+def build_boxes(name, parts, color):
+    """Axis-aligned boxes, each given as (centre, half-size)."""
+    mat = bpy.data.materials.new(name)
     mat.use_nodes = True
-    mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.45, 0.33, 0.22, 1)
-    parts = [((0, 0.50, 0.45), (0.25, 0.20, 0.02)), ((0, 0.69, 0.70), (0.25, 0.015, 0.22))]
-    parts += [((x, y, 0.22), (0.02, 0.02, 0.22)) for x in (-0.23, 0.23) for y in (0.32, 0.68)]
+    mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (*color, 1)
     for i, (centre, half) in enumerate(parts):
-        mesh = bpy.data.meshes.new(f"chair{i}")
+        mesh = bpy.data.meshes.new(f"{name}{i}")
         bm = bmesh.new()
         bmesh.ops.create_cube(bm, size=2.0)
         bmesh.ops.transform(bm, verts=bm.verts, matrix=Matrix.Translation(centre) @ Matrix.Diagonal((*half, 1)))
         bm.to_mesh(mesh)
         bm.free()
         mesh.materials.append(mat)
-        bpy.context.scene.collection.objects.link(bpy.data.objects.new(f"chair{i}", mesh))
+        bpy.context.scene.collection.objects.link(bpy.data.objects.new(f"{name}{i}", mesh))
+
+
+def build_chair(edge=0.30, facing=1):
+    """Plain chair, seat top at 0.47. The seat's front edge is at y=`edge` and the seat runs
+    toward +Y (facing=1, behind a mannequin that faces -Y) or toward -Y (facing=-1, in front of it)."""
+    parts = [((0, 0.50, 0.45), (0.25, 0.20, 0.02)), ((0, 0.69, 0.70), (0.25, 0.015, 0.22))]
+    parts += [((x, y, 0.22), (0.02, 0.02, 0.22)) for x in (-0.23, 0.23) for y in (0.32, 0.68)]
+    build_boxes("chair", [((cx, edge + facing * (cy - 0.30), cz), half) for (cx, cy, cz), half in parts],
+                (0.45, 0.33, 0.22))
+
+
+def build_wall(y):
+    """Wall behind the mannequin; its face is at y=`y`."""
+    build_boxes("wall", [((0, y + 0.05, 1.2), (1.5, 0.05, 1.2))], (0.80, 0.78, 0.74))
+
+
+def build_stairs(edge, rise=STEP_RISE, run=STEP_RUN, steps=3):
+    """Stairs in front of the mannequin, climbing toward -Y; the first step's nosing is at y=`edge`."""
+    far = edge - steps * run - 0.2
+    parts = []
+    for i in range(steps):
+        near = edge - i * run
+        parts.append(((0, (near + far) / 2, (i + 1) * rise / 2), (0.55, (near - far) / 2, (i + 1) * rise / 2)))
+    build_boxes("stair", parts, (0.62, 0.52, 0.42))
 
 
 def build_stage(view, ex):
@@ -623,7 +938,11 @@ def build_stage(view, ex):
     scene.collection.objects.link(bpy.data.objects.new("floor", floor))
 
     if ex.get("chair"):
-        build_chair()
+        build_chair(**(ex["chair"] if isinstance(ex["chair"], dict) else {}))
+    if "wall" in ex:
+        build_wall(ex["wall"])
+    if "stairs" in ex:
+        build_stairs(ex["stairs"])
 
     world = bpy.data.worlds.new("world")
     world.use_nodes = True
@@ -653,7 +972,7 @@ def build_stage(view, ex):
     scene.view_settings.view_transform = "Standard"
 
 
-def fit_camera(cam, frame_end, fill=0.84, step=5, above=-1.0):
+def fit_camera(cam, frame_end, fill=0.84, step=5, above=-1.0, skip=PROPS):
     """Keep the camera's view direction; move and dolly it so the body over the whole loop
     is centred and its larger projected side fills `fill` of the square frame.
     Only body points higher than `above` are framed, so a close-up can crop the legs."""
@@ -662,7 +981,7 @@ def fit_camera(cam, frame_end, fill=0.84, step=5, above=-1.0):
     for f in range(1, frame_end + 1, step):
         scene.frame_set(f)
         depsgraph = bpy.context.evaluated_depsgraph_get()
-        pts += [o.matrix_world @ v.co for o in scene.objects if o.type == "MESH" and not o.name.startswith(("floor", "chair"))
+        pts += [o.matrix_world @ v.co for o in scene.objects if o.type == "MESH" and not o.name.startswith(skip)
                 for v in o.evaluated_get(depsgraph).data.vertices]
     pts = [p for p in pts if p.z > above]
     scene.frame_set(1)
@@ -695,7 +1014,7 @@ def report(arm, keys):
         thigh = p["shin.L"] - p["thigh.L"]
         thigh_deg = math.degrees(math.atan2(-thigh.z, math.hypot(thigh.x, thigh.y)))
         low, low_obj = min(((o.matrix_world @ v.co).z, o.name) for o in scene.objects
-                           if o.type == "MESH" and not o.name.startswith(("floor", "chair"))
+                           if o.type == "MESH" and not o.name.startswith(PROPS)
                            for v in o.evaluated_get(depsgraph).data.vertices)
         print(f"CHECK f{frame:>3} hip={fmt(p['thigh.L'])} knee={fmt(p['shin.L'])} ankle={fmt(ankle)} "
               f"shoulder={fmt(p['upper_arm.L'])} elbow={fmt(p['forearm.L'])} wrist={fmt(wrist)} "
@@ -714,7 +1033,8 @@ def main():
     scene = bpy.context.scene
     scene.frame_start, scene.frame_end = 1, ex["frame_end"]
 
-    fit_camera(scene.camera, ex["frame_end"], above=ex.get("frame_above", -1.0))
+    fit_camera(scene.camera, ex["frame_end"], above=ex.get("frame_above", -1.0),
+               skip=("floor", "wall") if ex.get("frame_props") else PROPS)
 
     if args.check:
         report(arm, ex["keys"])
