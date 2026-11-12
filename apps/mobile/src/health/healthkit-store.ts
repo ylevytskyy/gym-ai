@@ -1,0 +1,252 @@
+/**
+ * HealthStore on iOS, backed by HealthKit.
+ *
+ * The library is passed in rather than imported, so this file can be tested without a phone
+ * and nothing else in the app depends on HealthKit names.
+ *
+ * Two HealthKit facts shape this adapter:
+ *  - HealthKit never says whether a read was allowed. A type the user denied reads as empty.
+ *  - Querying a type that was never requested crashes the app, so nothing is read before the
+ *    permission request has been answered.
+ */
+
+import type * as HealthKit from '@kingstinct/react-native-healthkit';
+import type { ExternalWorkoutType } from '@aura-fit/health-core';
+
+import { buildHealthDays } from './build-health-days';
+import { deviceTimeZone, endOfDay, localDayOf, startOfDay } from './local-day';
+import {
+  EMPTY_RAW_HEALTH,
+  type HealthStatus,
+  type HealthStore,
+  type ProfileHints,
+  type RawHealth,
+  type WorkoutKind,
+  type WorkoutToWrite,
+} from './types';
+
+export type HealthKitApi = Pick<
+  typeof HealthKit,
+  | 'isHealthDataAvailableAsync'
+  | 'getRequestStatusForAuthorization'
+  | 'requestAuthorization'
+  | 'authorizationStatusFor'
+  | 'queryStatisticsCollectionForQuantity'
+  | 'queryQuantitySamples'
+  | 'queryCategorySamples'
+  | 'queryWorkoutSamples'
+  | 'getMostRecentQuantitySample'
+  | 'getDateOfBirthAsync'
+  | 'currentAppSource'
+  | 'saveWorkoutSample'
+  | 'deleteObjects'
+>;
+
+const STEPS = 'HKQuantityTypeIdentifierStepCount';
+const ACTIVE_ENERGY = 'HKQuantityTypeIdentifierActiveEnergyBurned';
+const RESTING_HR = 'HKQuantityTypeIdentifierRestingHeartRate';
+const BODY_MASS = 'HKQuantityTypeIdentifierBodyMass';
+const SLEEP = 'HKCategoryTypeIdentifierSleepAnalysis';
+const WORKOUT = 'HKWorkoutTypeIdentifier';
+const DATE_OF_BIRTH = 'HKCharacteristicTypeIdentifierDateOfBirth';
+
+/** Everything this build reads and writes. app.config.ts describes the same list to the user. */
+export const HEALTHKIT_ACCESS = {
+  toRead: [STEPS, ACTIVE_ENERGY, RESTING_HR, BODY_MASS, SLEEP, WORKOUT, DATE_OF_BIRTH],
+  toShare: [WORKOUT, ACTIVE_ENERGY],
+} as const;
+
+// HKAuthorizationRequestStatus.unnecessary and HKAuthorizationStatus.sharingAuthorized.
+const REQUEST_UNNECESSARY = 2;
+const SHARING_AUTHORIZED = 2;
+
+// HKCategoryValueSleepAnalysis: asleepUnspecified 1, asleepCore 3, asleepDeep 4, asleepREM 5.
+// 0 is "in bed" and 2 is "awake": neither is sleep.
+const ASLEEP_VALUES = new Set([1, 3, 4, 5]);
+
+// HKWorkoutActivityType raw values.
+const ACTIVITY_TYPES: Record<number, ExternalWorkoutType> = {
+  52: 'walking',
+  24: 'walking', // hiking
+  37: 'running',
+  13: 'cycling',
+  46: 'swimming',
+  50: 'strength', // traditional strength training
+  20: 'strength', // functional strength training
+  59: 'strength', // core training
+  63: 'hiit',
+  73: 'hiit', // mixed cardio
+  57: 'yoga',
+  66: 'yoga', // pilates
+  62: 'yoga', // flexibility
+  29: 'yoga', // mind and body
+};
+
+const WRITE_ACTIVITY: Record<WorkoutKind, number> = {
+  strength: 20, // functional strength training
+  hiit: 63, // high intensity interval training
+  mobility: 62, // flexibility
+};
+
+/** A failed or denied query reads as "no data"; health must never take the app down. */
+async function orEmpty<T>(query: () => Promise<readonly T[]>): Promise<readonly T[]> {
+  try {
+    return await query();
+  } catch {
+    return [];
+  }
+}
+
+export function createHealthKitStore(hk: HealthKitApi, timeZone: () => string = deviceTimeZone): HealthStore {
+  async function status(): Promise<HealthStatus> {
+    try {
+      if (!(await hk.isHealthDataAvailableAsync())) return 'unavailable';
+      const request = await hk.getRequestStatusForAuthorization(HEALTHKIT_ACCESS);
+      return (request as number) === REQUEST_UNNECESSARY ? 'connected' : 'not_connected';
+    } catch {
+      return 'unavailable';
+    }
+  }
+
+  async function readRaw(from: string, to: string): Promise<RawHealth> {
+    const start = startOfDay(from);
+    const end = endOfDay(to);
+    const date = { startDate: start, endDate: end, strictStartDate: true };
+    const daily = { day: 1 };
+
+    const [steps, energy, restingHr, weights, sleep, workouts] = await Promise.all([
+      orEmpty(() => hk.queryStatisticsCollectionForQuantity(STEPS, ['cumulativeSum'], start, daily, { filter: { date }, unit: 'count' })),
+      orEmpty(() => hk.queryStatisticsCollectionForQuantity(ACTIVE_ENERGY, ['cumulativeSum'], start, daily, { filter: { date }, unit: 'kcal' })),
+      orEmpty(() => hk.queryStatisticsCollectionForQuantity(RESTING_HR, ['discreteAverage'], start, daily, { filter: { date }, unit: 'count/min' })),
+      orEmpty(() => hk.queryQuantitySamples(BODY_MASS, { filter: { date }, limit: 0, unit: 'kg' })),
+      // A night that ended on the first day began the evening before.
+      orEmpty(() =>
+        hk.queryCategorySamples(SLEEP, {
+          filter: { date: { startDate: new Date(start.getTime() - 12 * 3_600_000), endDate: end } },
+          limit: 0,
+        }),
+      ),
+      orEmpty(() => hk.queryWorkoutSamples({ filter: { date }, limit: 0 })),
+    ]);
+
+    let ownBundle: string | undefined;
+    try {
+      ownBundle = hk.currentAppSource().bundleIdentifier;
+    } catch {
+      ownBundle = undefined;
+    }
+
+    const totals = (entries: typeof steps, pick: 'sumQuantity' | 'averageQuantity') =>
+      entries.flatMap((entry) => {
+        const value = entry[pick]?.quantity;
+        return entry.startDate && value !== undefined ? [{ day: localDayOf(entry.startDate), value }] : [];
+      });
+
+    return {
+      steps: totals(steps, 'sumQuantity'),
+      activeEnergyKcal: totals(energy, 'sumQuantity'),
+      restingHrBpm: totals(restingHr, 'averageQuantity'),
+      weightKg: weights.map((sample) => ({ at: sample.startDate, value: sample.quantity })),
+      sleep: sleep
+        .filter((sample) => ASLEEP_VALUES.has(sample.value as number))
+        .map((sample) => ({ start: sample.startDate, end: sample.endDate })),
+      workouts: workouts.map((workout) => {
+        const energyKcal = workout.totalEnergyBurned?.unit === 'kcal' ? workout.totalEnergyBurned.quantity : undefined;
+        return {
+          start: workout.startDate,
+          end: workout.endDate,
+          type: ACTIVITY_TYPES[workout.workoutActivityType as number] ?? 'other',
+          own: ownBundle !== undefined && workout.sourceRevision?.source.bundleIdentifier === ownBundle,
+          ...(energyKcal === undefined ? {} : { energyKcal }),
+        };
+      }),
+    };
+  }
+
+  return {
+    platform: 'ios',
+    status,
+
+    async connect() {
+      try {
+        await hk.requestAuthorization(HEALTHKIT_ACCESS);
+      } catch {
+        // The request could not be shown (for example Health is restricted on this device).
+      }
+      return status();
+    },
+
+    async openSettings() {
+      const { Linking } = await import('react-native');
+      try {
+        await Linking.openURL('x-apple-health://');
+      } catch {
+        await Linking.openSettings();
+      }
+    },
+
+    async readDays(from, to) {
+      const options = { from, to, tz: timeZone(), platform: 'ios' as const };
+      const raw = (await status()) === 'connected' ? await readRaw(from, to) : EMPTY_RAW_HEALTH;
+      return buildHealthDays(raw, options);
+    },
+
+    async readProfileHints() {
+      const hints: ProfileHints = {};
+      if ((await status()) !== 'connected') return hints;
+      try {
+        const weight = await hk.getMostRecentQuantitySample(BODY_MASS, 'kg');
+        if (weight && Number.isFinite(weight.quantity) && weight.quantity > 0) {
+          hints.weightKg = Math.round(weight.quantity * 10) / 10;
+        }
+      } catch {
+        // No weight is offered.
+      }
+      try {
+        const born = await hk.getDateOfBirthAsync();
+        if (born && Number.isFinite(born.getTime())) hints.dateOfBirth = localDayOf(born);
+      } catch {
+        // No age range is offered.
+      }
+      return hints;
+    },
+
+    async writeWorkout(workout: WorkoutToWrite) {
+      try {
+        if ((await status()) !== 'connected') return null;
+        if ((hk.authorizationStatusFor(WORKOUT) as number) !== SHARING_AUTHORIZED) return null;
+
+        const mayWriteEnergy = (hk.authorizationStatusFor(ACTIVE_ENERGY) as number) === SHARING_AUTHORIZED;
+        const quantities =
+          mayWriteEnergy && workout.energyKcal !== undefined && workout.energyKcal > 0
+            ? [{ quantityType: ACTIVE_ENERGY, quantity: workout.energyKcal, unit: 'kcal', startDate: workout.start, endDate: workout.end } as const]
+            : [];
+
+        const saved = await hk.saveWorkoutSample(
+          WRITE_ACTIVITY[workout.kind] as unknown as Parameters<HealthKitApi['saveWorkoutSample']>[0],
+          quantities,
+          workout.start,
+          workout.end,
+          undefined,
+          { HKMetadataKeyWorkoutBrandName: workout.title },
+        );
+        return saved.uuid;
+      } catch {
+        return null;
+      }
+    },
+
+    async deleteWorkout(recordId) {
+      // HealthKit keeps a workout's energy samples when the workout is deleted, so they are
+      // removed first, through their link to the workout. Failing here must not stop the
+      // workout itself from being deleted.
+      try {
+        const [workout] = await hk.queryWorkoutSamples({ filter: { uuid: recordId }, limit: 1 });
+        if (workout) await hk.deleteObjects(ACTIVE_ENERGY, { workout });
+      } catch {
+        // The energy stays; the workout is still removed below.
+      }
+      await hk.deleteObjects(WORKOUT, { uuid: recordId });
+    },
+  };
+}
