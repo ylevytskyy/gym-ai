@@ -107,6 +107,111 @@
       }
     },
     {
+      "id": "torso-twist",
+      "group": "warm_up",
+      "name_key": "exercise.torso_twist.name",
+      "body_parts": ["core", "back"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 10,
+        "rest_seconds": 0
+      },
+      "met": 2.5,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "torso-twist.mp4",
+        "poster": "torso-twist.jpg",
+        "model": "torso-twist.glb"
+      }
+    },
+    {
+      "id": "side-bend",
+      "group": "warm_up",
+      "name_key": "exercise.side_bend.name",
+      "body_parts": ["core", "back"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 8,
+        "rest_seconds": 0
+      },
+      "met": 2.3,
+      "avoid_if": [],
+      "quiet": true,
+      "media": {
+        "video": "side-bend.mp4",
+        "poster": "side-bend.jpg",
+        "model": "side-bend.glb"
+      }
+    },
+    {
+      "id": "hip-circles",
+      "group": "warm_up",
+      "name_key": "exercise.hip_circles.name",
+      "body_parts": ["hips", "lower_back"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 10,
+        "rest_seconds": 0
+      },
+      "met": 2.3,
+      "avoid_if": ["hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "hip-circles.mp4",
+        "poster": "hip-circles.jpg",
+        "model": "hip-circles.glb"
+      }
+    },
+    {
+      "id": "childs-pose",
+      "group": "warm_up",
+      "name_key": "exercise.childs_pose.name",
+      "body_parts": ["back", "hips", "shoulders"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "childs-pose.mp4",
+        "poster": "childs-pose.jpg",
+        "model": "childs-pose.glb"
+      }
+    },
+    {
+      "id": "knee-to-chest",
+      "group": "warm_up",
+      "name_key": "exercise.knee_to_chest.name",
+      "body_parts": ["lower_back", "glutes"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "knee-to-chest.mp4",
+        "poster": "knee-to-chest.jpg",
+        "model": "knee-to-chest.glb"
+      }
+    },
+    {
       "id": "squat",
       "group": "lower_body",
       "name_key": "exercise.squat.name",
@@ -191,6 +296,111 @@
       }
     },
     {
+      "id": "wall-sit",
+      "group": "lower_body",
+      "name_key": "exercise.wall_sit.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 3.5,
+      "avoid_if": ["knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "wall-sit.mp4",
+        "poster": "wall-sit.jpg",
+        "model": "wall-sit.glb"
+      }
+    },
+    {
+      "id": "sumo-squat",
+      "group": "lower_body",
+      "name_key": "exercise.sumo_squat.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 5.0,
+      "avoid_if": ["knee_injury", "hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "sumo-squat.mp4",
+        "poster": "sumo-squat.jpg",
+        "model": "sumo-squat.glb"
+      }
+    },
+    {
+      "id": "step-up",
+      "group": "lower_body",
+      "name_key": "exercise.step_up.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 5.5,
+      "avoid_if": ["knee_injury", "ankle_injury"],
+      "quiet": true,
+      "media": {
+        "video": "step-up.mp4",
+        "poster": "step-up.jpg",
+        "model": "step-up.glb"
+      }
+    },
+    {
+      "id": "side-lunge",
+      "group": "lower_body",
+      "name_key": "exercise.side_lunge.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 5.0,
+      "avoid_if": ["knee_injury", "hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "side-lunge.mp4",
+        "poster": "side-lunge.jpg",
+        "model": "side-lunge.glb"
+      }
+    },
+    {
+      "id": "donkey-kick",
+      "group": "lower_body",
+      "name_key": "exercise.donkey_kick.name",
+      "body_parts": ["glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": ["wrist_injury", "knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "donkey-kick.mp4",
+        "poster": "donkey-kick.jpg",
+        "model": "donkey-kick.glb"
+      }
+    },
+    {
       "id": "push-up",
       "group": "upper_body",
       "name_key": "exercise.push_up.name",
@@ -251,6 +461,48 @@
         "video": "reverse-snow-angel.mp4",
         "poster": "reverse-snow-angel.jpg",
         "model": "reverse-snow-angel.glb"
+      }
+    },
+    {
+      "id": "incline-push-up",
+      "group": "upper_body",
+      "name_key": "exercise.incline_push_up.name",
+      "body_parts": ["chest", "shoulders", "triceps"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 3.5,
+      "avoid_if": ["shoulder_injury", "wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "incline-push-up.mp4",
+        "poster": "incline-push-up.jpg",
+        "model": "incline-push-up.glb"
+      }
+    },
+    {
+      "id": "wall-angel",
+      "group": "upper_body",
+      "name_key": "exercise.wall_angel.name",
+      "body_parts": ["upper_back", "shoulders"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 2,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 2.5,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "wall-angel.mp4",
+        "poster": "wall-angel.jpg",
+        "model": "wall-angel.glb"
       }
     },
     {
@@ -380,6 +632,69 @@
       }
     },
     {
+      "id": "crunch",
+      "group": "core",
+      "name_key": "exercise.crunch.name",
+      "body_parts": ["core"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 15,
+        "rest_seconds": 30
+      },
+      "met": 2.8,
+      "avoid_if": ["neck_injury"],
+      "quiet": true,
+      "media": {
+        "video": "crunch.mp4",
+        "poster": "crunch.jpg",
+        "model": "crunch.glb"
+      }
+    },
+    {
+      "id": "bicycle-crunch",
+      "group": "core",
+      "name_key": "exercise.bicycle_crunch.name",
+      "body_parts": ["core"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 20,
+        "rest_seconds": 30
+      },
+      "met": 3.8,
+      "avoid_if": ["neck_injury", "lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "bicycle-crunch.mp4",
+        "poster": "bicycle-crunch.jpg",
+        "model": "bicycle-crunch.glb"
+      }
+    },
+    {
+      "id": "plank-shoulder-tap",
+      "group": "core",
+      "name_key": "exercise.plank_shoulder_tap.name",
+      "body_parts": ["core", "shoulders"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 20,
+        "rest_seconds": 30
+      },
+      "met": 4.0,
+      "avoid_if": ["shoulder_injury", "wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "plank-shoulder-tap.mp4",
+        "poster": "plank-shoulder-tap.jpg",
+        "model": "plank-shoulder-tap.glb"
+      }
+    },
+    {
       "id": "jumping-jacks",
       "group": "cardio",
       "name_key": "exercise.jumping_jacks.name",
@@ -440,6 +755,69 @@
         "video": "mountain-climbers.mp4",
         "poster": "mountain-climbers.jpg",
         "model": "mountain-climbers.glb"
+      }
+    },
+    {
+      "id": "march-in-place",
+      "group": "cardio",
+      "name_key": "exercise.march_in_place.name",
+      "body_parts": ["legs", "full_body"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 60,
+        "rest_seconds": 30
+      },
+      "met": 4.0,
+      "avoid_if": [],
+      "quiet": true,
+      "media": {
+        "video": "march-in-place.mp4",
+        "poster": "march-in-place.jpg",
+        "model": "march-in-place.glb"
+      }
+    },
+    {
+      "id": "standing-cross-crunch",
+      "group": "cardio",
+      "name_key": "exercise.standing_cross_crunch.name",
+      "body_parts": ["core", "legs"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 20,
+        "rest_seconds": 30
+      },
+      "met": 4.0,
+      "avoid_if": [],
+      "quiet": true,
+      "media": {
+        "video": "standing-cross-crunch.mp4",
+        "poster": "standing-cross-crunch.jpg",
+        "model": "standing-cross-crunch.glb"
+      }
+    },
+    {
+      "id": "butt-kicks",
+      "group": "cardio",
+      "name_key": "exercise.butt_kicks.name",
+      "body_parts": ["legs"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 8.0,
+      "avoid_if": ["knee_injury"],
+      "quiet": false,
+      "media": {
+        "video": "butt-kicks.mp4",
+        "poster": "butt-kicks.jpg",
+        "model": "butt-kicks.glb"
       }
     }
   ]

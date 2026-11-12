@@ -81,5 +81,77 @@
   
   "exercise.mountain_climbers.name": "Mountain Climbers",
   "exercise.mountain_climbers.description": "From a high plank, drive your knees toward your chest one at a time",
-  "exercise.mountain_climbers.tips": "Keep your hips low and your hands under your shoulders. Start slow, then speed up."
+  "exercise.mountain_climbers.tips": "Keep your hips low and your hands under your shoulders. Start slow, then speed up.",
+  
+  "exercise.torso_twist.name": "Torso Twist",
+  "exercise.torso_twist.description": "Stand tall with elbows bent and turn your upper body from side to side",
+  "exercise.torso_twist.tips": "Keep your hips facing forward and turn from the waist. Move smoothly, don't swing.",
+  
+  "exercise.side_bend.name": "Standing Side Bend",
+  "exercise.side_bend.description": "Reach one arm overhead and lean to the opposite side, then switch",
+  "exercise.side_bend.tips": "Bend straight to the side, not forward. Keep both feet planted.",
+  
+  "exercise.hip_circles.name": "Hip Circles",
+  "exercise.hip_circles.description": "Hands on hips, draw slow circles with your hips in both directions",
+  "exercise.hip_circles.tips": "Keep your shoulders still and knees soft. Switch direction halfway.",
+  
+  "exercise.childs_pose.name": "Child's Pose",
+  "exercise.childs_pose.description": "Kneel, sit back on your heels and reach your arms forward along the floor",
+  "exercise.childs_pose.tips": "Let your chest sink toward the floor and breathe slowly. Spread your knees if it feels tight.",
+  
+  "exercise.knee_to_chest.name": "Knee-to-Chest Stretch",
+  "exercise.knee_to_chest.description": "Lying on your back, hug one knee to your chest, then switch legs",
+  "exercise.knee_to_chest.tips": "Keep your other leg relaxed on the floor and your head down.",
+  
+  "exercise.wall_sit.name": "Wall Sit",
+  "exercise.wall_sit.description": "Slide down a wall until your thighs are near parallel and hold",
+  "exercise.wall_sit.tips": "Keep your back flat on the wall and knees above your ankles. Go only as low as is comfortable.",
+  
+  "exercise.sumo_squat.name": "Sumo Squat",
+  "exercise.sumo_squat.description": "Squat with feet wide and toes turned out",
+  "exercise.sumo_squat.tips": "Push your knees out over your toes and keep your chest up.",
+  
+  "exercise.step_up.name": "Step-Up",
+  "exercise.step_up.description": "Step up onto a stair with one foot, stand tall, then step back down",
+  "exercise.step_up.tips": "Push through the heel of the top foot. Hold the rail if you need balance.",
+  
+  "exercise.side_lunge.name": "Side Lunge",
+  "exercise.side_lunge.description": "Step wide to the side and sit back into that hip, other leg straight",
+  "exercise.side_lunge.tips": "Keep your chest up and the bent knee over your toes. Push back to the centre.",
+  
+  "exercise.donkey_kick.name": "Donkey Kick",
+  "exercise.donkey_kick.description": "On hands and knees, lift one bent leg so the sole of the foot rises toward the ceiling",
+  "exercise.donkey_kick.tips": "Keep your back flat and hips level. Squeeze your glute at the top.",
+  
+  "exercise.incline_push_up.name": "Incline Push-Up",
+  "exercise.incline_push_up.description": "A push-up with your hands on the seat of a sturdy chair",
+  "exercise.incline_push_up.tips": "Brace the chair against a wall. Keep your body in a straight line.",
+  
+  "exercise.wall_angel.name": "Wall Angel",
+  "exercise.wall_angel.description": "With your back against a wall, slide your arms up and down like a snow angel",
+  "exercise.wall_angel.tips": "Keep your lower back, elbows and wrists close to the wall. Move slowly.",
+  
+  "exercise.crunch.name": "Crunch",
+  "exercise.crunch.description": "Lying on your back with knees bent, curl your shoulders off the floor",
+  "exercise.crunch.tips": "Lift with your abs, not your neck. Breathe out as you curl up.",
+  
+  "exercise.bicycle_crunch.name": "Bicycle Crunch",
+  "exercise.bicycle_crunch.description": "On your back, bring each elbow toward the opposite knee while the other leg extends",
+  "exercise.bicycle_crunch.tips": "Turn from the ribs, not the elbows. Keep it slow and controlled.",
+  
+  "exercise.plank_shoulder_tap.name": "Plank Shoulder Tap",
+  "exercise.plank_shoulder_tap.description": "In a high plank, tap each shoulder with the opposite hand",
+  "exercise.plank_shoulder_tap.tips": "Spread your feet wider for balance and keep your hips still.",
+  
+  "exercise.march_in_place.name": "March in Place",
+  "exercise.march_in_place.description": "March on the spot, lifting your knees and swinging your arms",
+  "exercise.march_in_place.tips": "A quiet way to raise your heart rate. Stand tall and keep a steady pace.",
+  
+  "exercise.standing_cross_crunch.name": "Standing Cross Crunch",
+  "exercise.standing_cross_crunch.description": "Bring one knee up to meet the opposite elbow, then switch",
+  "exercise.standing_cross_crunch.tips": "Twist from your waist and keep your standing leg soft.",
+  
+  "exercise.butt_kicks.name": "Butt Kicks",
+  "exercise.butt_kicks.description": "Jog in place, kicking your heels up toward your glutes",
+  "exercise.butt_kicks.tips": "Stay on the balls of your feet and keep your knees pointing down."
 }

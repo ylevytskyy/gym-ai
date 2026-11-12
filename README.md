@@ -230,16 +230,16 @@ The results go in `docs/assistant-comparison.md`. We may keep both.
 
 ## 3. Exercise catalog
 
-File: `catalog/exercises.json`. **5 groups, 21 exercises**, all without equipment (a chair at most).
-The stretches sit in `warm_up` and also fit a plan's `cool_down` block.
+File: `catalog/exercises.json`. **5 groups, 39 exercises**, all without equipment (a chair, a wall
+or a stair at most). The stretches sit in `warm_up` and also fit a plan's `cool_down` block.
 
 | Group | Exercises |
 |---|---|
-| `warm_up` | Neck rolls, Arm circles, Cat-cow, Kneeling hip flexor stretch, Standing hamstring stretch |
-| `lower_body` | Squat, Reverse lunge, Hip hinge, Calf raise |
-| `upper_body` | Push-up, Chair dip, Reverse snow angel |
-| `core` | Plank, Glute bridge, Superman, Bird dog, Dead bug, Side plank |
-| `cardio` | Jumping jacks, High knees, Mountain climbers |
+| `warm_up` | Neck rolls, Arm circles, Cat-cow, Kneeling hip flexor stretch, Standing hamstring stretch, Torso twist, Standing side bend, Hip circles, Child's pose, Knee-to-chest stretch |
+| `lower_body` | Squat, Reverse lunge, Hip hinge, Calf raise, Wall sit, Sumo squat, Step-up, Side lunge, Donkey kick |
+| `upper_body` | Push-up, Chair dip, Reverse snow angel, Incline push-up, Wall angel |
+| `core` | Plank, Glute bridge, Superman, Bird dog, Dead bug, Side plank, Crunch, Bicycle crunch, Plank shoulder tap |
+| `cardio` | Jumping jacks, High knees, Mountain climbers, March in place, Standing cross crunch, Butt kicks |
 
 One exercise:
 
