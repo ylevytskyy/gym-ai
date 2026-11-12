@@ -153,5 +153,77 @@
   
   "exercise.butt_kicks.name": "Butt Kicks",
   "exercise.butt_kicks.description": "Jog in place, kicking your heels up toward your glutes",
-  "exercise.butt_kicks.tips": "Stay on the balls of your feet and keep your knees pointing down."
+  "exercise.butt_kicks.tips": "Stay on the balls of your feet and keep your knees pointing down.",
+  
+  "exercise.leg_swings.name": "Leg Swings",
+  "exercise.leg_swings.description": "Swing one straight leg forward and back like a pendulum, then switch",
+  "exercise.leg_swings.tips": "Hold a wall for balance if you need it. Keep your torso upright and let the swing grow gradually.",
+  
+  "exercise.cobra_stretch.name": "Cobra Stretch",
+  "exercise.cobra_stretch.description": "Lying face down, press through your hands to lift your chest and arch your back",
+  "exercise.cobra_stretch.tips": "Keep your hips on the floor and your shoulders away from your ears. Rise only as far as feels comfortable.",
+  
+  "exercise.standing_quad_stretch.name": "Standing Quad Stretch",
+  "exercise.standing_quad_stretch.description": "Stand on one leg and pull the other heel toward your glutes to stretch the front of the thigh",
+  "exercise.standing_quad_stretch.tips": "Keep your knees together and your hips pushed forward. Hold a wall for balance if you need it.",
+  
+  "exercise.split_squat.name": "Split Squat",
+  "exercise.split_squat.description": "Stand in a long stride and lower your back knee toward the floor, then rise",
+  "exercise.split_squat.tips": "Keep your feet in place the whole set. Your front knee stays over your ankle.",
+  
+  "exercise.curtsy_lunge.name": "Curtsy Lunge",
+  "exercise.curtsy_lunge.description": "Step one leg diagonally behind the other and bend both knees, like a curtsy",
+  "exercise.curtsy_lunge.tips": "Keep your hips facing forward and your front knee in line with your toes.",
+  
+  "exercise.fire_hydrant.name": "Fire Hydrant",
+  "exercise.fire_hydrant.description": "On hands and knees, lift one bent knee out to the side, then lower it",
+  "exercise.fire_hydrant.tips": "Keep your back flat and your hips level. Move from the hip, not the waist.",
+  
+  "exercise.single_leg_glute_bridge.name": "Single-Leg Glute Bridge",
+  "exercise.single_leg_glute_bridge.description": "Lying on your back with one leg extended, lift your hips by pushing through the planted foot",
+  "exercise.single_leg_glute_bridge.tips": "Keep your hips level as you rise. Squeeze your glute at the top.",
+  
+  "exercise.standing_hip_abduction.name": "Standing Hip Abduction",
+  "exercise.standing_hip_abduction.description": "Standing tall, lift one straight leg out to the side, then lower it with control",
+  "exercise.standing_hip_abduction.tips": "Keep your toes pointing forward and your torso upright. Hold a wall for balance if you need it.",
+  
+  "exercise.wall_push_up.name": "Wall Push-up",
+  "exercise.wall_push_up.description": "Push-up with your hands on a wall, the gentlest push-up variation",
+  "exercise.wall_push_up.tips": "Keep your body straight from head to heels. Step further from the wall to make it harder.",
+  
+  "exercise.knee_push_up.name": "Knee Push-up",
+  "exercise.knee_push_up.description": "Push-up from your knees instead of your toes",
+  "exercise.knee_push_up.tips": "Keep a straight line from your knees to your head. Lower your chest between your hands.",
+  
+  "exercise.pike_push_up.name": "Pike Push-up",
+  "exercise.pike_push_up.description": "With hips high in an upside-down V, bend your elbows to lower your head toward the floor",
+  "exercise.pike_push_up.tips": "Keep your hips high and your elbows angled back. Lower slowly and stop before your head touches the floor.",
+  
+  "exercise.reverse_crunch.name": "Reverse Crunch",
+  "exercise.reverse_crunch.description": "Lying on your back with knees bent, curl your hips off the floor toward your chest",
+  "exercise.reverse_crunch.tips": "Move slowly and use your abs, not momentum. Lower your hips with control.",
+  
+  "exercise.lying_leg_raise.name": "Lying Leg Raise",
+  "exercise.lying_leg_raise.description": "Lying on your back, raise both straight legs toward the ceiling, then lower them slowly",
+  "exercise.lying_leg_raise.tips": "Press your lower back into the floor. Lower only as far as you can keep it there.",
+  
+  "exercise.flutter_kicks.name": "Flutter Kicks",
+  "exercise.flutter_kicks.description": "Lying on your back with legs raised slightly, kick them up and down in small, quick movements",
+  "exercise.flutter_kicks.tips": "Keep your lower back pressed to the floor and your legs straight. Raise them higher to make it easier.",
+  
+  "exercise.heel_taps.name": "Heel Taps",
+  "exercise.heel_taps.description": "Lying on your back with shoulders lifted, reach side to side to tap each heel",
+  "exercise.heel_taps.tips": "Keep your shoulders off the floor the whole set. Bend sideways from your waist.",
+  
+  "exercise.russian_twist.name": "Russian Twist",
+  "exercise.russian_twist.description": "Seated and leaning back, rotate your torso from side to side with your hands together",
+  "exercise.russian_twist.tips": "Keep your chest up and your back straight. Turn your shoulders, not just your arms.",
+  
+  "exercise.shadow_boxing.name": "Shadow Boxing",
+  "exercise.shadow_boxing.description": "Throw alternating straight punches in a boxing stance",
+  "exercise.shadow_boxing.tips": "Keep your fists near your face between punches and turn your hips with each one. Don't lock your elbows.",
+  
+  "exercise.step_touch.name": "Step Touch",
+  "exercise.step_touch.description": "Step side to side, bringing your feet together each time, with an easy arm swing",
+  "exercise.step_touch.tips": "Stay light on your feet and keep a steady rhythm. A quiet way to raise your heart rate."
 }

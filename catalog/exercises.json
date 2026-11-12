@@ -212,6 +212,69 @@
       }
     },
     {
+      "id": "leg-swings",
+      "group": "warm_up",
+      "name_key": "exercise.leg_swings.name",
+      "body_parts": ["hips", "legs"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 10,
+        "rest_seconds": 0
+      },
+      "met": 2.5,
+      "avoid_if": ["hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "leg-swings.mp4",
+        "poster": "leg-swings.jpg",
+        "model": "leg-swings.glb"
+      }
+    },
+    {
+      "id": "cobra-stretch",
+      "group": "warm_up",
+      "name_key": "exercise.cobra_stretch.name",
+      "body_parts": ["lower_back", "core"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 8,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["lower_back_injury", "wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "cobra-stretch.mp4",
+        "poster": "cobra-stretch.jpg",
+        "model": "cobra-stretch.glb"
+      }
+    },
+    {
+      "id": "standing-quad-stretch",
+      "group": "warm_up",
+      "name_key": "exercise.standing_quad_stretch.name",
+      "body_parts": ["legs", "hips"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "standing-quad-stretch.mp4",
+        "poster": "standing-quad-stretch.jpg",
+        "model": "standing-quad-stretch.glb"
+      }
+    },
+    {
       "id": "squat",
       "group": "lower_body",
       "name_key": "exercise.squat.name",
@@ -401,6 +464,111 @@
       }
     },
     {
+      "id": "split-squat",
+      "group": "lower_body",
+      "name_key": "exercise.split_squat.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 5.0,
+      "avoid_if": ["knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "split-squat.mp4",
+        "poster": "split-squat.jpg",
+        "model": "split-squat.glb"
+      }
+    },
+    {
+      "id": "curtsy-lunge",
+      "group": "lower_body",
+      "name_key": "exercise.curtsy_lunge.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 5.0,
+      "avoid_if": ["knee_injury", "hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "curtsy-lunge.mp4",
+        "poster": "curtsy-lunge.jpg",
+        "model": "curtsy-lunge.glb"
+      }
+    },
+    {
+      "id": "fire-hydrant",
+      "group": "lower_body",
+      "name_key": "exercise.fire_hydrant.name",
+      "body_parts": ["glutes", "hips"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": ["wrist_injury", "knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "fire-hydrant.mp4",
+        "poster": "fire-hydrant.jpg",
+        "model": "fire-hydrant.glb"
+      }
+    },
+    {
+      "id": "single-leg-glute-bridge",
+      "group": "lower_body",
+      "name_key": "exercise.single_leg_glute_bridge.name",
+      "body_parts": ["glutes", "legs"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 3.5,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "single-leg-glute-bridge.mp4",
+        "poster": "single-leg-glute-bridge.jpg",
+        "model": "single-leg-glute-bridge.glb"
+      }
+    },
+    {
+      "id": "standing-hip-abduction",
+      "group": "lower_body",
+      "name_key": "exercise.standing_hip_abduction.name",
+      "body_parts": ["hips", "glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 2.8,
+      "avoid_if": ["hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "standing-hip-abduction.mp4",
+        "poster": "standing-hip-abduction.jpg",
+        "model": "standing-hip-abduction.glb"
+      }
+    },
+    {
       "id": "push-up",
       "group": "upper_body",
       "name_key": "exercise.push_up.name",
@@ -503,6 +671,69 @@
         "video": "wall-angel.mp4",
         "poster": "wall-angel.jpg",
         "model": "wall-angel.glb"
+      }
+    },
+    {
+      "id": "wall-push-up",
+      "group": "upper_body",
+      "name_key": "exercise.wall_push_up.name",
+      "body_parts": ["chest", "shoulders", "triceps"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 2.5,
+      "avoid_if": ["shoulder_injury", "wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "wall-push-up.mp4",
+        "poster": "wall-push-up.jpg",
+        "model": "wall-push-up.glb"
+      }
+    },
+    {
+      "id": "knee-push-up",
+      "group": "upper_body",
+      "name_key": "exercise.knee_push_up.name",
+      "body_parts": ["chest", "shoulders", "triceps"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": ["shoulder_injury", "wrist_injury", "knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "knee-push-up.mp4",
+        "poster": "knee-push-up.jpg",
+        "model": "knee-push-up.glb"
+      }
+    },
+    {
+      "id": "pike-push-up",
+      "group": "upper_body",
+      "name_key": "exercise.pike_push_up.name",
+      "body_parts": ["shoulders", "triceps"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 8,
+        "rest_seconds": 30
+      },
+      "met": 4.0,
+      "avoid_if": ["shoulder_injury", "wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "pike-push-up.mp4",
+        "poster": "pike-push-up.jpg",
+        "model": "pike-push-up.glb"
       }
     },
     {
@@ -695,6 +926,111 @@
       }
     },
     {
+      "id": "reverse-crunch",
+      "group": "core",
+      "name_key": "exercise.reverse_crunch.name",
+      "body_parts": ["core"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "reverse-crunch.mp4",
+        "poster": "reverse-crunch.jpg",
+        "model": "reverse-crunch.glb"
+      }
+    },
+    {
+      "id": "lying-leg-raise",
+      "group": "core",
+      "name_key": "exercise.lying_leg_raise.name",
+      "body_parts": ["core"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "lying-leg-raise.mp4",
+        "poster": "lying-leg-raise.jpg",
+        "model": "lying-leg-raise.glb"
+      }
+    },
+    {
+      "id": "flutter-kicks",
+      "group": "core",
+      "name_key": "exercise.flutter_kicks.name",
+      "body_parts": ["core", "legs"],
+      "level": 2,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 3.8,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "flutter-kicks.mp4",
+        "poster": "flutter-kicks.jpg",
+        "model": "flutter-kicks.glb"
+      }
+    },
+    {
+      "id": "heel-taps",
+      "group": "core",
+      "name_key": "exercise.heel_taps.name",
+      "body_parts": ["core"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 20,
+        "rest_seconds": 30
+      },
+      "met": 2.8,
+      "avoid_if": ["neck_injury"],
+      "quiet": true,
+      "media": {
+        "video": "heel-taps.mp4",
+        "poster": "heel-taps.jpg",
+        "model": "heel-taps.glb"
+      }
+    },
+    {
+      "id": "russian-twist",
+      "group": "core",
+      "name_key": "exercise.russian_twist.name",
+      "body_parts": ["core"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 20,
+        "rest_seconds": 30
+      },
+      "met": 3.8,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "russian-twist.mp4",
+        "poster": "russian-twist.jpg",
+        "model": "russian-twist.glb"
+      }
+    },
+    {
       "id": "jumping-jacks",
       "group": "cardio",
       "name_key": "exercise.jumping_jacks.name",
@@ -818,6 +1154,48 @@
         "video": "butt-kicks.mp4",
         "poster": "butt-kicks.jpg",
         "model": "butt-kicks.glb"
+      }
+    },
+    {
+      "id": "shadow-boxing",
+      "group": "cardio",
+      "name_key": "exercise.shadow_boxing.name",
+      "body_parts": ["arms", "shoulders", "core"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 60,
+        "rest_seconds": 30
+      },
+      "met": 5.0,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "shadow-boxing.mp4",
+        "poster": "shadow-boxing.jpg",
+        "model": "shadow-boxing.glb"
+      }
+    },
+    {
+      "id": "step-touch",
+      "group": "cardio",
+      "name_key": "exercise.step_touch.name",
+      "body_parts": ["legs", "full_body"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 60,
+        "rest_seconds": 30
+      },
+      "met": 4.0,
+      "avoid_if": [],
+      "quiet": true,
+      "media": {
+        "video": "step-touch.mp4",
+        "poster": "step-touch.jpg",
+        "model": "step-touch.glb"
       }
     }
   ]
