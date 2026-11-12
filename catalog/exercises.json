@@ -275,6 +275,111 @@
       }
     },
     {
+      "id": "arm-swings",
+      "group": "warm_up",
+      "name_key": "exercise.arm_swings.name",
+      "body_parts": ["chest", "shoulders", "upper_back"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 10,
+        "rest_seconds": 0
+      },
+      "met": 2.5,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "arm-swings.mp4",
+        "poster": "arm-swings.jpg",
+        "model": "arm-swings.glb"
+      }
+    },
+    {
+      "id": "chest-opener",
+      "group": "warm_up",
+      "name_key": "exercise.chest_opener.name",
+      "body_parts": ["chest", "shoulders"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "chest-opener.mp4",
+        "poster": "chest-opener.jpg",
+        "model": "chest-opener.glb"
+      }
+    },
+    {
+      "id": "calf-stretch",
+      "group": "warm_up",
+      "name_key": "exercise.calf_stretch.name",
+      "body_parts": ["calves", "legs"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["ankle_injury"],
+      "quiet": true,
+      "media": {
+        "video": "calf-stretch.mp4",
+        "poster": "calf-stretch.jpg",
+        "model": "calf-stretch.glb"
+      }
+    },
+    {
+      "id": "butterfly-stretch",
+      "group": "warm_up",
+      "name_key": "exercise.butterfly_stretch.name",
+      "body_parts": ["hips", "legs"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 1,
+        "amount": 30,
+        "rest_seconds": 0
+      },
+      "met": 2.0,
+      "avoid_if": ["knee_injury", "hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "butterfly-stretch.mp4",
+        "poster": "butterfly-stretch.jpg",
+        "model": "butterfly-stretch.glb"
+      }
+    },
+    {
+      "id": "inchworm",
+      "group": "warm_up",
+      "name_key": "exercise.inchworm.name",
+      "body_parts": ["legs", "core", "shoulders"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 1,
+        "amount": 5,
+        "rest_seconds": 0
+      },
+      "met": 3.5,
+      "avoid_if": ["wrist_injury", "lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "inchworm.mp4",
+        "poster": "inchworm.jpg",
+        "model": "inchworm.glb"
+      }
+    },
+    {
       "id": "squat",
       "group": "lower_body",
       "name_key": "exercise.squat.name",
@@ -569,6 +674,90 @@
       }
     },
     {
+      "id": "forward-lunge",
+      "group": "lower_body",
+      "name_key": "exercise.forward_lunge.name",
+      "body_parts": ["legs", "glutes"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 5.5,
+      "avoid_if": ["knee_injury"],
+      "quiet": true,
+      "media": {
+        "video": "forward-lunge.mp4",
+        "poster": "forward-lunge.jpg",
+        "model": "forward-lunge.glb"
+      }
+    },
+    {
+      "id": "single-leg-deadlift",
+      "group": "lower_body",
+      "name_key": "exercise.single_leg_deadlift.name",
+      "body_parts": ["glutes", "legs", "lower_back"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 8,
+        "rest_seconds": 30
+      },
+      "met": 3.5,
+      "avoid_if": ["lower_back_injury", "ankle_injury"],
+      "quiet": true,
+      "media": {
+        "video": "single-leg-deadlift.mp4",
+        "poster": "single-leg-deadlift.jpg",
+        "model": "single-leg-deadlift.glb"
+      }
+    },
+    {
+      "id": "clamshell",
+      "group": "lower_body",
+      "name_key": "exercise.clamshell.name",
+      "body_parts": ["glutes", "hips"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 15,
+        "rest_seconds": 30
+      },
+      "met": 2.5,
+      "avoid_if": ["hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "clamshell.mp4",
+        "poster": "clamshell.jpg",
+        "model": "clamshell.glb"
+      }
+    },
+    {
+      "id": "side-lying-leg-raise",
+      "group": "lower_body",
+      "name_key": "exercise.side_lying_leg_raise.name",
+      "body_parts": ["hips", "glutes"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 2.5,
+      "avoid_if": ["hip_injury"],
+      "quiet": true,
+      "media": {
+        "video": "side-lying-leg-raise.mp4",
+        "poster": "side-lying-leg-raise.jpg",
+        "model": "side-lying-leg-raise.glb"
+      }
+    },
+    {
       "id": "push-up",
       "group": "upper_body",
       "name_key": "exercise.push_up.name",
@@ -734,6 +923,69 @@
         "video": "pike-push-up.mp4",
         "poster": "pike-push-up.jpg",
         "model": "pike-push-up.glb"
+      }
+    },
+    {
+      "id": "decline-push-up",
+      "group": "upper_body",
+      "name_key": "exercise.decline_push_up.name",
+      "body_parts": ["chest", "shoulders", "triceps"],
+      "level": 3,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 8,
+        "rest_seconds": 45
+      },
+      "met": 4.5,
+      "avoid_if": ["shoulder_injury", "wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "decline-push-up.mp4",
+        "poster": "decline-push-up.jpg",
+        "model": "decline-push-up.glb"
+      }
+    },
+    {
+      "id": "diamond-push-up",
+      "group": "upper_body",
+      "name_key": "exercise.diamond_push_up.name",
+      "body_parts": ["triceps", "chest"],
+      "level": 3,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 8,
+        "rest_seconds": 45
+      },
+      "met": 4.0,
+      "avoid_if": ["shoulder_injury", "wrist_injury", "elbow_injury"],
+      "quiet": true,
+      "media": {
+        "video": "diamond-push-up.mp4",
+        "poster": "diamond-push-up.jpg",
+        "model": "diamond-push-up.glb"
+      }
+    },
+    {
+      "id": "prone-y-raise",
+      "group": "upper_body",
+      "name_key": "exercise.prone_y_raise.name",
+      "body_parts": ["upper_back", "shoulders"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 12,
+        "rest_seconds": 30
+      },
+      "met": 2.5,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "prone-y-raise.mp4",
+        "poster": "prone-y-raise.jpg",
+        "model": "prone-y-raise.glb"
       }
     },
     {
@@ -1031,6 +1283,90 @@
       }
     },
     {
+      "id": "hollow-body-hold",
+      "group": "core",
+      "name_key": "exercise.hollow_body_hold.name",
+      "body_parts": ["core"],
+      "level": 2,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 20,
+        "rest_seconds": 30
+      },
+      "met": 3.0,
+      "avoid_if": ["lower_back_injury"],
+      "quiet": true,
+      "media": {
+        "video": "hollow-body-hold.mp4",
+        "poster": "hollow-body-hold.jpg",
+        "model": "hollow-body-hold.glb"
+      }
+    },
+    {
+      "id": "toe-reach",
+      "group": "core",
+      "name_key": "exercise.toe_reach.name",
+      "body_parts": ["core"],
+      "level": 1,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 15,
+        "rest_seconds": 30
+      },
+      "met": 2.8,
+      "avoid_if": ["neck_injury"],
+      "quiet": true,
+      "media": {
+        "video": "toe-reach.mp4",
+        "poster": "toe-reach.jpg",
+        "model": "toe-reach.glb"
+      }
+    },
+    {
+      "id": "side-plank-hip-dip",
+      "group": "core",
+      "name_key": "exercise.side_plank_hip_dip.name",
+      "body_parts": ["core", "shoulders"],
+      "level": 2,
+      "unit": "reps",
+      "default": {
+        "sets": 3,
+        "amount": 10,
+        "rest_seconds": 30
+      },
+      "met": 3.8,
+      "avoid_if": ["shoulder_injury"],
+      "quiet": true,
+      "media": {
+        "video": "side-plank-hip-dip.mp4",
+        "poster": "side-plank-hip-dip.jpg",
+        "model": "side-plank-hip-dip.glb"
+      }
+    },
+    {
+      "id": "bear-plank",
+      "group": "core",
+      "name_key": "exercise.bear_plank.name",
+      "body_parts": ["core", "shoulders", "legs"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 3.5,
+      "avoid_if": ["wrist_injury"],
+      "quiet": true,
+      "media": {
+        "video": "bear-plank.mp4",
+        "poster": "bear-plank.jpg",
+        "model": "bear-plank.glb"
+      }
+    },
+    {
       "id": "jumping-jacks",
       "group": "cardio",
       "name_key": "exercise.jumping_jacks.name",
@@ -1196,6 +1532,48 @@
         "video": "step-touch.mp4",
         "poster": "step-touch.jpg",
         "model": "step-touch.glb"
+      }
+    },
+    {
+      "id": "front-kicks",
+      "group": "cardio",
+      "name_key": "exercise.front_kicks.name",
+      "body_parts": ["legs", "core"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 4.5,
+      "avoid_if": [],
+      "quiet": true,
+      "media": {
+        "video": "front-kicks.mp4",
+        "poster": "front-kicks.jpg",
+        "model": "front-kicks.glb"
+      }
+    },
+    {
+      "id": "step-jacks",
+      "group": "cardio",
+      "name_key": "exercise.step_jacks.name",
+      "body_parts": ["full_body"],
+      "level": 1,
+      "unit": "seconds",
+      "default": {
+        "sets": 3,
+        "amount": 30,
+        "rest_seconds": 30
+      },
+      "met": 4.5,
+      "avoid_if": [],
+      "quiet": true,
+      "media": {
+        "video": "step-jacks.mp4",
+        "poster": "step-jacks.jpg",
+        "model": "step-jacks.glb"
       }
     }
   ]

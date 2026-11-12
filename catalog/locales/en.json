@@ -225,5 +225,77 @@
   
   "exercise.step_touch.name": "Step Touch",
   "exercise.step_touch.description": "Step side to side, bringing your feet together each time, with an easy arm swing",
-  "exercise.step_touch.tips": "Stay light on your feet and keep a steady rhythm. A quiet way to raise your heart rate."
+  "exercise.step_touch.tips": "Stay light on your feet and keep a steady rhythm. A quiet way to raise your heart rate.",
+  
+  "exercise.arm_swings.name": "Arm Swings",
+  "exercise.arm_swings.description": "Swing straight arms open wide, then cross them in front of the chest like a hug",
+  "exercise.arm_swings.tips": "Keep the swing relaxed and let it grow a little each time. Stand tall and keep your back still.",
+  
+  "exercise.chest_opener.name": "Chest Opener Stretch",
+  "exercise.chest_opener.description": "Clasp your hands behind your back and lift your chest to stretch the front of the shoulders",
+  "exercise.chest_opener.tips": "Squeeze your shoulder blades together and keep your chin level. Great after long hours at a desk.",
+  
+  "exercise.calf_stretch.name": "Wall Calf Stretch",
+  "exercise.calf_stretch.description": "Hands on a wall, one foot back with the heel down, lean in to stretch the back calf",
+  "exercise.calf_stretch.tips": "Keep the back leg straight and its heel on the floor. Switch legs halfway through.",
+  
+  "exercise.butterfly_stretch.name": "Butterfly Stretch",
+  "exercise.butterfly_stretch.description": "Sit with the soles of your feet together and let your knees fall open",
+  "exercise.butterfly_stretch.tips": "Sit tall and hold your feet. Lean forward from the hips only as far as feels comfortable.",
+  
+  "exercise.inchworm.name": "Inchworm",
+  "exercise.inchworm.description": "Fold forward, walk your hands out to a high plank, then walk them back and stand up",
+  "exercise.inchworm.tips": "Bend your knees as much as you need to reach the floor. Keep your hips steady in the plank.",
+  
+  "exercise.forward_lunge.name": "Forward Lunge",
+  "exercise.forward_lunge.description": "Step forward and lower both knees to about 90 degrees, then push back to standing",
+  "exercise.forward_lunge.tips": "Land heel first and keep your front knee over your ankle. Keep your torso upright.",
+  
+  "exercise.single_leg_deadlift.name": "Single-Leg Deadlift",
+  "exercise.single_leg_deadlift.description": "Balance on one leg and hinge forward while the other leg reaches back",
+  "exercise.single_leg_deadlift.tips": "Keep your back flat and your hips level. Go only as low as you can stay balanced.",
+  
+  "exercise.clamshell.name": "Clamshell",
+  "exercise.clamshell.description": "Lie on your side with knees bent and open the top knee while the feet stay together",
+  "exercise.clamshell.tips": "Don't let your hips roll back. Move slowly and squeeze at the top.",
+  
+  "exercise.side_lying_leg_raise.name": "Side-Lying Leg Raise",
+  "exercise.side_lying_leg_raise.description": "Lie on your side and lift the straight top leg, then lower it with control",
+  "exercise.side_lying_leg_raise.tips": "Keep the top leg in line with your body and the toes pointing forward. Don't swing it.",
+  
+  "exercise.decline_push_up.name": "Decline Push-up",
+  "exercise.decline_push_up.description": "Push-up with your feet raised on a chair or stair",
+  "exercise.decline_push_up.tips": "Keep your body in one straight line and don't let your hips sag. A lower step makes it easier.",
+  
+  "exercise.diamond_push_up.name": "Diamond Push-up",
+  "exercise.diamond_push_up.description": "Push-up with your hands close together under the chest",
+  "exercise.diamond_push_up.tips": "Keep your elbows close to your sides. Drop to your knees if you can't keep good form.",
+  
+  "exercise.prone_y_raise.name": "Prone Y Raise",
+  "exercise.prone_y_raise.description": "Lie face down with arms overhead in a Y and lift them off the floor",
+  "exercise.prone_y_raise.tips": "Lead with your thumbs and pull your shoulder blades down and back. Keep your neck long.",
+  
+  "exercise.hollow_body_hold.name": "Hollow Body Hold",
+  "exercise.hollow_body_hold.description": "On your back, lift your shoulders and straight legs off the floor and hold",
+  "exercise.hollow_body_hold.tips": "Press your lower back into the floor. Bend your knees or lift your legs higher to make it easier.",
+  
+  "exercise.toe_reach.name": "Toe Reach",
+  "exercise.toe_reach.description": "On your back with legs straight up, curl up and reach your hands toward your toes",
+  "exercise.toe_reach.tips": "Lift with your abs, not your neck. Breathe out as you reach.",
+  
+  "exercise.side_plank_hip_dip.name": "Side Plank Hip Dip",
+  "exercise.side_plank_hip_dip.description": "From a side plank, lower your hip toward the floor and lift it back up",
+  "exercise.side_plank_hip_dip.tips": "Keep your elbow under your shoulder. Do both sides.",
+  
+  "exercise.bear_plank.name": "Bear Plank",
+  "exercise.bear_plank.description": "On hands and toes, hover your knees just off the floor and hold",
+  "exercise.bear_plank.tips": "Keep your back flat and your knees under your hips. Breathe steadily.",
+  
+  "exercise.front_kicks.name": "Front Kicks",
+  "exercise.front_kicks.description": "Kick each leg forward to hip height in turn while the arms swing",
+  "exercise.front_kicks.tips": "Kick with control, not force. Stand tall and land softly.",
+  
+  "exercise.step_jacks.name": "Step Jacks",
+  "exercise.step_jacks.description": "Low-impact jumping jacks: step one foot out as the arms rise, then step back in",
+  "exercise.step_jacks.tips": "Alternate sides each rep and reach the arms fully overhead. A quiet jumping jack."
 }

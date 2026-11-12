@@ -56,8 +56,16 @@ describe('getCatalog', () => {
       exclude_injuries: ['lower_back_injury'],
     });
     // Plank, glute bridge, superman and reverse crunch avoid lower_back_injury; side plank,
-    // bicycle crunch, shoulder taps, leg raises, flutter kicks and Russian twists are level 2.
-    expect(result.map((ex) => ex.id)).toEqual(['bird-dog', 'dead-bug', 'crunch', 'heel-taps']);
+    // bicycle crunch, shoulder taps, leg raises, flutter kicks, Russian twists, the hollow body
+    // hold and side plank hip dips are level 2.
+    expect(result.map((ex) => ex.id)).toEqual([
+      'bird-dog',
+      'dead-bug',
+      'crunch',
+      'heel-taps',
+      'toe-reach',
+      'bear-plank',
+    ]);
     const coreNoShoulder = getCatalog({ group: 'core', exclude_injuries: ['shoulder_injury'] });
     expect(coreNoShoulder.map((ex) => ex.id)).toEqual([
       'glute-bridge',
@@ -71,6 +79,9 @@ describe('getCatalog', () => {
       'flutter-kicks',
       'heel-taps',
       'russian-twist',
+      'hollow-body-hold',
+      'toe-reach',
+      'bear-plank',
     ]);
   });
 });
