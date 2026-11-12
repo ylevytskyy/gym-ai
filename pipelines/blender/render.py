@@ -464,6 +464,208 @@ def butt_kick(up, down):
 BUTT_PASS = pose(elbow=90, spine=5, thigh=0, knee=40)
 
 
+# --- Batch 3: stretches, glute work, push-up variants, floor core, quiet cardio --------------------
+def leg_swing(side, thigh):
+    """Hands on hips; `side` swings a straight leg forward (+) or back (-); the torso counters a little."""
+    return pose(LUNGE_STAND, hip=(0, 0, 0.005), spine=-0.08 * thigh,
+                **{side: dict(thigh=thigh, knee=4 + max(0, thigh) * 0.1, foot=-8 if thigh > 0 else 20)})
+
+
+def cobra(x):
+    """Face down, hands by the chest; the chest rises by `x` (0..1) while the hips stay down."""
+    return pose(PRONE_FLAT, pelvis=90 - 4 * x, spine=-38 * x, neck=-6 - 14 * x, head=-4 * x,
+                hands=(0, 0, 0), elbows=(0, 0, 0))
+
+
+COBRA_SHOULDER_Y = 0.3 - HIP_TO_SHOULDER  # shoulders when lying flat
+
+
+def quad_stretch(side, deep=0.0):
+    """Stand on one leg; `side` hand holds that ankle behind, the other arm out for balance."""
+    other = "L" if side == "R" else "R"
+    return pose(spine=-2, **{side: dict(thigh=-6 - 6 * deep, knee=150, foot=35, arm=-30 - 4 * deep, elbow=6,
+                                        abduct=-5),
+                             other: dict(abduct=55, arm=8, elbow=10)})
+
+
+def split_squat(x):
+    """Long stride, right foot back on its toes; the hips lower by `x` (0..1)."""
+    back = dict(feet=(0, 0.88, 0.095), foot=40, pole=(0, -0.2, -0.65))
+    return pose(LUNGE_STAND, hip=(0, 0.42, -0.13 - 0.29 * x), spine=2 + 2 * x, R=back)
+
+
+def curtsy(back):
+    """Curtsy lunge stepping `back` diagonally behind the other foot; keys from frame 0 over 70 frames."""
+    sx = 1 if back == "L" else -1
+    stand = pose(**SUMO_ARMS)
+    lift = {back: dict(feet=(-0.16, 0.28, 0.06), foot=15)}
+    down = {back: dict(feet=(-0.32, 0.55, 0.095), foot=40, pole=(-0.15, -0.2, -0.65))}
+    mid = pose(stand, hip=(-sx * 0.02, 0.10, -0.08), **lift)
+    bottom = pose(stand, hip=(-sx * 0.05, 0.26, -0.40), spine=6, neck=-6, **down)
+    return [(0, stand), (12, mid), (30, bottom), (40, bottom), (58, mid), (70, stand)]
+
+
+def fire_hydrant(side, x=1.0, deg=60):
+    """From hands and knees, `side` lifts its bent knee out to the side by `x` (0..1) of `deg`;
+    the shin stays level, pointing back."""
+    a = math.radians(deg * x)
+    hip = Vector((0.10, QUAD_HIP[0], QUAD_HIP[1]))  # this side's hip joint, mirrored to +X
+    knee = hip + Vector((0.035, 0, 0)) + 0.437 * Vector((math.sin(a), 0, -math.cos(a)))
+    ankle = knee + Vector((0.035, 0.437, 0))
+    feet = (ankle.x - STANCE_X, ankle.y, ankle.z - 0.063 + QUAD["feet"][2])
+    bend = (knee - (hip + ankle) / 2).normalized()
+    pole = knee + 0.8 * bend
+    rest_pole = Vector((STANCE_X, -0.6, 0.5))  # knee pole beside the foot, before the foot moves
+    return pose(QUAD, **{side: dict(feet=feet, foot=152 + 6 * x,
+                                    pole=tuple(pole - rest_pole - Vector(feet)))})
+
+
+def single_leg_bridge(a):
+    """Glute bridge on the left foot; the right leg stays straight, in line with the left thigh."""
+    base = supine(a)
+    r = math.radians(a)
+    hip = Vector((0, 0.50 - HIP_TO_SHOULDER * math.cos(r), 0.12 + HIP_TO_SHOULDER * math.sin(r)))
+    ankle = Vector((0, -0.30, 0.08))
+    d = (ankle - hip).length
+    elev = math.degrees(math.atan2(ankle.z - hip.z, hip.y - ankle.y)) + math.degrees(math.acos(d / 2 / 0.437))
+    e = math.radians(elev)
+    leg = Vector((0, -math.cos(e), math.sin(e)))
+    straight = hip + 0.86 * leg
+    feet = (0, straight.y, straight.z - 0.08)
+    knee_up = hip + 0.43 * leg + Vector((0, 0, 0.6))
+    rest_pole = Vector((0, -0.6, 0.5))
+    return pose(base, R=dict(feet=feet, foot=-elev + 10, pole=tuple(knee_up - rest_pole - Vector(feet))))
+
+
+def hip_abduction(side, x):
+    """Hands on hips; `side` lifts a straight leg out to the side by `x` (0..1); the torso leans away a little."""
+    lean = 4 * x if side == "R" else -4 * x
+    return pose(LUNGE_STAND, spine=(0, lean, 0), **{side: dict(spread=32 * x, foot=10 * x)})
+
+
+WALL_PUSH_Y = -1.02  # wall face in front of the mannequin
+WALL_PUSH_ANKLE = (0.0, 0.10)  # heels a little up
+WALL_PUSH_TOP, _ = prone(1.33, WALL_PUSH_ANKLE, toe_deg=FOOT_REST_DEG + 12)
+WALL_PUSH_BOTTOM, _ = prone(1.23, WALL_PUSH_ANKLE, toe_deg=FOOT_REST_DEG + 22)
+
+
+KNEE_LEN = 0.437  # hip to knee
+
+
+def knee_push_up(shoulder_z, knee=(0.48, 0.065)):
+    """Straight line from the knees on the floor to the shoulders; shins raised, feet crossed off the floor."""
+    ky, kz = knee
+    lift = math.degrees(math.asin((shoulder_z - kz) / (KNEE_LEN + HIP_TO_SHOULDER)))
+    tilt = 90 - lift
+    hip_y = ky - KNEE_LEN * math.sin(math.radians(tilt))
+    hip_z = kz + KNEE_LEN * math.cos(math.radians(tilt))
+    return pose(hip=(0, hip_y, hip_z - 0.95), pelvis=tilt, thigh=0, knee=lift + 40, foot=30, neck=6), \
+        hip_y - HIP_TO_SHOULDER * math.sin(math.radians(tilt))
+
+
+KNEE_PUSH_TOP, KNEE_PUSH_SHOULDER_Y = knee_push_up(0.50)
+KNEE_PUSH_BOTTOM, _ = knee_push_up(0.18)
+KNEE_PUSH_HAND_Y = KNEE_PUSH_SHOULDER_Y + 0.10
+
+
+def circles_meet(a, b, ra, rb):
+    """Upper intersection (y, z) of a circle of radius `ra` round `a` and one of radius `rb` round `b`."""
+    a, b = Vector(a), Vector(b)
+    d = (b - a).length
+    x = (d * d + ra * ra - rb * rb) / (2 * d)
+    h = math.sqrt(max(ra * ra - x * x, 0))
+    u = (b - a) / d
+    p = a + x * u
+    n = Vector((-u.y, u.x))
+    return max(p + h * n, p - h * n, key=lambda v: v[1])  # the higher one
+
+
+PIKE_ANKLE = (0.55, 0.11)
+PIKE_HAND_Y = -0.42
+
+
+def pike(shoulder):
+    """Hips high in an upside-down V: feet and hands planted, shoulders at (y, z)."""
+    hip = circles_meet(PIKE_ANKLE, shoulder, ANKLE_TO_HIP, HIP_TO_SHOULDER)
+    torso = Vector(shoulder) - hip
+    tilt = math.degrees(math.atan2(-torso.x, torso.y))  # lean of the torso from upright, forward positive
+    leg = Vector(PIKE_ANKLE) - hip
+    back = math.degrees(math.atan2(leg.x, -leg.y))  # leg angle from straight down, backward positive
+    return pose(hip=(0, hip.x, hip.y - 0.95), pelvis=tilt, spine=0, neck=-8, thigh=tilt - back,
+                knee=0, foot=45 - FOOT_REST_DEG - back)
+
+
+PIKE_TOP = pike((-0.32, 0.56))
+PIKE_BOTTOM = pike((-0.27, 0.34))
+
+
+def reverse_crunch(x):
+    """On the back, knees bent over the hips; the hips curl up off the floor by `x` (0..1)."""
+    return pose(supine(24 * x), spine=10 * x, thigh=92 + 6 * x, knee=95 + 15 * x, foot=15)
+
+
+def leg_raise(deg):
+    return pose(SUPINE_FLAT, thigh=deg, knee=2, foot=12)
+
+
+def flutter(up, down):
+    return pose(SUPINE_FLAT, neck=12, **{up: dict(thigh=30, knee=3, foot=20), down: dict(thigh=8, knee=3, foot=20)})
+
+
+def heel_tap(deg):
+    """Shoulders curled up, feet flat; the chest bends sideways `deg` (+ left) so a hand reaches a heel."""
+    return pose(crunch(0.5), spine=Matrix.Rotation(math.radians(16), 3, "X") @ Matrix.Rotation(math.radians(deg), 3, "Y"), arm=20, abduct=8,
+                feet=(0.04, -0.36, 0))
+
+
+TWIST_HANDS = dict(arm=48, elbow=25, abduct=-9)  # the torso leans back, so this reaches forward over the knees
+
+
+def russian_twist(deg):
+    """Sitting on the floor, leaning back, heels down; the chest turns `deg` (+ left)."""
+    return pose(hip=(0, 0.05, 0.13 - 0.95), pelvis=-38, spine=(6, 0, 0.8 * deg), neck=(14, 0, 0.25 * deg),
+                feet=(0.02, -0.42, 0), **TWIST_HANDS)
+
+
+GUARD = dict(arm=28, elbow=125, elbow_in=18, abduct=12)  # fists by the chin, elbows in
+
+
+def guard(**kw):
+    return pose(**{**dict(hip=(0, 0, -0.04), L=dict(GUARD, feet=(0, -0.14, 0)),
+                           R=dict(GUARD, feet=(0, 0.14, 0), foot=5)), **kw})
+
+
+def punch(side):
+    """Straight punch with `side`; the chest turns behind it."""
+    turn = -18 if side == "L" else 18
+    base = guard(spine=(0, 0, turn), neck=(0, 0, -0.6 * turn))
+    base[side] = dict(base[side], arm=86, elbow=6, elbow_in=4, abduct=-6)
+    return base
+
+
+def step_touch(l_x, r_x, hip_x, l_z=0.0, r_z=0.0, hip_z=-0.03, open_=0.0):
+    """Feet at world x `l_x` and `r_x` (lifted by *_z); arms open by `open_` (0..1)."""
+    arms = dict(abduct=22 + 33 * open_, elbow=70 - 40 * open_, arm=10)
+    return pose(hip=(hip_x, 0, hip_z), L=dict(arms, feet=(l_x - STANCE_X, 0, l_z), foot=15 if l_z else 0),
+                R=dict(arms, feet=(-r_x - STANCE_X, 0, r_z), foot=15 if r_z else 0))
+
+
+def sample(fn, start, end, steps=6):
+    """Keys along fn(t), t eased 0..1 from frame `start` to `end`; for paths straight keys would cut."""
+    keys = []
+    for i in range(steps + 1):
+        t = i / steps
+        keys.append((start + round((end - start) * t), fn((1 - math.cos(math.pi * t)) / 2)))
+    return keys
+
+
+def hydrant_rep(side, start):
+    up = sample(lambda t: fire_hydrant(side, t), start, start + 24)
+    hold = [(start + 34, fire_hydrant(side))]
+    down = sample(lambda t: fire_hydrant(side, 1 - t), start + 34, start + 58)[1:]
+    return up + hold + down
+
+
 EXERCISES = {
     "squat": {
         "legs": "ik", "arms": "fk", "look": (0, 0, 0.85),
@@ -717,6 +919,139 @@ EXERCISES = {
         "keys": [(1, butt_kick("L", "R")), (11, BUTT_PASS), (21, butt_kick("R", "L")), (31, BUTT_PASS),
                  (41, butt_kick("L", "R"))],
     },
+    "leg_swings": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 160,  # right leg swings twice, then the left: about 0.7 s each way
+        "keys": [(1, leg_swing("R", 0)), (13, leg_swing("R", 50)), (33, leg_swing("R", -30)),
+                 (53, leg_swing("R", 50)), (73, leg_swing("R", -30)), (81, leg_swing("R", 0)),
+                 (93, leg_swing("L", 50)), (113, leg_swing("L", -30)), (133, leg_swing("L", 50)),
+                 (153, leg_swing("L", -30)), (161, leg_swing("R", 0))],
+    },
+    "cobra_stretch": {
+        "legs": "fk", "arms": "ik", "look": (0, 0, 0.2), "raise": 0.5,
+        "wrist": lambda s: (s * 0.27, COBRA_SHOULDER_Y + 0.07, 0.035),  # hands by the lower ribs
+        "elbow_pole": lambda s: (s * 0.45, COBRA_SHOULDER_Y + 0.55, 0.6),  # elbows back, close to the body
+        "frame_end": 150,  # 1.5 s up, 1 s hold, 1.5 s down, 1 s rest
+        "keys": [(1, cobra(0)), (46, cobra(1)), (76, cobra(1)), (121, cobra(0)), (151, cobra(0))],
+    },
+    "standing_quad_stretch": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 240,  # hold the right side for 3 s, switch, hold the left
+        "keys": [(1, quad_stretch("R")), (46, quad_stretch("R", 1)), (91, quad_stretch("R")), (106, STAND),
+                 (121, quad_stretch("L")), (166, quad_stretch("L", 1)), (211, quad_stretch("L")), (226, STAND),
+                 (241, quad_stretch("R"))],
+    },
+    "split_squat": {
+        "legs": "ik", "arms": "fk", "look": (0, 0.3, 0.8), "toe_out": 5,
+        "frame_end": 90,  # 1.3 s down, 0.3 s hold, 1 s up, 0.4 s pause
+        "keys": [(1, split_squat(0)), (41, split_squat(1)), (50, split_squat(1)), (80, split_squat(0)),
+                 (91, split_squat(0))],
+    },
+    "curtsy_lunge": {
+        "legs": "ik", "arms": "fk", "look": (0, 0.2, 0.8), "toe_out": 5,
+        "frame_end": 140,  # right leg back across, return; then the left
+        "keys": [(1 + f, k) for f, k in curtsy("R")] + [(71 + f, k) for f, k in curtsy("L")[1:]],
+    },
+    "fire_hydrant": {
+        "legs": "ik", "arms": "ik", "look": (0, 0, 0.45), "raise": 0.4, "toe_out": 0,
+        "views": {"three_quarter": Vector((1.0, 3.6, 0.9))},  # from behind, so both knees open sideways in view
+        "wrist": lambda s: (s * 0.22, QUAD_SHOULDER[0], 0.035),
+        "elbow_pole": lambda s: (s * 0.25, QUAD_SHOULDER[0] + 0.5, 0.35),
+        "frame_end": 120,  # right knee out and down, then the left: 0.8 s up, 0.3 s hold, 0.8 s down
+        "keys": hydrant_rep("R", 1) + [(61, QUAD)] + hydrant_rep("L", 61)[1:] + [(121, QUAD)],
+    },
+    "single_leg_glute_bridge": {
+        "legs": "ik", "arms": "ik", "look": (0, 0.1, 0.2), "raise": 0.7,
+        "views": {"front": Vector((-2.6, 2.0, 1.4)), "three_quarter": Vector((2.6, 2.0, 1.0))},
+        "wrist": lambda s: (s * 0.427, 0.012, 0.035),
+        "hand": lambda s: (s * 0.038, -0.082, -0.005),
+        "elbow_pole": lambda s: (s * 0.8, 0.25, 0.05),
+        "frame_end": 105,  # 1 s up, 1 s hold, 1 s down, 0.5 s rest
+        "keys": [(1, single_leg_bridge(0)), (31, single_leg_bridge(24)), (61, single_leg_bridge(24)),
+                 (91, single_leg_bridge(0)), (106, single_leg_bridge(0))],
+    },
+    "standing_hip_abduction": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 120,  # right leg out, hold, down; then the left: 0.7 s up, 0.3 s hold, 0.7 s down
+        "keys": [(1, hip_abduction("R", 0)), (21, hip_abduction("R", 1)), (31, hip_abduction("R", 1)),
+                 (51, hip_abduction("R", 0)), (61, hip_abduction("L", 0)), (81, hip_abduction("L", 1)),
+                 (91, hip_abduction("L", 1)), (111, hip_abduction("L", 0)), (121, hip_abduction("R", 0))],
+    },
+    "wall_push_up": {
+        "legs": "fk", "arms": "ik", "look": (0, -0.4, 0.9), "wall": {"y": WALL_PUSH_Y, "facing": -1},
+        "wrist": lambda s: (s * 0.27, WALL_PUSH_Y + 0.025, 1.24),
+        "hand": lambda s: (0, -0.005, 0.09),  # palm flat on the wall, fingers up
+        "elbow_pole": lambda s: (s * 0.6, -0.3, 0.6),  # elbows down and about 45 deg out
+        "frame_end": 90,  # 1.3 s in, 0.3 s hold, 1 s out, 0.4 s pause
+        "keys": [(1, WALL_PUSH_TOP), (40, WALL_PUSH_BOTTOM), (49, WALL_PUSH_BOTTOM), (79, WALL_PUSH_TOP),
+                 (91, WALL_PUSH_TOP)],
+    },
+    "knee_push_up": {
+        "legs": "fk", "arms": "ik", "look": (0, -0.2, 0.25), "raise": 0.7,
+        "wrist": lambda s: (s * 0.30, KNEE_PUSH_HAND_Y, 0.035),
+        "elbow_pole": lambda s: (s * 0.6, KNEE_PUSH_HAND_Y + 0.5, 0.6),
+        "frame_end": 90,  # 1.3 s down, 0.3 s hold, 1 s up, 0.4 s pause
+        "keys": [(1, KNEE_PUSH_TOP), (40, KNEE_PUSH_BOTTOM), (49, KNEE_PUSH_BOTTOM), (79, KNEE_PUSH_TOP),
+                 (91, KNEE_PUSH_TOP)],
+    },
+    "pike_push_up": {
+        "legs": "fk", "arms": "ik", "look": (0, 0, 0.4), "raise": 0.3,
+        "wrist": lambda s: (s * 0.27, PIKE_HAND_Y, 0.035),
+        "elbow_pole": lambda s: (s * 0.5, PIKE_HAND_Y + 0.6, 0.9),  # elbows back toward the feet
+        "frame_end": 90,  # 1.3 s down, 0.3 s hold, 1 s up, 0.4 s pause
+        "keys": [(1, PIKE_TOP), (40, PIKE_BOTTOM), (49, PIKE_BOTTOM), (79, PIKE_TOP), (91, PIKE_TOP)],
+    },
+    "reverse_crunch": {
+        "legs": "fk", "arms": "ik", "look": (0, 0.1, 0.3), "raise": 0.7,
+        "wrist": lambda s: (s * 0.427, 0.012, 0.035),
+        "hand": lambda s: (s * 0.038, -0.082, -0.005),
+        "elbow_pole": lambda s: (s * 0.8, 0.25, 0.05),
+        "frame_end": 75,  # 1 s up, 0.3 s hold, 1 s down, 0.2 s rest
+        "keys": [(1, reverse_crunch(0)), (31, reverse_crunch(1)), (40, reverse_crunch(1)), (70, reverse_crunch(0)),
+                 (76, reverse_crunch(0))],
+    },
+    "lying_leg_raise": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.3), "raise": 0.6,
+        "frame_end": 105,  # 1.3 s up, 0.3 s hold, 1.5 s down, 0.4 s hover
+        "keys": [(1, leg_raise(10)), (40, leg_raise(85)), (49, leg_raise(85)), (94, leg_raise(10)),
+                 (106, leg_raise(10))],
+    },
+    "flutter_kicks": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.3), "raise": 0.6,
+        "frame_end": 30,  # one kick each way per second
+        "keys": [(1, flutter("L", "R")), (16, flutter("R", "L")), (31, flutter("L", "R"))],
+    },
+    "heel_taps": {
+        "legs": "ik", "arms": "fk", "look": (0, 0.1, 0.2), "raise": 0.9,
+        "views": {"three_quarter": Vector((2.4, 0.4, 2.8))},  # high, from the side: the sideways reach shows
+        "frame_end": 60,  # tap the left heel, the right heel: 1 s each
+        "keys": [(1, heel_tap(24)), (16, heel_tap(0)), (31, heel_tap(-24)), (46, heel_tap(0)), (61, heel_tap(24))],
+    },
+    "russian_twist": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.5), "toe_out": 5,
+        "views": {"three_quarter": Vector((3.0, -1.4, 1.5))},  # high and from the side: the knees hide nothing
+        "frame_end": 60,  # one turn to each side per second
+        "keys": [(1, russian_twist(40)), (31, russian_twist(-40)), (61, russian_twist(40))],
+    },
+    "shadow_boxing": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 1.0), "toe_out": 20,
+        "frame_end": 40,  # left jab, right cross
+        "keys": [(1, guard()), (7, punch("L")), (13, guard()), (21, guard()), (27, punch("R")), (33, guard()),
+                 (41, guard())],
+    },
+    "step_touch": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 60,  # step left and touch, step right and touch: 1 s each
+        "keys": [(1, step_touch(-0.10, -0.32, -0.11)),
+                 (8, step_touch(0.11, -0.32, -0.05, l_z=0.06, hip_z=-0.02, open_=0.5)),
+                 (15, step_touch(0.32, -0.32, 0.0, hip_z=-0.05, open_=1)),
+                 (23, step_touch(0.32, -0.11, 0.05, r_z=0.06, hip_z=-0.02, open_=0.5)),
+                 (31, step_touch(0.32, 0.10, 0.11)),
+                 (38, step_touch(0.32, -0.11, 0.05, r_z=0.06, hip_z=-0.02, open_=0.5)),
+                 (45, step_touch(0.32, -0.32, 0.0, hip_z=-0.05, open_=1)),
+                 (53, step_touch(0.11, -0.32, -0.05, l_z=0.06, hip_z=-0.02, open_=0.5)),
+                 (61, step_touch(-0.10, -0.32, -0.11))],
+    },
 }
 
 # Camera direction from the exercise's look-at point, raised by its "raise"; fit_camera sets the distance.
@@ -885,8 +1220,8 @@ def key_pose(arm, ex, frame, pose):
 PROPS = ("floor", "chair", "wall", "stair")  # scenery, left out of camera framing and floor checks
 
 
-def build_boxes(name, parts, color):
-    """Axis-aligned boxes, each given as (centre, half-size)."""
+def build_boxes(name, parts, color, shadow=True):
+    """Axis-aligned boxes, each given as (centre, half-size); shadow=False keeps them from shading the body."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (*color, 1)
@@ -898,7 +1233,9 @@ def build_boxes(name, parts, color):
         bm.to_mesh(mesh)
         bm.free()
         mesh.materials.append(mat)
-        bpy.context.scene.collection.objects.link(bpy.data.objects.new(f"{name}{i}", mesh))
+        obj = bpy.data.objects.new(f"{name}{i}", mesh)
+        obj.visible_shadow = shadow
+        bpy.context.scene.collection.objects.link(obj)
 
 
 def build_chair(edge=0.30, facing=1):
@@ -910,9 +1247,10 @@ def build_chair(edge=0.30, facing=1):
                 (0.45, 0.33, 0.22))
 
 
-def build_wall(y):
-    """Wall behind the mannequin; its face is at y=`y`."""
-    build_boxes("wall", [((0, y + 0.05, 1.2), (1.5, 0.05, 1.2))], (0.80, 0.78, 0.74))
+def build_wall(y, facing=1):
+    """Wall with its face at y=`y`, behind the mannequin (facing=1) or in front of it (facing=-1)."""
+    # A wall in front would sit between the sun and the body, so it casts no shadow.
+    build_boxes("wall", [((0, y + facing * 0.05, 1.2), (1.5, 0.05, 1.2))], (0.80, 0.78, 0.74), shadow=facing > 0)
 
 
 def build_stairs(edge, rise=STEP_RISE, run=STEP_RUN, steps=3):
@@ -941,7 +1279,7 @@ def build_stage(view, ex):
     if ex.get("chair"):
         build_chair(**(ex["chair"] if isinstance(ex["chair"], dict) else {}))
     if "wall" in ex:
-        build_wall(ex["wall"])
+        build_wall(**(ex["wall"] if isinstance(ex["wall"], dict) else {"y": ex["wall"]}))
     if "stairs" in ex:
         build_stairs(ex["stairs"])
 
