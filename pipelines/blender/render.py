@@ -6,6 +6,7 @@ Usage:
 
 --frames renders only those frames as PNG (for review); without it the whole loop is rendered.
 --check prints joint positions at each key pose instead of rendering.
+A full render also rebuilds <out>/index.html, the page that plays every loop (see gallery.py).
 """
 
 import argparse
@@ -1050,6 +1051,9 @@ def main():
         scene.render.filepath = os.path.join(out, "frame_")
         bpy.ops.render.render(animation=True)
         encode(out, scene.render.fps)
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import gallery
+        gallery.build(args.out)
 
 
 def encode(out, fps):
