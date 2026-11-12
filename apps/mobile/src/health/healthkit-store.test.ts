@@ -217,6 +217,24 @@ describe('HealthKit store: readDays', () => {
   });
 });
 
+describe('HealthKit store: readDaysChecked', () => {
+  it('says the read was complete when every query answered, even with no data', async () => {
+    expect((await store(fakeHealthKit()).readDaysChecked('2026-11-12', '2026-11-12')).complete).toBe(true);
+  });
+
+  it('says the read was not complete when a query failed, so the gap is never mistaken for "no data"', async () => {
+    const hk = fakeHealthKit({ queryCategorySamples: jest.fn(async () => { throw new Error('protected data unavailable'); }) });
+    const result = await store(hk).readDaysChecked('2026-11-12', '2026-11-12');
+    expect(result.complete).toBe(false);
+    expect(result.days).toHaveLength(1);
+  });
+
+  it('is not complete before the permission request was answered', async () => {
+    const hk = fakeHealthKit({ getRequestStatusForAuthorization: jest.fn(async () => 1) });
+    expect((await store(hk).readDaysChecked('2026-11-12', '2026-11-12')).complete).toBe(false);
+  });
+});
+
 describe('HealthKit store: profile hints', () => {
   it('offers the latest weight and the date of birth', async () => {
     const hk = fakeHealthKit({

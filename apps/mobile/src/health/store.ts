@@ -11,6 +11,7 @@ export const healthStore: HealthStore = {
   connect: async () => 'unavailable',
   openSettings: async () => {},
   readDays: async (from, to) => buildHealthDays(EMPTY_RAW_HEALTH, { from, to, tz: deviceTimeZone(), platform: 'ios' }),
+  readDaysChecked: async (from, to) => ({ days: buildHealthDays(EMPTY_RAW_HEALTH, { from, to, tz: deviceTimeZone(), platform: 'ios' }), complete: false }),
   readProfileHints: async () => ({}),
   writeWorkout: async () => null,
   deleteWorkout: async () => {},

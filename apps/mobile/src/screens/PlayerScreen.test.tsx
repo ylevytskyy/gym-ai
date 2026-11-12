@@ -356,3 +356,103 @@ describe('PlayerScreen: things found in review', () => {
     alert.mockRestore();
   });
 });
+
+describe('health days: sync and adjustment', () => {
+  /** Seven ordinary nights before today, then today's night. */
+  function nights(lastNightMinutes: number) {
+    const sleep = [];
+    for (let back = 7; back >= 0; back--) {
+      const wake = new Date(2026, 10, 12 - back, 7, 0);
+      const minutes = back === 0 ? lastNightMinutes : 480;
+      sleep.push({ start: new Date(wake.getTime() - minutes * 60_000), end: wake });
+    }
+    return { steps: [{ day: '2026-11-12', value: 900 }], activeEnergyKcal: [], restingHrBpm: [], weightKg: [], sleep, workouts: [] };
+  }
+
+  it('sends the last 15 health days to the server when Health is connected', async () => {
+    const harness = createHarness({ ...base, health: { initial: 'connected', raw: nights(470) } });
+    await harness.renderScreen(<TodayScreen />);
+    await screen.findByTestId('today-plan');
+
+    await waitFor(() => expect(harness.synced).toHaveLength(1));
+    const rows = harness.synced[0]!;
+    expect(rows).toHaveLength(15);
+    expect(rows.every((row) => row['user_id'] === 'user-1')).toBe(true);
+    expect(rows[14]).toMatchObject({ day: '2026-11-12', steps: 900, sleep_minutes: 470, resting_hr_bpm: null, external_workouts: [] });
+    expect(rows[0]).toMatchObject({ day: '2026-10-29', steps: null, sleep_minutes: null });
+  });
+
+  it('sends nothing when Health is off', async () => {
+    const harness = createHarness({ ...base, preferences: {}, health: { initial: 'connected', raw: nights(300) } });
+    await harness.renderScreen(<TodayScreen />);
+    await screen.findByTestId('today-plan');
+    await pass(1000);
+
+    expect(harness.synced).toEqual([]);
+    expect(screen.queryByTestId('adjustment')).toBeNull();
+  });
+
+  it('shows a lighter session and the reason after a short night, and the player runs that session', async () => {
+    const harness = createHarness({ ...base, health: { initial: 'connected', raw: nights(300) } });
+    await harness.renderScreen(<Flow />);
+
+    // Flow shows the player once everything is loaded; the squat block lost one of its two sets.
+    await screen.findByTestId('begin');
+    expect(screen.getByText(/^2 sets, about 5 minutes/)).toBeTruthy();
+  });
+
+  it('explains the adjustment on Today', async () => {
+    const harness = createHarness({ ...base, health: { initial: 'connected', raw: nights(300) } });
+    await harness.renderScreen(<TodayScreen />);
+
+    expect(await screen.findByText('A lighter session today: you slept less than 6 hours and you slept much less than usual.')).toBeTruthy();
+    expect(screen.getByText('Main: Squat 1 × 10')).toBeTruthy();
+    expect(screen.getByText(/not medical advice/)).toBeTruthy();
+  });
+
+  it('does not sync a read in which something failed: the gap would erase what the server holds', async () => {
+    const harness = createHarness({ ...base, health: { initial: 'connected', raw: nights(470), readFails: true } });
+    await harness.renderScreen(<TodayScreen />);
+    await screen.findByTestId('today-plan');
+    await pass(1000);
+    expect(harness.synced).toEqual([]);
+  });
+
+  it('waits for a slow Health read, so the player runs the adjusted session', async () => {
+    const harness = createHarness({ ...base, health: { initial: 'connected', raw: nights(300), readDelayMs: 1500 } });
+    await harness.renderScreen(<PlayerScreen platform="ios" />);
+    await pass(500);
+    expect(screen.queryByTestId('begin')).toBeNull();
+    expect(screen.getByText('Loading your workout…')).toBeTruthy();
+    await pass(1500);
+    await screen.findByTestId('begin');
+    expect(screen.getByText(/^2 sets, about 5 minutes/)).toBeTruthy();
+  });
+
+  it('stops waiting after three seconds and plays the session as planned', async () => {
+    const harness = createHarness({ ...base, health: { initial: 'connected', raw: nights(300), readDelayMs: 600_000 } });
+    await harness.renderScreen(<PlayerScreen platform="ios" />);
+    await pass(2500);
+    expect(screen.queryByTestId('begin')).toBeNull();
+    await pass(1000);
+    await screen.findByTestId('begin');
+    expect(screen.getByText(/^3 sets, about 5 minutes/)).toBeTruthy();
+  });
+
+  it('says there is no workout when nobody is signed in', async () => {
+    const harness = createHarness({ ...base, signedIn: false });
+    await harness.renderScreen(<PlayerScreen platform="ios" />);
+    await pass(4000);
+    expect(screen.getByText('There is no workout to play.')).toBeTruthy();
+  });
+
+  it('leaves the session as planned after an ordinary night', async () => {
+    const harness = createHarness({ ...base, health: { initial: 'connected', raw: nights(465) } });
+    await harness.renderScreen(<TodayScreen />);
+    await screen.findByTestId('today-plan');
+    await waitFor(() => expect(harness.synced).toHaveLength(1));
+
+    expect(screen.queryByTestId('adjustment')).toBeNull();
+    expect(screen.getByText('Main: Squat 2 × 10')).toBeTruthy();
+  });
+});

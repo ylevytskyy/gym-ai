@@ -22,6 +22,12 @@ export interface ProfileHints {
   dateOfBirth?: string;
 }
 
+export interface CheckedDays {
+  days: HealthDay[];
+  /** False when at least one read failed (not when a type simply has no data or was denied). */
+  complete: boolean;
+}
+
 export type WorkoutKind = 'strength' | 'hiit' | 'mobility';
 
 export interface WorkoutToWrite {
@@ -41,6 +47,11 @@ export interface HealthStore {
   openSettings(): Promise<void>;
   /** Health days from `from` to `to` (YYYY-MM-DD, local, inclusive), oldest first. */
   readDays(from: string, to: string): Promise<HealthDay[]>;
+  /**
+   * The same days, plus whether every read succeeded. A failed read looks like "no data" in
+   * the days themselves, so anything that would overwrite stored data must check `complete`.
+   */
+  readDaysChecked(from: string, to: string): Promise<CheckedDays>;
   readProfileHints(): Promise<ProfileHints>;
   /** Saves a finished workout; resolves to the health store's record id, or null when writing is not allowed. */
   writeWorkout(workout: WorkoutToWrite): Promise<string | null>;

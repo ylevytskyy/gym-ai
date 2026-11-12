@@ -34,6 +34,8 @@ export function createHarness(options: HarnessOptions = {}) {
   const inserts: { table: string; row: Record<string, unknown> }[] = [];
   const updates: { table: string; row: Record<string, unknown> }[] = [];
   let idCounter = 0;
+  /** Each sync of health days, as the rows that were sent. */
+  const synced: Record<string, unknown>[][] = [];
 
   const auth = {
     getSession: jest.fn(async () => ({ data: { session }, error: null })),
@@ -56,6 +58,9 @@ export function createHarness(options: HarnessOptions = {}) {
 
   const from = jest.fn((table: string) => {
     let upserted: Record<string, unknown> | undefined;
+    if (table === 'health_days') {
+      return { upsert: async (rows: Record<string, unknown>[]) => (synced.push(rows), { error: null }) };
+    }
     if (table === 'plans' || table === 'workout_logs') {
       const answer = table === 'plans' ? { data: options.rows?.plans ?? null, error: null } : { data: options.rows?.workout_logs ?? [], error: null };
       const rows: Record<string, unknown> = {};
@@ -111,5 +116,5 @@ export function createHarness(options: HarnessOptions = {}) {
       </ServicesProvider>,
     );
 
-  return { services, auth, store, upserts, inserts, updates, preferences: data, renderScreen };
+  return { services, auth, store, upserts, inserts, updates, synced, preferences: data, renderScreen };
 }

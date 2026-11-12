@@ -10,7 +10,7 @@
 import type { HealthDay } from '@aura-fit/health-core';
 
 import { localDayOf } from './local-day';
-import type { HealthStore, ProfileHints, WorkoutToWrite } from './types';
+import type { CheckedDays, HealthStore, ProfileHints, WorkoutToWrite } from './types';
 
 /**
  * - `off`: available, but the user has not connected or has disconnected in the app.
@@ -37,6 +37,8 @@ export interface HealthController {
   /** Today's health day, or null when not connected. */
   readToday(now?: Date): Promise<HealthDay | null>;
   readDays(from: string, to: string): Promise<HealthDay[]>;
+  /** The days plus whether every read succeeded; `complete` is false when not connected. */
+  readDaysChecked(from: string, to: string): Promise<CheckedDays>;
   readProfileHints(): Promise<ProfileHints>;
   writeWorkout(workout: WorkoutToWrite): Promise<string | null>;
   /** Removes a workout this app wrote. Allowed after disconnect too, so the user can still clean up. */
@@ -96,6 +98,10 @@ export function createHealthController(store: HealthStore, preferences: Preferen
 
     async readDays(from, to) {
       return (await connected()) ? store.readDays(from, to) : [];
+    },
+
+    async readDaysChecked(from, to) {
+      return (await connected()) ? store.readDaysChecked(from, to) : { days: [], complete: false };
     },
 
     async readProfileHints() {

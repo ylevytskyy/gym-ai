@@ -15,8 +15,13 @@ HealthKit and Health Connect are native modules and do not run in Expo Go.
 - Workout player: every set with its looping demo video, timed sets and rests, pause, skip, and
   a summary that is saved as a workout log and written to the health store.
 
-Sync of health days to the server, sessions adjusted to readiness, sitting nudges, chat and
-history are not built yet (see `.kiro/specs/health-integration/spec.md`, milestones 4 to 6).
+- Sync: while Health is connected, today and the 14 days before it are sent to the server as
+  daily summaries (`health_days`) each time the app comes to the foreground.
+- Adjustment: after a short night the session is lighter, after a good one it gains a set, and
+  after a long workout elsewhere today it becomes mobility work. Today says why.
+
+Sync while the app is closed, sitting nudges, chat and history are not built yet (see
+`.kiro/specs/health-integration/spec.md`, milestones 5 and 6).
 
 ## Run it
 
@@ -94,11 +99,13 @@ local Supabase:
 - The player shows the demo video from Storage on both platforms; a finished session is saved
   as one workout log, and with Health connected the log carries the health store's record id.
   With Health off the log is saved without it.
+- With Health connected, 15 rows per user arrive in `health_days` under row-level security, with
+  the day's real active energy and weight.
 - Today shows "Done for today" after a session and the next day on a later date (tests only for
   the date change).
 
 Not verified: reading steps, sleep, resting heart rate and other apps' workouts from real data
-(the simulators hold none), creating a plan through the real assistant service (the request
+(the simulators hold none), and therefore any adjusted session on a device (tests only), creating a plan through the real assistant service (the request
 was checked against a stand-in; with the service down the app says so), anything on a physical
 phone, and the hosted Supabase project.
 

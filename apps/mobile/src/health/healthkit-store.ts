@@ -88,13 +88,21 @@ const WRITE_ACTIVITY: Record<WorkoutKind, number> = {
   mobility: 62, // flexibility
 };
 
-/** A failed or denied query reads as "no data"; health must never take the app down. */
-async function orEmpty<T>(query: () => Promise<readonly T[]>): Promise<readonly T[]> {
-  try {
-    return await query();
-  } catch {
-    return [];
+/**
+ * A failed query reads as "no data": health must never take the app down. The failure is
+ * noted, because "no data" from a failure must not overwrite what the server already holds.
+ */
+function reader() {
+  const state = { failed: false };
+  async function orEmpty<T>(query: () => Promise<readonly T[]>): Promise<readonly T[]> {
+    try {
+      return await query();
+    } catch {
+      state.failed = true;
+      return [];
+    }
   }
+  return { orEmpty, state };
 }
 
 export function createHealthKitStore(hk: HealthKitApi, timeZone: () => string = deviceTimeZone): HealthStore {
@@ -108,7 +116,8 @@ export function createHealthKitStore(hk: HealthKitApi, timeZone: () => string = 
     }
   }
 
-  async function readRaw(from: string, to: string): Promise<RawHealth> {
+  async function readRaw(from: string, to: string): Promise<{ raw: RawHealth; complete: boolean }> {
+    const { orEmpty, state } = reader();
     const start = startOfDay(from);
     const end = endOfDay(to);
     const date = { startDate: start, endDate: end, strictStartDate: true };
@@ -142,7 +151,7 @@ export function createHealthKitStore(hk: HealthKitApi, timeZone: () => string = 
         return entry.startDate && value !== undefined ? [{ day: localDayOf(entry.startDate), value }] : [];
       });
 
-    return {
+    const raw: RawHealth = {
       steps: totals(steps, 'sumQuantity'),
       activeEnergyKcal: totals(energy, 'sumQuantity'),
       restingHrBpm: totals(restingHr, 'averageQuantity'),
@@ -161,6 +170,14 @@ export function createHealthKitStore(hk: HealthKitApi, timeZone: () => string = 
         };
       }),
     };
+    return { raw, complete: !state.failed };
+  }
+
+  async function readDaysChecked(from: string, to: string) {
+    const options = { from, to, tz: timeZone(), platform: 'ios' as const };
+    if ((await status()) !== 'connected') return { days: buildHealthDays(EMPTY_RAW_HEALTH, options), complete: false };
+    const { raw, complete } = await readRaw(from, to);
+    return { days: buildHealthDays(raw, options), complete };
   }
 
   return {
@@ -185,10 +202,10 @@ export function createHealthKitStore(hk: HealthKitApi, timeZone: () => string = 
       }
     },
 
+    readDaysChecked,
+
     async readDays(from, to) {
-      const options = { from, to, tz: timeZone(), platform: 'ios' as const };
-      const raw = (await status()) === 'connected' ? await readRaw(from, to) : EMPTY_RAW_HEALTH;
-      return buildHealthDays(raw, options);
+      return (await readDaysChecked(from, to)).days;
     },
 
     async readProfileHints() {

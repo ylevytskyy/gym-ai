@@ -1,4 +1,4 @@
-import type { HealthDay } from '@aura-fit/health-core';
+import { addDays, type HealthDay } from '@aura-fit/health-core';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 
@@ -6,12 +6,18 @@ import { useAuth } from '@/auth/AuthProvider';
 import { useServices } from '@/services';
 
 import type { HealthState } from './controller';
+import { createHealthSync } from './sync';
+
+/** Today and the 14 days before it: what readiness needs, and what is synced. */
+const HISTORY_DAYS = 14;
 
 interface HealthValue {
   /** undefined while the first check runs. */
   state: HealthState | undefined;
   /** Today's totals when connected; null otherwise. */
   today: HealthDay | null;
+  /** Today and the 14 days before it, oldest first; empty when not connected. */
+  days: HealthDay[];
   busy: boolean;
   connect: () => Promise<HealthState>;
   disconnect: () => Promise<void>;
@@ -22,12 +28,13 @@ interface HealthValue {
 const HealthContext = createContext<HealthValue | null>(null);
 
 export function HealthProvider({ children }: { children: ReactNode }) {
-  const { health } = useServices();
+  const { health, supabase, today: todayOf } = useServices();
   // Signing out turns Health off, and the next person starts from there: check again whenever
   // the signed-in user changes.
   const userId = useAuth().session?.user.id;
   const [state, setState] = useState<HealthState | undefined>(undefined);
-  const [today, setToday] = useState<HealthDay | null>(null);
+  const [days, setDays] = useState<HealthDay[]>([]);
+  const sync = useMemo(() => createHealthSync(supabase), [supabase]);
   const [busy, setBusy] = useState(false);
 
   // Checks can overlap (the app comes to the foreground while a connect is in flight). Each
@@ -38,14 +45,31 @@ export function HealthProvider({ children }: { children: ReactNode }) {
     async (action: () => Promise<HealthState>): Promise<HealthState> => {
       const ticket = ++latest.current;
       const next = await action();
-      const day = next === 'connected' ? await health.readToday() : null;
+      if (ticket !== latest.current) return next;
+      // The status is shown at once; the 15-day read can take a moment.
+      setState(next);
+      if (next !== 'connected') {
+        setDays([]);
+        if (userId) sync.forget(userId);
+        return next;
+      }
+      const to = todayOf();
+      let read: { days: HealthDay[]; complete: boolean };
+      try {
+        read = await health.readDaysChecked(addDays(to, -HISTORY_DAYS), to);
+      } catch {
+        read = { days: [], complete: false };
+      }
       if (ticket === latest.current) {
-        setState(next);
-        setToday(day);
+        setDays(read.days);
+        // The same days go to the server as daily summaries, but only from a read in which
+        // nothing failed: a failed read looks like "no data" and would erase what is stored.
+        // Never awaited: a failed sync is simply tried again on the next check.
+        if (read.complete && userId) void sync(userId, read.days);
       }
       return next;
     },
-    [health],
+    [health, todayOf, sync, userId],
   );
 
   const refresh = useCallback(async () => {
@@ -80,10 +104,13 @@ export function HealthProvider({ children }: { children: ReactNode }) {
     [apply],
   );
 
+  const today = useMemo(() => days.find((day) => day.day === todayOf()) ?? null, [days, todayOf]);
+
   const value = useMemo<HealthValue>(
     () => ({
       state,
       today,
+      days,
       busy,
       connect: () => run(() => health.connect()),
       disconnect: async () => {
@@ -92,7 +119,7 @@ export function HealthProvider({ children }: { children: ReactNode }) {
       openSettings: () => health.openSettings(),
       refresh,
     }),
-    [state, today, busy, run, health, refresh],
+    [state, today, days, busy, run, health, refresh],
   );
   return <HealthContext.Provider value={value}>{children}</HealthContext.Provider>;
 }

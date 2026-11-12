@@ -184,6 +184,23 @@ describe('Health Connect store: readDays', () => {
   });
 });
 
+describe('Health Connect store: readDaysChecked', () => {
+  it('is complete when every permitted read answered, and types without permission do not count against it', async () => {
+    expect((await store(fakeHealthConnect()).readDaysChecked('2026-11-12', '2026-11-12')).complete).toBe(true);
+    const stepsOnly = fakeHealthConnect({ getGrantedPermissions: jest.fn(async () => [{ accessType: 'read', recordType: 'Steps' }]) });
+    expect((await store(stepsOnly).readDaysChecked('2026-11-12', '2026-11-12')).complete).toBe(true);
+  });
+
+  it('is not complete when a read failed or Health Connect is unavailable', async () => {
+    const failing = fakeHealthConnect({ readRecords: jest.fn(async () => { throw new Error('IPC'); }) });
+    expect((await store(failing).readDaysChecked('2026-11-12', '2026-11-12')).complete).toBe(false);
+    const oneDayFails = fakeHealthConnect({ aggregateRecord: jest.fn(async () => { throw new Error('rate limited'); }) });
+    expect((await store(oneDayFails).readDaysChecked('2026-11-12', '2026-11-12')).complete).toBe(false);
+    const missing = fakeHealthConnect({ getSdkStatus: jest.fn(async () => 1) });
+    expect((await store(missing).readDaysChecked('2026-11-12', '2026-11-12')).complete).toBe(false);
+  });
+});
+
 describe('Health Connect store: profile hints', () => {
   it('offers the latest weight and never a date of birth', async () => {
     const hc = fakeHealthConnect({ readRecords: jest.fn(async () => ({ records: [{ time: '2026-11-12T05:00:00Z', weight: { inKilograms: 88.04 } }] })) });

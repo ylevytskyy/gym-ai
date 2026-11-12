@@ -30,6 +30,21 @@ export function daysInRange(from: string, to: string): string[] {
   return days;
 }
 
+/** What the health-day contract accepts as a time zone name (schemas/health-day.schema.json). */
+const TIME_ZONE = /^[A-Za-z0-9_+-]+(\/[A-Za-z0-9_+-]+)*$/;
+
+/** A time zone name the contract accepts; anything else becomes UTC, as it does on the server. */
+export function contractTimeZone(name: string | undefined): string {
+  return name && name.length <= 64 && TIME_ZONE.test(name) ? name : 'UTC';
+}
+
 export function deviceTimeZone(): string {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  let name: string | undefined;
+  try {
+    name = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    name = undefined;
+  }
+  // One odd name (an offset like "GMT+05:30") would otherwise make every synced row invalid.
+  return contractTimeZone(name);
 }

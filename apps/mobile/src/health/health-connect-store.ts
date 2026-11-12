@@ -85,10 +85,11 @@ const WRITE_EXERCISE: Record<WorkoutKind, number> = {
 // SleepSessionRecord stage types that are not sleep: awake 1, out of bed 3, awake in bed 7.
 const AWAKE_STAGES = new Set([1, 3, 7]);
 
-async function orUndefined<T>(call: () => Promise<T>): Promise<T | undefined> {
+async function orUndefined<T>(call: () => Promise<T>, onFailure?: () => void): Promise<T | undefined> {
   try {
     return await call();
   } catch {
+    onFailure?.();
     return undefined;
   }
 }
@@ -128,7 +129,12 @@ export function createHealthConnectStore(
     return any ? 'connected' : 'not_connected';
   }
 
-  async function readRaw(from: string, to: string, read: Set<string>): Promise<RawHealth> {
+  async function readRaw(from: string, to: string, read: Set<string>): Promise<{ raw: RawHealth; complete: boolean }> {
+    // A failed read looks like "no data"; it is noted so it never overwrites stored data.
+    let failed = false;
+    const note = () => {
+      failed = true;
+    };
     const range = { operator: 'between' as const, startTime: startOfDay(from).toISOString(), endTime: endOfDay(to).toISOString() };
     const days = daysInRange(from, to);
     const dayRange = (day: string) => ({
@@ -140,28 +146,30 @@ export function createHealthConnectStore(
     // One aggregate per local day: correct in any time zone and on daylight-saving days, and
     // Health Connect removes duplicates between sources itself.
     const perDay = async <T>(type: ReadType, call: (day: string) => Promise<T | undefined>) =>
-      read.has(type) ? Promise.all(days.map(async (day) => ({ day, result: await orUndefined(() => call(day)) }))) : [];
+      read.has(type) ? Promise.all(days.map(async (day) => ({ day, result: await orUndefined(() => call(day), note) }))) : [];
 
     const [steps, energy, restingHr, weights, sleeps, sessions] = await Promise.all([
       perDay('Steps', (day) => hc.aggregateRecord({ recordType: 'Steps', timeRangeFilter: dayRange(day) })),
       perDay('ActiveCaloriesBurned', (day) => hc.aggregateRecord({ recordType: 'ActiveCaloriesBurned', timeRangeFilter: dayRange(day) })),
       perDay('RestingHeartRate', (day) => hc.aggregateRecord({ recordType: 'RestingHeartRate', timeRangeFilter: dayRange(day) })),
-      read.has('Weight') ? orUndefined(() => hc.readRecords('Weight', { timeRangeFilter: range })) : undefined,
+      read.has('Weight') ? orUndefined(() => hc.readRecords('Weight', { timeRangeFilter: range }), note) : undefined,
       read.has('SleepSession')
-        ? orUndefined(() =>
-            hc.readRecords('SleepSession', {
-              timeRangeFilter: { ...range, startTime: new Date(startOfDay(from).getTime() - 12 * 3_600_000).toISOString() },
-            }),
+        ? orUndefined(
+            () =>
+              hc.readRecords('SleepSession', {
+                timeRangeFilter: { ...range, startTime: new Date(startOfDay(from).getTime() - 12 * 3_600_000).toISOString() },
+              }),
+            note,
           )
         : undefined,
-      read.has('ExerciseSession') ? orUndefined(() => hc.readRecords('ExerciseSession', { timeRangeFilter: range })) : undefined,
+      read.has('ExerciseSession') ? orUndefined(() => hc.readRecords('ExerciseSession', { timeRangeFilter: range }), note) : undefined,
     ]);
 
     // An aggregate over a day with no records comes back without the value (or as zero with no
     // data origins). Only a day that has at least one contributing source counts as a reading.
     const hasData = (result: { dataOrigins?: string[] } | undefined) => (result?.dataOrigins?.length ?? 0) > 0;
 
-    return {
+    const raw: RawHealth = {
       steps: steps.flatMap(({ day, result }) => (hasData(result) && result ? [{ day, value: result.COUNT_TOTAL }] : [])),
       activeEnergyKcal: energy.flatMap(({ day, result }) =>
         hasData(result) && result ? [{ day, value: result.ACTIVE_CALORIES_TOTAL?.inKilocalories }] : [],
@@ -183,6 +191,15 @@ export function createHealthConnectStore(
         own: session.metadata?.dataOrigin === appId,
       })),
     };
+    return { raw, complete: !failed };
+  }
+
+  async function readDaysChecked(from: string, to: string) {
+    const options = { from, to, tz: timeZone(), platform: 'android' as const };
+    if ((await availability()) !== 'available') return { days: buildHealthDays(EMPTY_RAW_HEALTH, options), complete: false };
+    const { read } = await granted();
+    const { raw, complete } = await readRaw(from, to, read);
+    return { days: buildHealthDays(raw, options), complete };
   }
 
   return {
@@ -204,11 +221,10 @@ export function createHealthConnectStore(
       }
     },
 
+    readDaysChecked,
+
     async readDays(from, to) {
-      const options = { from, to, tz: timeZone(), platform: 'android' as const };
-      if ((await availability()) !== 'available') return buildHealthDays(EMPTY_RAW_HEALTH, options);
-      const { read } = await granted();
-      return buildHealthDays(await readRaw(from, to, read), options);
+      return (await readDaysChecked(from, to)).days;
     },
 
     async readProfileHints() {

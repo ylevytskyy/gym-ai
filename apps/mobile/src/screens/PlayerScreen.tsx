@@ -7,7 +7,9 @@ import { Alert, AppState, BackHandler } from 'react-native';
 import { useAuth } from '@/auth/AuthProvider';
 import { exerciseById, exerciseName, exerciseTips } from '@/catalog/catalog';
 import { finishWorkout } from '@/plan/finish-workout';
-import { sessionKind, todayPlan, type StoredPlan } from '@/plan/model';
+import { useHealth } from '@/health/HealthProvider';
+import { adjustedToday } from '@/plan/adjusted-today';
+import { sessionKind, type StoredPlan } from '@/plan/model';
 import { usePlan } from '@/plan/PlanProvider';
 import { PlanError } from '@/plan/repository';
 import { buildSteps, createSession, currentStep, reduce, secondsLeft, summarize, type Action } from '@/player/session';
@@ -19,6 +21,9 @@ import { VideoDemo } from '@/ui/VideoDemo';
 const TICK_MS = 250;
 const RATINGS = [1, 2, 3, 4, 5].map((value) => ({ value, label: String(value) }));
 
+/** How long the player waits for Health and the profile before playing the session as planned. */
+const HEALTH_WAIT_MS = 3000;
+
 /** How much time one tick may add. A longer gap means the app was stalled, not that the user trained. */
 const MAX_TICK_MS = 1000;
 
@@ -29,15 +34,28 @@ export function PlayerScreen({ platform }: { platform: 'ios' | 'android' }) {
   const router = useRouter();
   const plan = usePlan().state;
   const userId = useAuth().session?.user.id;
+  const { days: healthDays, state: healthState } = useHealth();
+  const profile = useProfile().state;
+  const { today } = useServices();
   const [opened, setOpened] = useState<Opened | null>(null);
-  if (!opened && plan.status === 'ready') {
-    setOpened({ stored: plan.stored, day: todayPlan(plan.stored.plan, plan.logs, new Date()).day });
+  // The session is the same one Today showed, adjustment included. It waits for the first
+  // Health check so the adjustment is not missed by opening the player a moment too early,
+  // but not for long: without an answer the planned session is played.
+  const [waited, setWaited] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setWaited(true), HEALTH_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, []);
+  const healthReady = (healthState !== undefined && (healthState !== 'connected' || healthDays.length > 0)) || waited;
+  if (!opened && userId && plan.status === 'ready' && healthReady && (profile.status !== 'loading' || waited)) {
+    const session = adjustedToday(plan.stored.plan, plan.logs, new Date(), today(), healthDays, profile.status === 'ready' ? profile.profile : null);
+    setOpened({ stored: plan.stored, day: session.day });
   }
 
   if (opened && userId) return <ActivePlayer platform={platform} opened={opened} userId={userId} />;
   return (
     <Screen testID="player">
-      <Body>{plan.status === 'loading' ? 'Loading your workout…' : 'There is no workout to play.'}</Body>
+      <Body>{userId && (plan.status === 'loading' || plan.status === 'ready') ? 'Loading your workout…' : 'There is no workout to play.'}</Body>
       <Button label="Back" kind="secondary" onPress={() => router.back()} />
     </Screen>
   );

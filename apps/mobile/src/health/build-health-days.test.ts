@@ -4,7 +4,7 @@ import fc from 'fast-check';
 
 import healthDaySchema from '../../../../schemas/health-day.schema.json';
 import { buildHealthDays } from './build-health-days';
-import { daysInRange, endOfDay, localDayOf, startOfDay } from './local-day';
+import { contractTimeZone, daysInRange, deviceTimeZone, endOfDay, localDayOf, startOfDay } from './local-day';
 import { EMPTY_RAW_HEALTH, type RawHealth } from './types';
 
 const options = { from: '2026-11-10', to: '2026-11-12', tz: 'Europe/Kyiv', platform: 'ios' as const };
@@ -23,6 +23,21 @@ describe('local days', () => {
     expect(hours('2026-03-29')).toBe(23);
     expect(hours('2026-10-25')).toBe(25);
     expect(daysInRange('2026-10-24', '2026-10-26')).toEqual(['2026-10-24', '2026-10-25', '2026-10-26']);
+  });
+});
+
+describe('time zone names', () => {
+  it('keeps names the health-day contract accepts and turns anything else into UTC', () => {
+    for (const name of ['Europe/Kyiv', 'America/Argentina/Buenos_Aires', 'Etc/GMT+5', 'UTC', 'US/Pacific']) {
+      expect(contractTimeZone(name)).toBe(name);
+    }
+    for (const name of ['GMT+05:30', 'Europe/Kyiv; DROP TABLE', '', undefined, 'x'.repeat(65), '/Europe']) {
+      expect(contractTimeZone(name)).toBe('UTC');
+    }
+  });
+
+  it('gives the device zone in a form the contract accepts', () => {
+    expect(contractTimeZone(deviceTimeZone())).toBe(deviceTimeZone());
   });
 });
 

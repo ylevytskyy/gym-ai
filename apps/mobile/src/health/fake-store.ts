@@ -21,6 +21,10 @@ export interface FakeHealthOptions {
   /** What the user answers to the permission request. */
   grants?: boolean;
   canWrite?: boolean;
+  /** Makes reads report a failure, as when a query throws on the phone. */
+  readFails?: boolean;
+  /** Delay before a read answers, in ms. */
+  readDelayMs?: number;
   raw?: RawHealth;
   hints?: ProfileHints;
   tz?: string;
@@ -55,6 +59,12 @@ export function createFakeHealthStore(options: FakeHealthOptions = {}): FakeHeal
 
     async openSettings() {
       store.settingsOpened += 1;
+    },
+
+    async readDaysChecked(from, to) {
+      if (options.readDelayMs) await new Promise((resolve) => setTimeout(resolve, options.readDelayMs));
+      const days = await store.readDays(from, to);
+      return { days: options.readFails ? days.map(({ day, tz, platform: p }) => ({ day, tz, platform: p })) : days, complete: current === 'connected' && !options.readFails };
     },
 
     async readDays(from, to) {

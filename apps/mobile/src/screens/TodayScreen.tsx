@@ -2,8 +2,11 @@ import { useRouter } from 'expo-router';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { exerciseById, exerciseName } from '@/catalog/catalog';
-import { todayPlan } from '@/plan/model';
+import { useHealth } from '@/health/HealthProvider';
+import { adjustedToday } from '@/plan/adjusted-today';
 import { usePlan } from '@/plan/PlanProvider';
+import { useProfile } from '@/profile/ProfileProvider';
+import { useServices } from '@/services';
 import { Body, Button, Card, ErrorText, Label, Screen, Title } from '@/ui/kit';
 
 const amount = (exerciseId: string, sets: number, count: number): string =>
@@ -15,6 +18,9 @@ export function TodayScreen() {
   const router = useRouter();
   const { signOut } = useAuth();
   const { state, creating, createError, create, reload } = usePlan();
+  const { days: healthDays } = useHealth();
+  const profile = useProfile().state;
+  const { today } = useServices();
 
   return (
     <Screen testID="today">
@@ -42,9 +48,23 @@ export function TodayScreen() {
 
       {state.status === 'ready'
         ? (() => {
-            const { day, doneToday } = todayPlan(state.stored.plan, state.logs, new Date());
+            const { day, doneToday, adjustment } = adjustedToday(
+              state.stored.plan,
+              state.logs,
+              new Date(),
+              today(),
+              healthDays,
+              profile.status === 'ready' ? profile.profile : null,
+            );
             return (
               <>
+                {adjustment ? (
+                  <Card testID="adjustment">
+                    <Label>Adjusted for today</Label>
+                    <Body>{adjustment.reason}</Body>
+                    <Body muted>A training suggestion from your Health data, not medical advice.</Body>
+                  </Card>
+                ) : null}
                 <Card testID="today-plan">
                   <Label>
                     Day {day.day} · about {day.minutes} min
