@@ -666,6 +666,187 @@ def hydrant_rep(side, start):
     return up + hold + down
 
 
+# --- Batch 4: posture stretches, inchworm, side-lying glute work, push-up progressions, core holds --
+def heel_up(deg):
+    """Feet keys for heels raised `deg` degrees onto the balls of the feet, toe tips fixed (as calf_raise)."""
+    r, t = math.radians(FOOT_REST_DEG), math.radians(FOOT_REST_DEG + deg)
+    return dict(feet=(0, -0.18 * (math.cos(r) - math.cos(t)), 0.18 * (math.sin(t) - math.sin(r))), foot=deg)
+
+
+def arm_swing(x, top="L"):
+    """x=1 arms open wide at shoulder height; x=0 arms crossed in front of the chest, `top` arm above."""
+    under = "R" if top == "L" else "L"
+    if x >= 1:
+        return pose(abduct=88, sweep=-15, elbow=8)
+    return pose(elbow=8, **{top: dict(abduct=94, sweep=118), under: dict(abduct=82, sweep=116)})
+
+
+def chest_opener(x):
+    """Hands clasped behind the back; the chest lifts and the arms reach back by `x` (0..1)."""
+    return pose(spine=-8 - 8 * x, neck=-4 - 6 * x, arm=-42 - 16 * x, abduct=-40, elbow=10)
+
+
+CALF_WALL_Y = -0.75  # wall face in front of the mannequin
+
+
+def calf_stretch(x):
+    """Hands on the wall, left foot forward, right leg straight back with the heel down; lean in by `x`."""
+    return pose(hip=(0, -0.12 - 0.05 * x, -0.10 - 0.015 * x), pelvis=14 + 2 * x, spine=2, neck=-6,
+                L=dict(feet=(0, -0.40, 0)), R=dict(feet=(0, 0.28, 0)))
+
+
+def butterfly(x):
+    """Sitting tall, soles together, knees open; lean forward from the hips by `x` (0..1)."""
+    return pose(hip=(0, 0, 0.12 - 0.95), pelvis=-4 + 20 * x, spine=4 * x, neck=-6 - 4 * x,
+                arm=46 + 16 * x, elbow=10, abduct=-12,
+                feet=(-0.12, -0.36, -0.02), pole=(0.85, 0.76, -0.2),
+                L=dict(foot=(0, 70, 0)), R=dict(foot=(0, -70, 0)))  # soles turned to face each other
+
+
+# Inchworm: the feet stay put; the hands walk out from a forward fold to a high plank and back.
+INCH_PLANK_HEEL = 37.5  # heel lift that puts the ankle at plank height on the toes
+_inch_feet = heel_up(INCH_PLANK_HEEL)["feet"]
+INCH_PLANK_ANKLE = (_inch_feet[1], 0.08 + _inch_feet[2])
+INCH_HAND_Y = prone(0.55, INCH_PLANK_ANKLE)[1]  # hands under the shoulders in the plank
+INCH_FOLD_Y = -0.38  # hands on the floor just ahead of the toes
+
+
+def inchworm(l_y, r_y, lift=None):
+    """Hands at y `l_y` and `r_y` (one may be lifted mid-step); shoulders over the hands."""
+    progress = (INCH_FOLD_Y - (l_y + r_y) / 2) / (INCH_FOLD_Y - INCH_HAND_Y)
+    feet = heel_up(INCH_PLANK_HEEL * progress)
+    ankle = (feet["feet"][1], 0.08 + feet["feet"][2])
+    shoulder = ((l_y + r_y) / 2, 0.50 + 0.05 * progress)
+    hip = circles_meet(ankle, shoulder, 0.78 + 0.09 * progress, HIP_TO_SHOULDER)
+    torso = Vector(shoulder) - hip
+    tilt = math.degrees(math.atan2(-torso.x, torso.y))
+    hands = {side: dict(hands=(0, y - INCH_HAND_Y, 0.07 if side == lift else 0))
+             for side, y in (("L", l_y), ("R", r_y))}
+    return pose(hip=(0, hip.x, hip.y - 0.95), pelvis=tilt, neck=-10 - 10 * progress, **feet, **hands)
+
+
+INCH_STAND = pose(hands=(0.01, -INCH_HAND_Y, 0.825), hand_turn=80)  # arms hanging by the sides
+
+
+def inchworm_keys():
+    """Stand, fold, walk the hands out in three steps each, hold the plank, walk back, stand up."""
+    f, ys = INCH_FOLD_Y, [INCH_FOLD_Y + (INCH_HAND_Y - INCH_FOLD_Y) * i / 3 for i in range(4)]
+    out = [(31, inchworm(f, f))]
+    l = r = f
+    frame = 31
+    for i in (1, 2, 3):
+        for side in "LR":
+            prev = (l, r)
+            if side == "L":
+                l = ys[i]
+            else:
+                r = ys[i]
+            mid = ((prev[0] + l) / 2, (prev[1] + r) / 2)
+            out += [(frame + 8, inchworm(*mid, lift=side)), (frame + 16, inchworm(l, r))]
+            frame += 16
+    # frame is now 127: plank; hold, then the same steps backward
+    back = [(150 + (frame - fr), p) for fr, p in reversed(out)]
+    return [(1, INCH_STAND)] + out + back + [(back[-1][0] + 30, INCH_STAND)]
+
+
+def forward_lunge(front):
+    """Step `front` foot forward, lower the back knee, push back; keys from frame 0 over 70 frames."""
+    back = "L" if front == "R" else "R"
+    lift = {front: dict(feet=(0, -0.45, 0.08), foot=-8)}
+    down = {front: dict(feet=(0, -0.95, 0)), back: dict(heel_up(40), pole=(0, -0.2, -0.65))}
+    mid = pose(LUNGE_STAND, hip=(0, -0.16, -0.06), **lift)
+    bottom = pose(LUNGE_STAND, hip=(0, -0.53, -0.42), spine=4, **down)
+    return [(0, LUNGE_STAND), (12, mid), (30, bottom), (40, bottom), (56, mid), (70, LUNGE_STAND)]
+
+
+def single_leg_deadlift(stand, x):
+    """Balance on `stand`; hinge forward by `x` (0..1) while the other leg reaches back in line with the body."""
+    other = "L" if stand == "R" else "R"
+    p = 78 * x
+    sx = 1 if stand == "L" else -1
+    return pose(hip=(sx * 0.03 * x, 0, -0.015 * x), pelvis=p, spine=4 * x, neck=-12 * x, arm=p + 4 * x - 4,
+                **{stand: dict(thigh=p + 10 * x, knee=12 * x, foot=-2 * x), other: dict(thigh=0, knee=4 * x, foot=10 * x)})
+
+
+# Lying on the right side, propped on the right forearm, facing +X, head toward -Y.
+SIDE_LYING = Matrix.Rotation(math.radians(90), 3, "X") @ Matrix.Rotation(math.radians(90), 3, "Z")
+
+
+def side_lying(**kw):
+    return pose(hip=(0, 0.3, 0.185 - 0.95), pelvis=SIDE_LYING, spine=(0, 50, 0), neck=(0, -24, 0), **kw)
+
+
+# Right forearm flat on the floor pointing forward (+X) under the shoulder; left hand resting on the top hip.
+SIDE_LYING_ARMS = {
+    "wrist": lambda s: (0.07, 0.28, 0.42) if s > 0 else (0.27, -0.24, 0.04),
+    "hand": lambda s: (0, 0.09, -0.02) if s > 0 else (0.09, 0, -0.01),
+    "elbow_pole": lambda s: (-0.2, 0.2, 0.9) if s > 0 else (-0.3, -0.24, -0.6),
+}
+
+
+def clamshell(x):
+    """Knees bent, feet together; the top (left) knee opens by `x` (0..1)."""
+    bent = lambda s, a: Matrix.Rotation(math.radians(s * a), 3, "Z") @ Matrix.Rotation(math.radians(-45), 3, "X")
+    return side_lying(knee=90, L=dict(thigh=bent(1, 50 * x), spread=-4), R=dict(thigh=bent(-1, 0), spread=-4))
+
+
+def side_leg_raise(x):
+    """Legs long and stacked; the top (left) leg lifts by `x` (0..1)."""
+    return side_lying(thigh=6, knee=2, foot=10, L=dict(spread=-8.5 + 42 * x), R=dict(spread=-8.5))
+
+
+DECLINE_ANKLE = (0.65, 0.555)  # toes on the chair seat, its front edge 17 cm ahead of the ankles
+DECLINE_TOP, DECLINE_SHOULDER_Y = prone(0.55, DECLINE_ANKLE, toe_deg=30)
+DECLINE_BOTTOM, _ = prone(0.20, DECLINE_ANKLE, toe_deg=30)
+DECLINE_HAND_Y = DECLINE_SHOULDER_Y + 0.10
+
+
+def y_raise(x):
+    """Face down, arms overhead in a Y; arms and chest lift by `x` (0..1)."""
+    return pose(PRONE_FLAT, spine=-9 * x, neck=4 + 8 * x, abduct=140, arm=-8 - 22 * x)
+
+
+def hollow(breath=0.0):
+    return pose(SUPINE_FLAT, spine=22 - 2 * breath, neck=12, arm=150, thigh=24 - 2 * breath, knee=0, foot=20)
+
+
+def toe_reach(x):
+    """On the back, legs straight up; the shoulders curl up by `x` (0..1) as the hands reach for the toes."""
+    return pose(SUPINE_FLAT, spine=30 * x, neck=6 + 14 * x, head=4 * x, arm=95 - 5 * x, thigh=90, knee=4, foot=-10)
+
+
+SIDE_PLANK_ANKLE = (0.3 + 0.87 * math.sin(math.radians(72)), 0.405 - 0.87 * math.cos(math.radians(72)))
+
+
+def hip_dip(c):
+    """Side plank whose hips sink `c` degrees toward the floor; the feet and forearm stay put."""
+    t = math.radians(72 + c)
+    hy, hz = SIDE_PLANK_ANKLE[0] - 0.87 * math.sin(t), SIDE_PLANK_ANKLE[1] + 0.87 * math.cos(t)
+    return pose(side_plank(tilt=72 + c), hip=(0, hy, hz - 0.95), spine=(0, 3.2 * c, 0))
+
+
+BEAR = pose(QUAD, hip=(0, QUAD_HIP[0], QUAD_HIP[1] + 0.05 - 0.95),
+            pelvis=90 - math.degrees(math.asin(0.015 / HIP_TO_SHOULDER)),
+            feet=(0, 0.683, 0.09), foot=45)  # on the toes, knees 5 cm off the floor
+BEAR_INHALE = pose(BEAR, hip=(0, QUAD_HIP[0], QUAD_HIP[1] + 0.056 - 0.95), spine=-1)
+
+KICK_STAND = pose(elbow=85, arm=8)
+
+
+def front_kick(side, x):
+    """`side` leg kicks forward: x=0.5 knee chambered, x=1 straight at hip height; opposite arm forward."""
+    other = "L" if side == "R" else "R"
+    leg = dict(thigh=45, knee=70, foot=10) if x < 1 else dict(thigh=78, knee=4, foot=-15)
+    return pose(KICK_STAND, spine=-4 * x, **{side: dict(leg, arm=-15), other: dict(arm=35)})
+
+
+def step_jack(side, x, lift=0.0):
+    """`side` foot steps out by `x` (0..1) as both arms rise overhead."""
+    sx = 1 if side == "L" else -1
+    return pose(hip=(sx * 0.11 * x, 0, -0.03 * x), abduct=15 + 150 * x, elbow=10 - 6 * x,
+                **{side: dict(feet=(0.24 * x, 0, lift), foot=15 if lift else 0)})
+
+
 EXERCISES = {
     "squat": {
         "legs": "ik", "arms": "fk", "look": (0, 0, 0.85),
@@ -1052,6 +1233,126 @@ EXERCISES = {
                  (53, step_touch(0.11, -0.32, -0.05, l_z=0.06, hip_z=-0.02, open_=0.5)),
                  (61, step_touch(-0.10, -0.32, -0.11))],
     },
+    "arm_swings": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 1.0),
+        "frame_end": 60,  # open wide, cross (left on top), open, cross (right on top): 0.5 s each
+        "keys": [(1, arm_swing(1)), (16, arm_swing(0, "L")), (31, arm_swing(1)), (46, arm_swing(0, "R")),
+                 (61, arm_swing(1))],
+    },
+    "chest_opener": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 1.0),
+        "views": {"three_quarter": Vector((2.8, 2.8, 0.35))},  # from behind, so the clasped hands show
+        "frame_end": 120,  # hold; lift the chest a little more on each 4 s breath
+        "keys": [(1, chest_opener(0)), (61, chest_opener(1)), (121, chest_opener(0))],
+    },
+    "calf_stretch": {
+        "legs": "ik", "arms": "ik", "look": (0, -0.3, 0.8), "toe_out": 5,
+        "wall": {"y": CALF_WALL_Y, "facing": -1},
+        "wrist": lambda s: (s * 0.24, CALF_WALL_Y + 0.025, 1.22),
+        "hand": lambda s: (0, -0.005, 0.09),  # palm flat on the wall, fingers up
+        "elbow_pole": lambda s: (s * 0.6, -0.3, 0.6),
+        "frame_end": 120,  # hold; lean in a little on each 4 s breath
+        "keys": [(1, calf_stretch(0)), (61, calf_stretch(1)), (121, calf_stretch(0))],
+    },
+    "butterfly_stretch": {
+        "legs": "ik", "arms": "fk", "look": (0, -0.1, 0.35), "raise": 0.6, "toe_out": 0,
+        "frame_end": 120,  # hold; fold forward a little on each 4 s breath
+        "keys": [(1, butterfly(0)), (61, butterfly(1)), (121, butterfly(0))],
+    },
+    "inchworm": {
+        "legs": "ik", "arms": "ik", "look": (0, -0.5, 0.5),
+        "wrist": lambda s: (s * 0.22, INCH_HAND_Y, 0.035),
+        "elbow_pole": lambda s: (s * 0.5, INCH_HAND_Y + 0.6, 0.9),  # elbows back toward the feet
+        "frame_end": 275,  # fold 1 s, walk out 3 s, hold 0.8 s, walk back 3 s, stand 1 s
+        "keys": inchworm_keys(),
+    },
+    "forward_lunge": {
+        "legs": "ik", "arms": "fk", "look": (0, -0.3, 0.8), "toe_out": 5,
+        "frame_end": 140,  # left leg forward, return, right leg forward, return
+        "keys": [(1 + f, k) for f, k in forward_lunge("L")] + [(71 + f, k) for f, k in forward_lunge("R")[1:]],
+    },
+    "single_leg_deadlift": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.8),
+        "frame_end": 180,  # on the left leg: 1.3 s down, 0.3 s hold, 1.2 s up; then the right
+        "keys": [(1, single_leg_deadlift("L", 0)), (40, single_leg_deadlift("L", 1)),
+                 (50, single_leg_deadlift("L", 1)), (86, single_leg_deadlift("L", 0)),
+                 (91, single_leg_deadlift("R", 0)), (130, single_leg_deadlift("R", 1)),
+                 (140, single_leg_deadlift("R", 1)), (176, single_leg_deadlift("R", 0)),
+                 (181, single_leg_deadlift("L", 0))],
+    },
+    "clamshell": {
+        "legs": "fk", "arms": "ik", **SIDE_LYING_ARMS, "look": (0, 0, 0.3), "raise": 0.8,
+        "views": {"three_quarter": Vector((2.6, 0.6, 2.2))},  # high, in front of the hips: the top knee lifts toward the camera
+        "frame_end": 75,  # 1 s open, 0.3 s hold, 1 s close, 0.2 s rest
+        "keys": [(1, clamshell(0)), (31, clamshell(1)), (40, clamshell(1)), (70, clamshell(0)), (76, clamshell(0))],
+    },
+    "side_lying_leg_raise": {
+        "legs": "fk", "arms": "ik", **SIDE_LYING_ARMS, "look": (0, 0, 0.3), "raise": 0.8,
+        "views": {"three_quarter": Vector((3.2, -0.8, 0.6))},
+        "frame_end": 75,  # 1 s up, 0.3 s hold, 1 s down, 0.2 s rest
+        "keys": [(1, side_leg_raise(0)), (31, side_leg_raise(1)), (40, side_leg_raise(1)), (70, side_leg_raise(0)),
+                 (76, side_leg_raise(0))],
+    },
+    "decline_push_up": {
+        "legs": "fk", "arms": "ik", "look": (0, -0.1, 0.4), "raise": 0.5,
+        "chair": {"edge": DECLINE_ANKLE[0] - 0.17, "facing": 1}, "frame_props": True,
+        "wrist": lambda s: (s * 0.30, DECLINE_HAND_Y, 0.035),
+        "elbow_pole": lambda s: (s * 0.6, DECLINE_HAND_Y + 0.5, 0.6),
+        "frame_end": 99,  # 1.5 s down, 0.3 s hold, 1 s up, 0.5 s pause
+        "keys": [(1, DECLINE_TOP), (46, DECLINE_BOTTOM), (55, DECLINE_BOTTOM), (85, DECLINE_TOP), (100, DECLINE_TOP)],
+    },
+    "diamond_push_up": {
+        "legs": "fk", "arms": "ik", "look": (0, -0.25, 0.25), "raise": 0.7,
+        "wrist": lambda s: (s * 0.07, PUSH_UP_HAND_Y + 0.03, 0.035),
+        "hand": lambda s: (-s * 0.055, -0.07, -0.01),  # fingers turned in, thumbs and index fingers touching
+        "elbow_pole": lambda s: (s * 0.35, PUSH_UP_HAND_Y + 0.6, 0.6),  # elbows back, close to the ribs
+        "frame_end": 99,  # 1.5 s down, 0.3 s hold, 1 s up, 0.5 s pause
+        "keys": [(1, PUSH_UP_TOP), (46, PUSH_UP_BOTTOM), (55, PUSH_UP_BOTTOM), (85, PUSH_UP_TOP), (100, PUSH_UP_TOP)],
+    },
+    "prone_y_raise": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.15), "raise": 1.8,
+        "frame_end": 90,  # 1 s up, 1 s hold, 1 s down
+        "keys": [(1, y_raise(0)), (31, y_raise(1)), (61, y_raise(1)), (91, y_raise(0))],
+    },
+    "hollow_body_hold": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.3), "raise": 0.6,
+        "frame_end": 120,  # hold; one slow breath per 4 s loop
+        "keys": [(1, hollow()), (61, hollow(1)), (121, hollow())],
+    },
+    "toe_reach": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.5), "raise": 0.4,
+        "frame_end": 60,  # 1 s up, 1 s down
+        "keys": [(1, toe_reach(0)), (26, toe_reach(1)), (34, toe_reach(1)), (61, toe_reach(0))],
+    },
+    "side_plank_hip_dip": {
+        "legs": "fk", "arms": "ik", "look": (0, 0, 0.4), "raise": 0.3,
+        "wrist": lambda s: (0, SIDE_PLANK_TOP[0], SIDE_PLANK_TOP[1] + 0.6) if s > 0 else (0.27, SIDE_PLANK_SHOULDER_Y, 0.04),
+        "hand": lambda s: (0, 0, 0.09) if s > 0 else (0.09, 0, -0.01),
+        "elbow_pole": lambda s: (0.4, SIDE_PLANK_TOP[0], 1.0) if s > 0 else (-0.6, SIDE_PLANK_SHOULDER_Y, 0.05),
+        "frame_end": 60,  # 1 s down, 1 s up
+        "keys": [(1, hip_dip(0)), (31, hip_dip(12)), (61, hip_dip(0))],
+    },
+    "bear_plank": {
+        "legs": "ik", "arms": "ik", "look": (0, 0, 0.45), "raise": 0.3, "toe_out": 0,
+        "wrist": lambda s: (s * 0.22, QUAD_SHOULDER[0], 0.035),
+        "elbow_pole": lambda s: (s * 0.25, QUAD_SHOULDER[0] + 0.5, 0.35),
+        "frame_end": 120,  # hold; one slow breath per 4 s loop
+        "keys": [(1, BEAR), (61, BEAR_INHALE), (121, BEAR)],
+    },
+    "front_kicks": {
+        "legs": "fk", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 60,  # left kick, right kick: 1 s each
+        "keys": [(1, KICK_STAND), (8, front_kick("L", 0.5)), (14, front_kick("L", 1)), (21, front_kick("L", 0.5)),
+                 (28, KICK_STAND), (31, KICK_STAND), (38, front_kick("R", 0.5)), (44, front_kick("R", 1)),
+                 (51, front_kick("R", 0.5)), (58, KICK_STAND), (61, KICK_STAND)],
+    },
+    "step_jacks": {
+        "legs": "ik", "arms": "fk", "look": (0, 0, 0.9),
+        "frame_end": 60,  # left foot out and in, right foot out and in: 1 s each
+        "keys": [(1, step_jack("L", 0)), (8, step_jack("L", 0.5, 0.06)), (15, step_jack("L", 1)),
+                 (23, step_jack("L", 0.5, 0.06)), (31, step_jack("L", 0)), (38, step_jack("R", 0.5, 0.06)),
+                 (45, step_jack("R", 1)), (53, step_jack("R", 0.5, 0.06)), (61, step_jack("L", 0))],
+    },
 }
 
 # Camera direction from the exercise's look-at point, raised by its "raise"; fit_camera sets the distance.
@@ -1190,7 +1491,7 @@ def key_pose(arm, ex, frame, pose):
         turn(name, rot(pose[name]))
     for side, s in (("L", 1), ("R", -1)):
         get = lambda k, default=0: pose.get(side, {}).get(k, pose.get(k, default))  # pose["L"] overrides
-        turn(f"foot.{side}", rx(get("foot")))
+        turn(f"foot.{side}", rot(get("foot")))
         if ex["legs"] == "ik":
             out, y, z = get("feet", (0, 0, 0))  # foot offset; out is away from the midline
             key(f"foot_ik.{side}", "location",
@@ -1200,11 +1501,13 @@ def key_pose(arm, ex, frame, pose):
                 rest_rot(arm, f"knee_pole.{side}").inverted() @ Vector((s * out, y, z)))
         else:
             spread = Matrix.Rotation(math.radians(-s * get("spread")), 3, "Y")  # leg out to the side
-            turn(f"thigh.{side}", spread @ rx(-get("thigh")))
+            thigh = get("thigh")  # a number flexes the hip; a Matrix is the whole hip rotation
+            turn(f"thigh.{side}", spread @ (thigh if isinstance(thigh, Matrix) else rx(-thigh)))
             turn(f"shin.{side}", rx(get("knee")))
         if ex["arms"] == "fk":
             abduct = Matrix.Rotation(math.radians(-s * get("abduct")), 3, "Y")  # raise out to the side
-            turn(f"upper_arm.{side}", abduct @ rx(-get("arm")))
+            sweep = Matrix.Rotation(math.radians(-s * get("sweep")), 3, "Z")  # swing a raised arm toward the front
+            turn(f"upper_arm.{side}", sweep @ abduct @ rx(-get("arm")))
             elbow_in = Matrix.Rotation(math.radians(s * get("elbow_in")), 3, "Y")  # bend toward the body
             turn(f"forearm.{side}", elbow_in @ rx(-get("elbow")))
         else:
