@@ -27,10 +27,10 @@ The Contracts and Validation Foundation establishes the core data structures, sc
 #### Acceptance Criteria
 
 1. THE Exercise_Catalog SHALL be stored as a JSON file at `catalog/exercises.json`
-2. THE Exercise_Catalog SHALL contain exactly 10 exercises distributed across 5 groups
+2. THE Exercise_Catalog SHALL contain at least the 10 starter exercises (Requirement 13), distributed across 5 groups; it may grow beyond them
 3. THE Exercise_Catalog SHALL include these groups: warm_up, lower_body, upper_body, core, and cardio
 4. WHEN an exercise is defined, THE Exercise_Catalog SHALL include: id, group, name_key, body_parts array, level (1-3), unit (reps or seconds), default configuration (sets, amount, rest_seconds), MET value, avoid_if array, quiet boolean, and media object
-5. THE Exercise_Catalog SHALL use snake_case for exercise IDs
+5. THE Exercise_Catalog SHALL use kebab-case for exercise IDs (e.g. "push-up"), and each ID SHALL be unique
 6. WHEN an exercise has avoid_if entries, THE Exercise_Catalog SHALL use snake_case injury identifiers
 7. THE Exercise_Catalog SHALL set quiet to true for exercises that can be done silently in an office
 8. FOR ALL exercises, the MET value SHALL be a positive number greater than 1.0 and less than 15.0
@@ -205,15 +205,15 @@ The Contracts and Validation Foundation establishes the core data structures, sc
 
 ### Requirement 13: 10 Starter Exercises
 
-**User Story:** As a content creator, I want exactly 10 starter exercises distributed across 5 groups, so that the system has a minimal viable catalog for testing and initial deployment.
+**User Story:** As a content creator, I want 10 starter exercises distributed across 5 groups, so that the system has a minimal viable catalog for testing and initial deployment. Later exercises add to this set; they do not replace it.
 
 #### Acceptance Criteria
 
-1. THE Exercise_Catalog SHALL include exactly 2 warm_up exercises: "neck-rolls" and "arm-circles"
-2. THE Exercise_Catalog SHALL include exactly 2 lower_body exercises: "squat" and "reverse-lunge"
-3. THE Exercise_Catalog SHALL include exactly 2 upper_body exercises: "push-up" and "chair-dip"
-4. THE Exercise_Catalog SHALL include exactly 2 core exercises: "plank" and "glute-bridge"
-5. THE Exercise_Catalog SHALL include exactly 2 cardio exercises: "jumping-jacks" and "high-knees"
+1. THE Exercise_Catalog SHALL include these warm_up exercises: "neck-rolls" and "arm-circles"
+2. THE Exercise_Catalog SHALL include these lower_body exercises: "squat" and "reverse-lunge"
+3. THE Exercise_Catalog SHALL include these upper_body exercises: "push-up" and "chair-dip"
+4. THE Exercise_Catalog SHALL include these core exercises: "plank" and "glute-bridge"
+5. THE Exercise_Catalog SHALL include these cardio exercises: "jumping-jacks" and "high-knees"
 6. WHEN defining squat, THE Exercise_Catalog SHALL set level to 1, unit to "reps", default sets to 3, default amount to 12, and avoid_if to ["knee_injury"]
 7. WHEN defining push-up, THE Exercise_Catalog SHALL set level to 2, unit to "reps", and avoid_if to ["shoulder_injury", "wrist_injury"]
 8. WHEN defining plank, THE Exercise_Catalog SHALL set level to 1, unit to "seconds", default amount to 30, and avoid_if to ["lower_back_injury", "shoulder_injury"]

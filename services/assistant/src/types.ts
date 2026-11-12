@@ -47,7 +47,7 @@ export interface PlanRequest {
  * Requirement 9.4: Define Exercise interface matching exercise schema
  */
 export interface Exercise {
-  id: string;                    // snake_case identifier
+  id: string;                    // kebab-case identifier, e.g. "push-up"
   group: ExerciseGroup;          // Exercise category
   name_key: string;              // Localization key (dot notation)
   body_parts: string[];          // Body parts targeted

@@ -20,8 +20,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "Unique exercise identifier in snake_case",
-      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+      "description": "Unique exercise identifier in kebab-case, e.g. \"push-up\"",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
     "group": {
       "type": "string",
@@ -76,10 +76,8 @@
     "met": {
       "type": "number",
       "description": "Metabolic Equivalent of Task - measure of exercise intensity",
-      "minimum": 1.0,
-      "exclusiveMinimum": true,
-      "maximum": 15.0,
-      "exclusiveMaximum": true
+      "exclusiveMinimum": 1.0,
+      "exclusiveMaximum": 15.0
     },
     "avoid_if": {
       "type": "array",
