@@ -82,3 +82,11 @@ INSERT INTO workout_logs (user_id, plan_id, day_number, exercises_completed, dur
    '[{"exercise_id": "plank", "sets_done": 3}, {"exercise_id": "glute-bridge", "sets_done": 3}]', 20, 5, 'Knee was fine.', '2026-01-13T19:00:00Z'),
   ('bbbbbbbb-0000-4000-8000-000000000002', 'b2b2b2b2-0000-4000-8000-000000000002', 1,
    '[{"exercise_id": "glute-bridge", "sets_done": 3}]', 8, 2, 'Short session.', '2026-01-15T19:10:00Z');
+
+-- Health days: user A wears a watch (full data), user B has a phone only.
+INSERT INTO health_days (user_id, day, tz, platform, steps, active_energy_kcal, resting_hr_bpm, sleep_minutes, weight_kg, external_workouts) VALUES
+  ('aaaaaaaa-0000-4000-8000-000000000001', '2026-11-10', 'Europe/Kyiv', 'ios', 6120, 380.5, 59, 432, 72.4, '[]'),
+  ('aaaaaaaa-0000-4000-8000-000000000001', '2026-11-11', 'Europe/Kyiv', 'ios', 8421, 512.4, 58, 441, 72.3,
+   '[{"type": "running", "minutes": 42, "energy_kcal": 430.5}]');
+INSERT INTO health_days (user_id, day, tz, platform, steps, sleep_minutes) VALUES
+  ('bbbbbbbb-0000-4000-8000-000000000002', '2026-11-11', 'America/New_York', 'android', 2310, 395);

@@ -71,6 +71,7 @@ has to match them, not the other way round.
 | `schemas/workout-plan.schema.json` | The shape of a workout plan |
 | `catalog/exercises.json` | The exercises a plan may use (10 today) |
 | `catalog/locales/en.json` | English names, descriptions and tips, keyed by `name_key` |
+| `schemas/health-day.schema.json` | One day of totals from the phone's health store (HealthKit / Health Connect) |
 
 **How the parts relate**
 
@@ -115,6 +116,9 @@ flowchart LR
 
 - [Validation flow](docs/validation-flow.md): the three stages, result shapes, example errors.
 - [Plan generation](docs/plan-generation.md): prompts, retry logic, call flow.
+- [Health integration spec](.kiro/specs/health-integration/spec.md) and [milestone 1 plan](.kiro/specs/health-integration/plan.md): HealthKit and
+  Health Connect, readiness, sitting nudges. The server half exists; the app half does not yet.
+- [Vocabulary](CONTEXT.md): what health day, readiness, adjustment and the other terms mean here.
 - [AI service README](services/assistant/README.md): setup, environment variables, API, error codes,
   and what has not been verified.
 - Examples that pass the validator: `examples/plans/` (3 plans) and `examples/profiles/` (3 profiles).
@@ -136,6 +140,7 @@ Supabase gives us the database, sign-in and file storage, so we write very littl
 | `plans` | A generated plan as JSON (`plan_json`), its schema version, provider used, status |
 | `workout_logs` | What the user actually did: plan day, exercises done, duration, rating, notes |
 | `assistant_messages` | Chat history with the AI assistant |
+| `health_days` | One row per user per day: steps, active energy, resting heart rate, sleep, weight, workouts from other apps. Raw samples never leave the phone ([decision](docs/adr/0001-health-days-on-server.md)) |
 
 - The exercise catalog is a file in the repo, not a table, until we need to edit it live.
 - **Row Level Security** on every table: a user reads and writes only their own rows.
@@ -168,6 +173,7 @@ Pick one with an env var: `ASSISTANT_PROVIDER=openrouter | anthropic`.
 | `get_catalog` | Returns the exercises, filtered by group, level or injury |
 | `get_profile` | Returns the user's profile |
 | `get_recent_logs` | Returns the last N workouts and ratings |
+| `get_health_summary` | Returns 14-day health averages, today's readiness and workouts from other apps; null when Health is not connected |
 | `validate_plan` | Checks a draft plan against the schema and catalog, returns errors |
 | `save_plan` | Saves a valid plan to Supabase |
 

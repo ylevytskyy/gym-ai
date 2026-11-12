@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurafit.app/schemas/health-day.schema.json",
+  "title": "Health Day",
+  "description": "One user's totals from the phone's health store for one local calendar day. The only health data the server holds. Every measurement is optional: an absent field means the health store had no data, never zero.",
+  "type": "object",
+  "required": ["day", "tz", "platform"],
+  "additionalProperties": false,
+  "properties": {
+    "day": {
+      "type": "string",
+      "description": "Local calendar day the totals belong to (YYYY-MM-DD)",
+      "format": "date"
+    },
+    "tz": {
+      "type": "string",
+      "description": "IANA time zone the day was cut in, e.g. Europe/Kyiv",
+      "pattern": "^[A-Za-z0-9_+-]+(/[A-Za-z0-9_+-]+)*$",
+      "maxLength": 64
+    },
+    "platform": {
+      "type": "string",
+      "description": "Which health store the totals came from",
+      "enum": ["ios", "android"]
+    },
+    "steps": {
+      "type": "integer",
+      "description": "Steps taken during the day",
+      "minimum": 0,
+      "maximum": 200000
+    },
+    "active_energy_kcal": {
+      "type": "number",
+      "description": "Active energy burned during the day, in kilocalories",
+      "minimum": 0,
+      "maximum": 20000
+    },
+    "resting_hr_bpm": {
+      "type": "number",
+      "description": "Resting heart rate for the day, in beats per minute",
+      "minimum": 20,
+      "maximum": 250
+    },
+    "sleep_minutes": {
+      "type": "integer",
+      "description": "Minutes asleep in the night that ended on this day",
+      "minimum": 0,
+      "maximum": 1440
+    },
+    "weight_kg": {
+      "type": "number",
+      "description": "Most recent body weight recorded on this day, in kilograms",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 500
+    },
+    "external_workouts": {
+      "type": "array",
+      "description": "Workouts in the health store that Aura Fit did not write",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "required": ["type", "minutes"],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Kind of workout, normalised across both health stores",
+            "enum": ["walking", "running", "cycling", "swimming", "strength", "hiit", "yoga", "sport", "other"]
+          },
+          "minutes": {
+            "type": "integer",
+            "description": "Duration in minutes",
+            "minimum": 1,
+            "maximum": 1440
+          },
+          "energy_kcal": {
+            "type": "number",
+            "description": "Active energy burned, in kilocalories",
+            "minimum": 0,
+            "maximum": 20000
+          }
+        }
+      }
+    }
+  }
+}

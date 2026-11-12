@@ -5,8 +5,9 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { OpenRouterAssistant, type ChatClient } from '../src/providers/openrouter';
+import { redactHealth } from '../src/providers/health-prompt';
 import { PlanGenerationError, APIError } from '../src/types';
-import type { PlanRequest, Profile, WorkoutPlan } from '../src/types';
+import type { HealthSummary, PlanRequest, Profile, WorkoutPlan } from '../src/types';
 
 const beginner: Profile = {
   id: 'user-1',
@@ -171,5 +172,97 @@ describe('prompt construction (Requirements 10.5, 10.6)', () => {
 
     const user = (create.mock.calls[0]![0] as any).messages[1].content as string;
     expect(user).not.toMatch(/custom instructions/i);
+  });
+});
+
+describe('OpenRouterAssistant.generatePlan with health data', () => {
+  const systemPromptOf = (create: ReturnType<typeof fakeChat>['create']): string => {
+    const call = create.mock.calls[0] as unknown as [{ messages: Array<{ role: string; content: string }> }];
+    return call[0].messages.find((m) => m.role === 'system')!.content;
+  };
+
+  const summary: HealthSummary = {
+    days_with_data: 12,
+    avg_steps: 6400,
+    avg_sleep_minutes: 431,
+    avg_resting_hr_bpm: 58,
+    last_night_sleep_minutes: 305,
+    yesterday_steps: 2100,
+    readiness: { level: 'low', reasons: ['short_sleep', 'sleep_below_baseline'] },
+    external_workouts_7d: { count: 2, minutes: 95, types: ['cycling', 'running'] },
+    external_workout_minutes_today: 0,
+  };
+
+  it('puts the health summary into the system prompt', async () => {
+    const { client, create } = fakeChat(JSON.stringify(plan()));
+
+    await assistantWith(client).generatePlan(beginner, request, { health: summary });
+
+    const prompt = systemPromptOf(create);
+    expect(prompt).toContain('## Health data');
+    expect(prompt).toContain('Days with data (today and the 14 days before): 12');
+    expect(prompt).toContain('Average steps per day: 6400');
+    expect(prompt).toContain('Average sleep: 7 h 11 min');
+    expect(prompt).toContain('Average resting heart rate: 58 bpm');
+    expect(prompt).toContain('Last night: 5 h 5 min');
+    expect(prompt).toContain('Steps yesterday: 2100');
+    expect(prompt).toContain('Readiness today: low (short sleep, sleep below baseline)');
+    expect(prompt).toContain('Workouts recorded by other apps in the last 7 days: 2 (95 min; cycling, running)');
+  });
+
+  it('leaves out measurements the summary does not have, without zeros standing in', async () => {
+    const { client, create } = fakeChat(JSON.stringify(plan()));
+    const sparse: HealthSummary = {
+      days_with_data: 3,
+      avg_steps: 4000,
+      readiness: { level: 'unknown', reasons: ['not_enough_data'] },
+      external_workouts_7d: { count: 0, minutes: 0, types: [] },
+      external_workout_minutes_today: 0,
+    };
+
+    await assistantWith(client).generatePlan(beginner, request, { health: sparse });
+
+    const section = systemPromptOf(create).split('## Health data')[1]!.split('\n## ')[0]!;
+    expect(section).toContain('Average steps per day: 4000');
+    expect(section).not.toMatch(/sleep|heart rate|weight/i);
+    expect(section).toContain('Readiness today: unknown (not enough data)');
+    expect(section).toContain('Workouts recorded by other apps in the last 7 days: none');
+  });
+
+  it.each([
+    ['no context', undefined],
+    ['a null summary', { health: null }],
+  ])('says no health data is available with %s, and still returns the plan', async (_label, context) => {
+    const { client, create } = fakeChat(JSON.stringify(plan()));
+
+    const result = await assistantWith(client).generatePlan(beginner, request, context);
+
+    expect(result).toEqual(plan());
+    const prompt = systemPromptOf(create);
+    expect(prompt).toContain('## Health data');
+    expect(prompt).toContain('No health data is available for this user.');
+    expect(prompt).not.toContain('Average steps');
+  });
+
+  it('tells the model health data never overrides the safety rules', async () => {
+    const { client, create } = fakeChat(JSON.stringify(plan()));
+    await assistantWith(client).generatePlan(beginner, request, { health: summary });
+    expect(systemPromptOf(create)).toMatch(/never.*(override|relax).*safety rules/i);
+  });
+});
+
+describe('redactHealth', () => {
+  it('removes the health section from text that is about to be logged, and nothing else', () => {
+    const text = ['## User profile', '- Goal: move_more', '', '## Health data', '- Average steps per day: 6400', '- Last night: 5 h 5 min', '', '## Safety rules (critical)', '1. rule'].join('\n');
+    const redacted = redactHealth(text);
+    expect(redacted).not.toContain('6400');
+    expect(redacted).not.toContain('5 h 5 min');
+    expect(redacted).toContain('## Health data\n[redacted]');
+    expect(redacted).toContain('- Goal: move_more');
+    expect(redacted).toContain('## Safety rules (critical)\n1. rule');
+  });
+
+  it('leaves text without a health section unchanged', () => {
+    expect(redactHealth('Create a plan for 3 day(s).')).toBe('Create a plan for 3 day(s).');
   });
 });

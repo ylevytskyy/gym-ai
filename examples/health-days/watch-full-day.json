@@ -1,0 +1,13 @@
+{
+  "day": "2026-11-11",
+  "tz": "Europe/Kyiv",
+  "platform": "ios",
+  "steps": 8421,
+  "active_energy_kcal": 512.4,
+  "resting_hr_bpm": 58,
+  "sleep_minutes": 441,
+  "weight_kg": 78.3,
+  "external_workouts": [
+    { "type": "running", "minutes": 42, "energy_kcal": 430.5 }
+  ]
+}

@@ -13,11 +13,13 @@ import { logger } from '../logger.js';
 import { loadRepoJson } from '../repo-files.js';
 import { parseWorkoutPlan, validatePlanSafety, validateWorkoutPlan } from '../validator/index.js';
 import { loadCatalog } from '../tools/catalog.js';
+import { buildHealthSection, redactHealth } from './health-prompt.js';
 import {
   APIError,
   PlanGenerationError,
   type Assistant,
   type Exercise,
+  type PlanContext,
   type PlanRequest,
   type Profile,
   type ValidationError,
@@ -67,9 +69,9 @@ export class OpenRouterAssistant implements Assistant {
    * back to the model; if the retry also fails, throws PlanGenerationError.
    * Requirements 10.6-10.9.
    */
-  async generatePlan(profile: Profile, request: PlanRequest): Promise<WorkoutPlan> {
+  async generatePlan(profile: Profile, request: PlanRequest, context: PlanContext = {}): Promise<WorkoutPlan> {
     const messages: ChatMessage[] = [
-      { role: 'system', content: this.buildSystemPrompt(profile, request) },
+      { role: 'system', content: this.buildSystemPrompt(profile, request, context) },
       { role: 'user', content: this.buildUserPrompt(profile, request) },
     ];
     let lastErrors: ValidationError[] = [];
@@ -99,8 +101,8 @@ export class OpenRouterAssistant implements Assistant {
     );
   }
 
-  /** Requirement 10.5: system prompt with catalog, profile, safety rules and schema. */
-  private buildSystemPrompt(profile: Profile, _request: PlanRequest): string {
+  /** Requirement 10.5: system prompt with catalog, profile, health data, safety rules and schema. */
+  private buildSystemPrompt(profile: Profile, _request: PlanRequest, context: PlanContext): string {
     const injuries = profile.injuries.length > 0 ? profile.injuries.join(', ') : 'none';
     return [
       'You are a workout planner for the Aura Fit app. Create a workout plan for the user below.',
@@ -115,6 +117,8 @@ export class OpenRouterAssistant implements Assistant {
       `- Minutes per day: ${profile.minutes_per_day} (or fewer)`,
       `- Injuries: ${injuries}`,
       `- Age range: ${profile.age_range}`,
+      '',
+      ...buildHealthSection(context.health),
       '',
       '## Safety rules (critical)',
       '1. Never include exercises whose avoid_if matches one of the user\'s injuries.',
@@ -184,7 +188,10 @@ export class OpenRouterAssistant implements Assistant {
   /** One chat completion. Requirement 10.10: metadata at info, bodies at debug. */
   private async callModel(messages: ChatMessage[], attempt: number): Promise<string> {
     logger.info({ model: this.model, attempt, messageCount: messages.length }, 'openrouter request');
-    logger.debug({ body: messages }, 'openrouter request body');
+    logger.debug(
+      { body: messages.map((m) => ({ ...m, content: redactHealth(m.content) })) },
+      'openrouter request body',
+    );
 
     let response: Awaited<ReturnType<ChatClient['chat']['completions']['create']>>;
     try {

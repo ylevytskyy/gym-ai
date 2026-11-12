@@ -17,11 +17,13 @@ import {
   PlanGenerationError,
   ValidationErrorClass,
   type Assistant,
+  type HealthSummary,
   type Profile,
   type WorkoutPlan,
 } from '../types.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_HEALTH_TIMEOUT_MS = 3_000;
 
 export interface AppDeps {
   assistant: Assistant;
@@ -29,6 +31,13 @@ export interface AppDeps {
   authenticate: (req: Request) => Promise<string>;
   loadProfile: (userId: string) => Promise<Profile>;
   storePlan: (userId: string, plan: WorkoutPlan, provider: string) => Promise<string>;
+  /**
+   * The user's health summary, or null when they have no recent health days. Optional: without
+   * it plans are generated from the profile alone.
+   */
+  loadHealthSummary?: (userId: string) => Promise<HealthSummary | null>;
+  /** How long the health lookup may take before the plan is generated without it. */
+  healthTimeoutMs?: number;
   requestTimeoutMs?: number;
 }
 
@@ -86,6 +95,23 @@ function describeError(err: unknown): { status: number; body: Omit<ErrorBody, 'c
   return { status: 500, body: { error: 'INTERNAL_SERVER_ERROR', message: 'An unexpected error occurred' } };
 }
 
+/**
+ * Health data improves a plan but is never required for one: a failed or slow lookup is logged
+ * and the plan is generated without it.
+ */
+async function loadHealth(deps: AppDeps, userId: string, correlationId: string): Promise<HealthSummary | null> {
+  if (!deps.loadHealthSummary) return null;
+  try {
+    return await withTimeout(deps.loadHealthSummary(userId), deps.healthTimeoutMs ?? DEFAULT_HEALTH_TIMEOUT_MS);
+  } catch (err) {
+    logger.warn(
+      { correlationId, userId, err: err instanceof Error ? { name: err.name, message: err.message } : String(err) },
+      'health summary unavailable; generating the plan without it',
+    );
+    return null;
+  }
+}
+
 export function createApp(deps: AppDeps): express.Express {
   const timeoutMs = deps.requestTimeoutMs ?? DEFAULT_TIMEOUT_MS;
   const app = express();
@@ -122,7 +148,8 @@ export function createApp(deps: AppDeps): express.Express {
       const profile = await deps.loadProfile(userId);
       logger.info({ correlationId: res.locals['correlationId'], userId }, 'plan generation started');
 
-      const plan = await withTimeout(deps.assistant.generatePlan(profile, validation.request), timeoutMs);
+      const health = await loadHealth(deps, userId, res.locals['correlationId'] as string);
+      const plan = await withTimeout(deps.assistant.generatePlan(profile, validation.request, { health }), timeoutMs);
       const planId = await deps.storePlan(userId, plan, 'openrouter');
 
       logger.info({ correlationId: res.locals['correlationId'], userId, planId }, 'plan generation finished');

@@ -9,6 +9,7 @@ import { authenticateRequest } from './api/auth.js';
 import { createApp } from './api/server.js';
 import { OpenRouterAssistant } from './providers/openrouter.js';
 import { getProfile, savePlan } from './tools/database.js';
+import { getHealthSummary } from './tools/health.js';
 
 const config = validateConfig(); // exits with code 1 if required variables are missing
 
@@ -17,6 +18,7 @@ const app = createApp({
   authenticate: (req) => authenticateRequest(req),
   loadProfile: (userId) => getProfile(userId),
   storePlan: (userId, plan, provider) => savePlan(userId, plan, provider),
+  loadHealthSummary: (userId) => getHealthSummary(userId),
 });
 
 const server = app.listen(config.port, () => {

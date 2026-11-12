@@ -9,6 +9,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getProfile, getRecentLogs, savePlan } from '../src/tools/database';
+import { getHealthDays, getHealthSummary } from '../src/tools/health';
 import type { WorkoutPlan } from '../src/types';
 
 const url = process.env.SUPABASE_TEST_URL;
@@ -69,5 +70,25 @@ describe.skipIf(!enabled)('Integration: database tools', () => {
 
     const after = await db.from('plans').select('id', { count: 'exact', head: true }).eq('user_id', USER_A);
     expect(after.count).toBe(before.count);
+  });
+  it('getHealthDays returns only that user health days in the range, as health days', async () => {
+    // Seeded: A has 2026-11-10 and 2026-11-11 (watch data), B has 2026-11-11 (phone only).
+    const days = await getHealthDays(USER_B, '2026-11-01', '2026-11-30', db);
+    expect(days).toEqual([{ day: '2026-11-11', tz: 'America/New_York', platform: 'android', steps: 2310, sleep_minutes: 395 }]);
+
+    const onlyTenth = await getHealthDays(USER_A, '2026-11-10', '2026-11-10', db);
+    expect(onlyTenth.map((d) => d.day)).toEqual(['2026-11-10']);
+    expect(onlyTenth[0]).toMatchObject({ steps: 6120, resting_hr_bpm: 59, weight_kg: 72.4 });
+    expect(typeof onlyTenth[0]!.resting_hr_bpm).toBe('number'); // NUMERIC must not leak through as a string
+  });
+
+  it('getHealthSummary summarises the seeded days and is null for a user with none in the window', async () => {
+    const summary = await getHealthSummary(USER_A, new Date('2026-11-12T09:00:00Z'), db);
+    expect(summary).toMatchObject({
+      days_with_data: 2,
+      yesterday_steps: 8421,
+      external_workouts_7d: { count: 1, minutes: 42, types: ['running'] },
+    });
+    expect(await getHealthSummary(USER_A, new Date('2027-06-01T09:00:00Z'), db)).toBeNull();
   });
 });

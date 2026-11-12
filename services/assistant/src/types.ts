@@ -3,6 +3,8 @@
  * These types define the contracts between system components
  */
 
+import type { HealthSummary } from '@aura-fit/health-core';
+
 // ============================================================================
 // User Profile Types
 // ============================================================================
@@ -234,9 +236,20 @@ export interface WorkoutLog {
 export interface Assistant {
   generatePlan(
     profile: Profile,
-    request: PlanRequest
+    request: PlanRequest,
+    context?: PlanContext
   ): Promise<WorkoutPlan>;
 }
+
+/**
+ * What the server knows about the user beyond the profile when a plan is generated.
+ * `health` is null or absent for a user with no recent health days.
+ */
+export interface PlanContext {
+  health?: HealthSummary | null;
+}
+
+export type { HealthSummary } from '@aura-fit/health-core';
 
 // ============================================================================
 // Custom Error Classes
