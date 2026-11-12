@@ -13,6 +13,13 @@ export interface Services {
   health: HealthController;
   /** Today's local day (YYYY-MM-DD); injectable so tests are not tied to the clock. */
   today: () => string;
+  /** Base URL of the assistant service that makes plans. */
+  assistantUrl: string;
+  fetch: typeof fetch;
+  /** Public URL of a file in the exercise-media bucket. */
+  mediaUrl: (file: string) => string;
+  /** A new unique id for a row the app creates. */
+  newId: () => string;
 }
 
 const ServicesContext = createContext<Services | null>(null);

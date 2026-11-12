@@ -7,6 +7,7 @@ import { AuthProvider } from '@/auth/AuthProvider';
 import { createHealthController, type Preferences } from '@/health/controller';
 import { createFakeHealthStore, type FakeHealthOptions } from '@/health/fake-store';
 import { HealthProvider } from '@/health/HealthProvider';
+import { PlanProvider } from '@/plan/PlanProvider';
 import { ProfileProvider } from '@/profile/ProfileProvider';
 import type { StoredProfile } from '@/profile/repository';
 import { ServicesProvider, type Services } from '@/services';
@@ -17,6 +18,9 @@ export interface HarnessOptions {
   health?: FakeHealthOptions;
   /** Stored health choices, e.g. { 'health.enabled': 'true' }. */
   preferences?: Record<string, string>;
+  /** Rows the fake database answers with, by table. */
+  rows?: { plans?: unknown; workout_logs?: unknown[] };
+  fetch?: jest.Mock;
   /** What verifyOtp answers. */
   codeIsValid?: boolean;
   saveFails?: boolean;
@@ -27,6 +31,9 @@ export function createHarness(options: HarnessOptions = {}) {
   let listener: ((event: string, next: unknown) => void) | undefined;
   let storedProfile = options.profile ?? null;
   const upserts: unknown[] = [];
+  const inserts: { table: string; row: Record<string, unknown> }[] = [];
+  const updates: { table: string; row: Record<string, unknown> }[] = [];
+  let idCounter = 0;
 
   const auth = {
     getSession: jest.fn(async () => ({ data: { session }, error: null })),
@@ -47,8 +54,18 @@ export function createHarness(options: HarnessOptions = {}) {
     }),
   };
 
-  const from = jest.fn(() => {
+  const from = jest.fn((table: string) => {
     let upserted: Record<string, unknown> | undefined;
+    if (table === 'plans' || table === 'workout_logs') {
+      const answer = table === 'plans' ? { data: options.rows?.plans ?? null, error: null } : { data: options.rows?.workout_logs ?? [], error: null };
+      const rows: Record<string, unknown> = {};
+      for (const method of ['select', 'eq', 'order', 'limit']) rows[method] = () => rows;
+      rows['maybeSingle'] = async () => answer;
+      rows['insert'] = async (row: Record<string, unknown>) => (inserts.push({ table, row }), { error: options.saveFails ? { message: 'boom' } : null });
+      rows['update'] = (row: Record<string, unknown>) => (updates.push({ table, row }), rows);
+      rows['then'] = (resolve: (v: unknown) => unknown) => Promise.resolve(answer).then(resolve);
+      return rows;
+    }
     const builder = {
       select: () => builder,
       eq: () => builder,
@@ -75,6 +92,10 @@ export function createHarness(options: HarnessOptions = {}) {
     supabase: { auth, from } as unknown as Services['supabase'],
     health: createHealthController(store, preferences),
     today: () => '2026-11-12',
+    assistantUrl: 'http://assistant.test',
+    fetch: (options.fetch ?? (async () => { throw new TypeError('Network request failed'); })) as typeof fetch,
+    mediaUrl: (file) => `http://media.test/${file}`,
+    newId: () => `id-${++idCounter}`,
   };
 
   const renderScreen = (screen: ReactElement) =>
@@ -82,11 +103,13 @@ export function createHarness(options: HarnessOptions = {}) {
       <ServicesProvider services={services}>
         <AuthProvider>
           <ProfileProvider>
-            <HealthProvider>{screen}</HealthProvider>
+            <HealthProvider>
+              <PlanProvider>{screen}</PlanProvider>
+            </HealthProvider>
           </ProfileProvider>
         </AuthProvider>
       </ServicesProvider>,
     );
 
-  return { services, auth, store, upserts, preferences: data, renderScreen };
+  return { services, auth, store, upserts, inserts, updates, preferences: data, renderScreen };
 }

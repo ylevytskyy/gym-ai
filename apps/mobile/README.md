@@ -11,8 +11,12 @@ HealthKit and Health Connect are native modules and do not run in Expo Go.
 - `src/health/`: one `HealthStore` interface with a HealthKit adapter (iOS), a Health Connect
   adapter (Android) and a fake for tests.
 
-The plan, the workout player, sync of health days to the server, chat and history are not built
-yet (see `.kiro/specs/health-integration/spec.md`, milestones 3 to 6).
+- Today tab: the day to do from the user's plan, or "Create my plan" (asks the assistant service).
+- Workout player: every set with its looping demo video, timed sets and rests, pause, skip, and
+  a summary that is saved as a workout log and written to the health store.
+
+Sync of health days to the server, sessions adjusted to readiness, sitting nudges, chat and
+history are not built yet (see `.kiro/specs/health-integration/spec.md`, milestones 4 to 6).
 
 ## Run it
 
@@ -57,6 +61,14 @@ local Supabase (`supabase start`). They work on the iOS Simulator and the Androi
 ```bash
 maestro test -e EMAIL=someone@example.com e2e/sign-in.yaml   # from the sign-in screen
 maestro test e2e/onboarding.yaml                             # from the onboarding screen
+maestro test e2e/workout.yaml                                # from Today, with a plan
+```
+
+The demo videos come from the `exercise-media` bucket. Publish the rendered loops to the
+Supabase you are running against first:
+
+```bash
+SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SECRET_KEY=<secret key> python3 ../../pipelines/blender/publish.py
 ```
 
 `e2e/latest-code.js` reads the sign-in code from the local mailbox (Mailpit, port 54324). The
@@ -79,9 +91,16 @@ local Supabase:
 - A workout written to the health store shows up in the day's active energy, is not counted as
   an external workout, and is gone (with its energy) after deletion.
 - Signing out turns Health off for the next person on the phone.
+- The player shows the demo video from Storage on both platforms; a finished session is saved
+  as one workout log, and with Health connected the log carries the health store's record id.
+  With Health off the log is saved without it.
+- Today shows "Done for today" after a session and the next day on a later date (tests only for
+  the date change).
 
 Not verified: reading steps, sleep, resting heart rate and other apps' workouts from real data
-(the simulators hold none), anything on a physical phone, and the hosted Supabase project.
+(the simulators hold none), creating a plan through the real assistant service (the request
+was checked against a stand-in; with the service down the app says so), anything on a physical
+phone, and the hosted Supabase project.
 
 ## Health data
 

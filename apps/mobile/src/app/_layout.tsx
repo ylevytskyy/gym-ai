@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { HealthProvider } from '@/health/HealthProvider';
+import { PlanProvider } from '@/plan/PlanProvider';
 import { ProfileProvider, useProfile } from '@/profile/ProfileProvider';
 import { createRealServices } from '@/real-services';
 import { ServicesProvider } from '@/services';
@@ -41,6 +42,7 @@ function Routes() {
       </Stack.Protected>
       <Stack.Protected guard={hasProfile}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="player" options={{ gestureEnabled: false }} />
         <Stack.Screen name="dev-health" />
       </Stack.Protected>
     </Stack>
@@ -54,7 +56,9 @@ export default function RootLayout() {
       <AuthProvider>
         <ProfileProvider>
           <HealthProvider>
-            <Routes />
+            <PlanProvider>
+              <Routes />
+            </PlanProvider>
           </HealthProvider>
         </ProfileProvider>
       </AuthProvider>
