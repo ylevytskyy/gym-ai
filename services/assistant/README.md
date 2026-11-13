@@ -34,7 +34,9 @@ plan for the repository; this package is not set up that way.)
 git clone <repository-url>
 cd fitness-v2/services/assistant
 
-# 2. install
+# 2. install. The shared health rules (packages/health-core) are a local dependency and must be
+#    built first; its own install does that.
+(cd ../../packages/health-core && npm install)
 npm install
 
 # 3. configure
@@ -195,6 +197,28 @@ Failure examples:
 ```
 
 Order of work: authenticate, validate the body, load the profile, generate (30 second limit), save.
+
+## Health data
+
+When the user has health days in Supabase (`health_days`, synced by the mobile app from HealthKit or
+Health Connect), plan generation reads them:
+
+- `src/tools/health.ts` loads the last two weeks of health days for the authenticated user and reduces
+  them to a summary: 14-day averages, last night's sleep, yesterday's steps, today's readiness and
+  the workouts other apps recorded in the last 7 days.
+- `src/providers/health-prompt.ts` writes that summary into the system prompt. A measurement with no
+  data produces no line; it is never written as zero.
+- A user with no health days, or a failed health lookup, still gets a plan. The prompt then says no
+  health data is available, and a failed lookup is logged as a warning.
+- The readiness and adjustment rules live in `packages/health-core` and are deterministic. The model
+  is told the readiness; it does not compute it.
+
+Tests import `packages/health-core` from source (see `vitest.shared.ts`), so they never run against a
+stale build. `npm run build` and `npm run dev` use the built package: after changing
+`packages/health-core/src`, run `npm run build` there.
+
+Not verified: the health path against hosted Supabase, and whether health data improves plans from a
+real model. The database tools were run against a local Postgres 16 with PostgREST.
 
 ## Error codes
 

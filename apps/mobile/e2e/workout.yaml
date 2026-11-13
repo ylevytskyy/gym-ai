@@ -1,0 +1,47 @@
+# Plays today's session and saves it. Start from the Today tab of a user who has a plan
+# whose first day is: plank 1 x 5 s, then squat 2 x 5 with 5 s rest (see README).
+appId: app.aurafit.mobile
+---
+- assertVisible:
+    id: today-plan
+- tapOn:
+    id: start-workout
+- tapOn:
+    id: begin
+- assertVisible:
+    id: video-demo
+# The timed set ends by itself.
+- extendedWaitUntil:
+    visible:
+      id: set-done
+    timeout: 15000
+- tapOn:
+    id: set-done
+# The rest is short; on a slow emulator it can be over before it is skipped.
+- runFlow:
+    when:
+      visible:
+        id: skip-rest
+    commands:
+      - tapOn:
+          id: skip-rest
+- extendedWaitUntil:
+    visible: "Set 2 of 2"
+    timeout: 15000
+- tapOn:
+    id: set-done
+- extendedWaitUntil:
+    visible:
+      id: summary
+    timeout: 10000
+- tapOn: "How was it? (1 easy, 5 hard): 4"
+- tapOn:
+    id: save-workout
+- extendedWaitUntil:
+    visible:
+      id: saved
+    timeout: 15000
+- tapOn:
+    id: leave-player
+- assertVisible:
+    id: done-today

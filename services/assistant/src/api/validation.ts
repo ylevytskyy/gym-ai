@@ -71,3 +71,29 @@ export function validatePlanRequest(body: unknown): RequestValidation {
   }
   return { valid: true, request };
 }
+
+const MAX_FEEDBACK = 500;
+const MAX_MESSAGE = 1000;
+
+export type TextValidation = { valid: true; text: string } | { valid: false; errors: ValidationError[] };
+
+/** One required text field of a JSON body, trimmed, between 1 and `max` characters. */
+function validateText(body: unknown, field: string, max: number): TextValidation {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return { valid: false, errors: [fail('', 'INVALID_BODY', 'Request body must be a JSON object')] };
+  }
+  const value = (body as Record<string, unknown>)[field];
+  if (typeof value !== 'string' || value.trim() === '') {
+    return { valid: false, errors: [fail(field, 'REQUIRED', `${field} must be a non-empty string`)] };
+  }
+  if (value.length > max) {
+    return { valid: false, errors: [fail(field, 'TOO_LONG', `${field} must be at most ${max} characters`)] };
+  }
+  return { valid: true, text: value.trim() };
+}
+
+/** Body of POST /api/plans/adjust. */
+export const validateAdjustRequest = (body: unknown): TextValidation => validateText(body, 'feedback', MAX_FEEDBACK);
+
+/** Body of POST /api/chat. */
+export const validateChatRequest = (body: unknown): TextValidation => validateText(body, 'message', MAX_MESSAGE);

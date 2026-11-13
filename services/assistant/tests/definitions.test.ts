@@ -14,10 +14,16 @@ const byName = (name: string): ToolDef => {
 };
 
 describe('toolDefinitions', () => {
-  it('exposes the five assistant tools', () => {
+  it('exposes the six assistant tools', () => {
     expect(toolDefinitions.map((t) => t.function.name).sort()).toEqual(
-      ['get_catalog', 'get_profile', 'get_recent_logs', 'save_plan', 'validate_plan'],
+      ['get_catalog', 'get_health_summary', 'get_profile', 'get_recent_logs', 'save_plan', 'validate_plan'],
     );
+  });
+
+  it('describes get_health_summary as optional data with no inputs', () => {
+    const tool = byName('get_health_summary').function;
+    expect(tool.parameters).toMatchObject({ type: 'object', properties: {}, required: [] });
+    expect(tool.description).toMatch(/null/i);
   });
 
   it('uses the OpenAI function-tool shape with descriptions and object parameters', () => {

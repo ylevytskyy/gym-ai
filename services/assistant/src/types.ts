@@ -3,6 +3,8 @@
  * These types define the contracts between system components
  */
 
+import type { HealthSummary } from '@aura-fit/health-core';
+
 // ============================================================================
 // User Profile Types
 // ============================================================================
@@ -234,9 +236,52 @@ export interface WorkoutLog {
 export interface Assistant {
   generatePlan(
     profile: Profile,
-    request: PlanRequest
+    request: PlanRequest,
+    context?: PlanContext
   ): Promise<WorkoutPlan>;
+  /** The plan changed as the feedback asks. Validated like a new plan; throws PlanGenerationError otherwise. */
+  adjustPlan(
+    profile: Profile,
+    plan: WorkoutPlan,
+    feedback: string,
+    context?: PlanContext
+  ): Promise<WorkoutPlan>;
+  /** One reply in a conversation. Never throws for unreadable model output, only for a failed call. */
+  chat(input: ChatInput): Promise<ChatResult>;
 }
+
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatInput {
+  profile: Profile;
+  message: string;
+  /** Earlier turns, oldest first. */
+  history: ChatTurn[];
+  /** The user's active plan, or null when they have none. */
+  plan: WorkoutPlan | null;
+  health?: HealthSummary | null;
+}
+
+export interface ChatResult {
+  reply: string;
+  /** How the plan should change, in the model's words. The server applies it through adjustPlan. */
+  adjustPlan?: string;
+  /** Injuries the user reported, already limited to known ones the profile does not have. */
+  addInjuries?: string[];
+}
+
+/**
+ * What the server knows about the user beyond the profile when a plan is generated.
+ * `health` is null or absent for a user with no recent health days.
+ */
+export interface PlanContext {
+  health?: HealthSummary | null;
+}
+
+export type { HealthSummary } from '@aura-fit/health-core';
 
 // ============================================================================
 // Custom Error Classes

@@ -72,6 +72,19 @@ export const toolDefinitions = [
   {
     type: 'function' as const,
     function: {
+      name: 'get_health_summary',
+      description:
+        'Get a summary of the current user\'s recent health data from their phone: 14-day averages (steps, sleep, resting heart rate), last night\'s sleep, today\'s readiness and workouts recorded by other apps. Returns null when the user has not connected Health; a missing field means no data, not zero.',
+      parameters: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
       name: 'validate_plan',
       description:
         'Check a workout plan against the schema, the exercise catalog and the rules. Returns success or a list of errors with JSON paths. Call this before save_plan.',

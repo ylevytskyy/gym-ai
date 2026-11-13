@@ -1,0 +1,30 @@
+{
+  "name": "@aura-fit/health-core",
+  "version": "0.1.0",
+  "description": "Deterministic health rules for Aura Fit: readiness, workout adjustment, sitting nudges and the health summary. Pure TypeScript, no platform imports; shared by the mobile app and the assistant service.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "fast-check": "^3.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "license": "MIT"
+}

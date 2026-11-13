@@ -1,0 +1,29 @@
+# Signs in with a one-time code. Start from the sign-in screen of a development build that is
+# already connected to Metro, with local Supabase running (`supabase start`).
+#   maestro test -e EMAIL=someone@example.com e2e/sign-in.yaml
+appId: app.aurafit.mobile
+---
+- assertVisible:
+    id: sign-in-email
+- tapOn:
+    id: email-input
+- inputText: ${EMAIL}
+- tapOn:
+    id: send-code
+- extendedWaitUntil:
+    visible:
+      id: sign-in-code
+    timeout: 15000
+- runScript:
+    file: latest-code.js
+    env:
+      EMAIL: ${EMAIL}
+- tapOn:
+    id: code-input
+- inputText: ${output.code}
+- tapOn:
+    id: verify-code
+- extendedWaitUntil:
+    visible:
+      id: onboarding
+    timeout: 15000

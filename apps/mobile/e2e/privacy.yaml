@@ -1,0 +1,42 @@
+# Clears the conversation and deletes the stored health data from the Privacy and account
+# screen. Start from any tab of a signed-in user.
+appId: app.aurafit.mobile
+---
+- tapOn:
+    id: tab-health
+- scrollUntilVisible:
+    element:
+      id: open-privacy
+    direction: DOWN
+- tapOn:
+    id: open-privacy
+- assertVisible:
+    id: privacy
+- scrollUntilVisible:
+    element:
+      id: clear-chat
+    direction: DOWN
+- tapOn:
+    id: clear-chat
+- tapOn: "Clear"
+- scrollUntilVisible:
+    element: "Your conversation was cleared."
+    direction: UP
+- scrollUntilVisible:
+    element:
+      id: delete-health-data
+    direction: DOWN
+- tapOn:
+    id: delete-health-data
+- tapOn: "Delete data"
+- scrollUntilVisible:
+    element: "Your health data was deleted.*"
+    direction: UP
+- scrollUntilVisible:
+    element: "Back"
+    direction: DOWN
+- tapOn: "Back"
+- scrollUntilVisible:
+    element:
+      id: health-off
+    direction: UP

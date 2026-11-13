@@ -19,6 +19,7 @@ import {
   DatabaseError,
   PlanGenerationError,
   type Assistant,
+  type HealthSummary,
   type Profile,
   type WorkoutPlan,
 } from '../src/types';
@@ -49,7 +50,17 @@ const plan: WorkoutPlan = {
 
 function makeDeps(overrides: Partial<AppDeps> = {}) {
   const deps: AppDeps = {
-    assistant: { generatePlan: vi.fn(async () => plan) } satisfies Assistant,
+    assistant: {
+      generatePlan: vi.fn(async () => plan),
+      adjustPlan: vi.fn(async () => plan),
+      chat: vi.fn(async () => ({ reply: 'ok' })),
+    } satisfies Assistant,
+    loadActivePlan: vi.fn(async () => null),
+    loadMessages: vi.fn(async () => []),
+    storeMessages: vi.fn(async () => undefined),
+    addInjuries: vi.fn(async () => profile),
+    archivePlans: vi.fn(async () => undefined),
+    deleteAccount: vi.fn(async () => undefined),
     authenticate: vi.fn(async (req: any) => {
       if (req.headers.authorization === 'Bearer good') return 'user-1';
       throw new AuthenticationError();
@@ -114,11 +125,11 @@ describe('POST /api/plans/generate', () => {
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual({ id: 'plan-1', plan });
     expect(deps.loadProfile).toHaveBeenCalledWith('user-1');
-    expect(deps.assistant.generatePlan).toHaveBeenCalledWith(profile, {
-      duration_days: 3,
-      focus_areas: ['core'],
-      custom_instructions: 'Quiet please',
-    });
+    expect(deps.assistant.generatePlan).toHaveBeenCalledWith(
+      profile,
+      { duration_days: 3, focus_areas: ['core'], custom_instructions: 'Quiet please' },
+      { health: null }, // no health lookup wired in: the plan is made without health data
+    );
     expect(deps.storePlan).toHaveBeenCalledWith('user-1', plan, 'openrouter');
   });
 
@@ -234,5 +245,78 @@ describe('POST /api/plans/generate', () => {
     const body = await res.json();
     expect(header).toMatch(UUID);
     expect(body.correlationId).toBe(header);
+  });
+});
+
+describe('POST /api/plans/generate with health data', () => {
+  const summary: HealthSummary = {
+    days_with_data: 9,
+    avg_steps: 5200,
+    readiness: { level: 'normal', reasons: [] },
+    external_workouts_7d: { count: 1, minutes: 40, types: ['running'] },
+    external_workout_minutes_today: 0,
+  };
+
+  async function run(loadHealthSummary: AppDeps['loadHealthSummary']) {
+    const deps = makeDeps({ ...(loadHealthSummary ? { loadHealthSummary } : {}) });
+    const { server, base } = await start(deps);
+    try {
+      const res = await post(base, validBody);
+      return { res, deps, body: await res.json() };
+    } finally {
+      server.close();
+    }
+  }
+
+  it('loads the health summary for the authenticated user and hands it to the assistant', async () => {
+    const loadHealthSummary = vi.fn(async () => summary);
+    const { res, deps } = await run(loadHealthSummary);
+
+    expect(res.status).toBe(201);
+    expect(loadHealthSummary).toHaveBeenCalledWith('user-1');
+    expect(deps.assistant.generatePlan).toHaveBeenCalledWith(profile, expect.anything(), { health: summary });
+  });
+
+  it('generates the plan without health data for a user who never connected Health', async () => {
+    const { res, deps, body } = await run(vi.fn(async () => null));
+
+    expect(res.status).toBe(201);
+    expect(body).toEqual({ id: 'plan-1', plan });
+    expect(deps.assistant.generatePlan).toHaveBeenCalledWith(profile, expect.anything(), { health: null });
+  });
+
+  it('still generates the plan when the health lookup fails', async () => {
+    const { res, deps, body } = await run(vi.fn(async () => {
+      throw new DatabaseError('health_days unavailable', 'getHealthDays');
+    }));
+
+    expect(res.status).toBe(201);
+    expect(body).toEqual({ id: 'plan-1', plan });
+    expect(deps.assistant.generatePlan).toHaveBeenCalledWith(profile, expect.anything(), { health: null });
+  });
+
+  it('does not let a hung health lookup hold the request: the plan is generated without it', async () => {
+    const deps = makeDeps({ loadHealthSummary: vi.fn(() => new Promise<HealthSummary | null>(() => {})), healthTimeoutMs: 50 });
+    const { server, base } = await start(deps);
+    try {
+      const res = await post(base, validBody);
+      expect(res.status).toBe(201);
+      expect(deps.assistant.generatePlan).toHaveBeenCalledWith(profile, expect.anything(), { health: null });
+    } finally {
+      server.close();
+    }
+  });
+
+  it('does not look up health data for an unauthenticated or invalid request', async () => {
+    const loadHealthSummary = vi.fn(async () => summary);
+    const deps = makeDeps({ loadHealthSummary });
+    const { server, base } = await start(deps);
+    try {
+      expect((await post(base, validBody, null)).status).toBe(401);
+      expect((await post(base, { duration_days: 0, focus_areas: [] })).status).toBe(400);
+      expect(loadHealthSummary).not.toHaveBeenCalled();
+    } finally {
+      server.close();
+    }
   });
 });
