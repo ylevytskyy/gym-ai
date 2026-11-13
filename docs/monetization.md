@@ -13,6 +13,52 @@ purchase and Google Play Billing.
 - Decided: monthly and annual Pro subscriptions, plus one-time credit packs for people who want to
   use the service once without subscribing. Pro is about $5 a month.
 
+## What Pro sells (direction, 2026-11-13)
+
+Pricing should not mirror model cost. AI costs cents per user a month (see "Measured model cost"),
+so it should not be the main paywall. People pay for the outcome: training regularly, seeing
+progress, less back pain from sitting. Pro sells an adaptive personal coach for people who sit all
+day and have no equipment; the AI coach is one part of it.
+
+Value the app already has, and the paid side of each:
+
+1. **Readiness and adjustments.** Today's session changes from sleep, resting heart rate, steps and
+   external workouts. Deterministic, no AI cost per use. Pro.
+2. **Progress.** History already shows health trends. Pro: monthly reports, streaks, links between
+   workouts and steps, sleep, weight.
+3. **Exercise library with 3D animations** (75 exercises, Blender pipeline). Content is made once
+   and sold many times. Free: a basic set. Pro: all of it, plus new exercises every month.
+4. **Sitting nudges.** A niche big fitness apps cover poorly. Pro "workday mode": a schedule, 2-5
+   minute micro-workouts, stairs instead of a gym.
+
+New things worth selling:
+
+- **Programs** ("30 days for a desk worker's back", "stairs instead of a gym") as one-time
+  purchases (non-consumable). A clearer "pay once" option than abstract credits. Open question:
+  keep credits only for AI actions without a subscription, or drop credits in favour of programs.
+- **Audio cues during a workout**, recorded ahead, so no cost per play.
+- **Widgets, Live Activity, Apple Watch.**
+- **Family subscription** (store family sharing).
+- **Later, B2B:** wellness programs sold as seats to companies with remote staff. Fits the niche;
+  the largest potential revenue.
+
+Not doing: ads, or any use of user data for money. This is a health app; both hurt trust and store
+review.
+
+Proposed split:
+
+| | Free | Pro ($4.99 / $39.99) |
+|---|---|---|
+| Training | player, 1 plan, basic exercise set | all exercises, new ones monthly |
+| Adjustments | none | readiness from health data, automatic changes |
+| Progress | workout history | trends, reports, streaks |
+| Workday mode | basic nudges | schedule, micro-workouts |
+| Coach (AI) | a few messages | no counter (fair-use limits) |
+| Separate | programs as one-time purchases | programs discounted or included |
+
+Before fixing prices, look at how 2-3 competitors in this niche split free and paid (not done yet).
+The "Offer" section below predates this direction and is to be revised against it.
+
 ## Offer (draft, 2026-11-13)
 
 Prices are in USD; each store sets local prices from its own tiers.
