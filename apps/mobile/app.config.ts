@@ -31,13 +31,13 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'automatic',
   ios: {
     bundleIdentifier: APP_ID,
-    icon: './assets/expo.icon',
+    icon: './assets/images/icon.png',
     supportsTablet: false,
   },
   android: {
     package: APP_ID,
     adaptiveIcon: {
-      backgroundColor: '#E6F4FE',
+      backgroundColor: '#08A5F2',
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
