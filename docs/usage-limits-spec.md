@@ -14,12 +14,15 @@ model, so the limits in `docs/monetization.md` hold no matter what the client se
 - **Use**: one counted AI action: `chat_message` (`POST /api/chat`) or `new_plan`
   (`POST /api/plans/generate` and `POST /api/plans/adjust`). A plan change triggered from chat is
   part of the chat message and is not a separate use.
-- **Allowance**: free: 10 `chat_message` per UTC day, 2 `new_plan` per rolling 7 days. Pro (fair use):
-  150 `chat_message` per UTC day, 20 `new_plan` per rolling 30 days.
+- **Local day**: midnight to midnight in the user's IANA time zone (`profiles.timezone`, default
+  `UTC` until the app sends one).
+- **Allowance**: free: 10 `chat_message` per local day, 2 `new_plan` per rolling 7 days. Pro (fair use):
+  150 `chat_message` per local day, 20 `new_plan` per rolling 30 days.
 
 ## Behaviour
 
-1. Supabase migration `010`: `entitlements` (user_id, tier, expires_at, source, updated_at) and an
+1. Supabase migration `010`: `profiles.timezone` (IANA name, checked against `pg_timezone_names`,
+   default `UTC`), `entitlements` (user_id, tier, expires_at, source, updated_at) and an
    append-only `ai_usage` (id, user_id, action, request_id unique per user, status `reserved` /
    `used` / `released`, created_at). RLS: users select their own rows; no client insert/update.
 2. Postgres function `reserve_ai_use(user, action, request_id)`: in one transaction, takes a
@@ -39,7 +42,7 @@ model, so the limits in `docs/monetization.md` hold no matter what the client se
 
 ## Definition of done
 
-- Unit tests in `services/assistant` show: the 11th free chat message in a UTC day gets 429
+- Unit tests in `services/assistant` show: the 11th free chat message in a local day gets 429
   `USAGE_LIMIT`; the 3rd free plan in 7 days gets 429; a Pro user (future `expires_at`) passes those
   points; a user with past `expires_at` is treated as free; a failed model call does not count; the
   same `Idempotency-Key` twice counts once.
@@ -54,7 +57,7 @@ model, so the limits in `docs/monetization.md` hold no matter what the client se
 - No app changes beyond what is needed later to read `USAGE_LIMIT` (separate slice).
 - No credits, balances or purchases.
 - No device binding.
-- No per-user time zone: days are UTC.
+- No app code that sends the time zone (next slice); until then every user counts in UTC.
 
 ## Alternatives considered
 
@@ -66,11 +69,13 @@ model, so the limits in `docs/monetization.md` hold no matter what the client se
 
 ## Open questions
 
-- Should `POST /api/plans/adjust` count as a new plan, or be free like a plan change from chat?
-  (Draft: counts.)
-- Is a UTC day acceptable, or should the day follow the user's time zone (needs a profile field)?
-  (Draft: UTC for now; Kyiv users reset at 02:00 or 03:00 local.)
-- Should Pro fair-use limits be enforced from day one, or only logged at first? (Draft: enforced.)
+Resolved 2026-11-13: adjust counts as a new plan; the day follows the user's time zone; Pro fair-use
+limits are enforced from day one.
+
+- Changing the time zone can give at most one extra day's allowance. Should time zone changes be
+  limited (for example once a day), or is that cost acceptable? (Draft: acceptable, not limited.)
+- Who writes `profiles.timezone`: the app through the existing profile update, or the service from a
+  request header? (Draft: the app, through the existing profile update.)
 
 ## Next implementation step
 
