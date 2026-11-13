@@ -184,6 +184,40 @@ describe('POST /api/plans/generate', () => {
     }
   });
 
+  it('stores a plan that the model needs 45 seconds for when no time limit is set', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const generatePlan = vi.fn(() => new Promise<WorkoutPlan>((resolve) => setTimeout(() => resolve(plan), 45_000)));
+    const slow = makeDeps({ assistant: { generatePlan }, requestTimeoutMs: undefined });
+    const h = await start(slow);
+    try {
+      const pending = post(h.base, validBody);
+      while (generatePlan.mock.calls.length === 0) await new Promise((resolve) => setImmediate(resolve));
+      await vi.advanceTimersByTimeAsync(45_000);
+      const res = await pending;
+      expect(res.status).toBe(201);
+      expect((await res.json()).id).toBe('plan-1');
+    } finally {
+      vi.useRealTimers();
+      h.server.close();
+    }
+  });
+
+  it('gives up after 55 seconds when no time limit is set, before the app stops waiting at 60', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const generatePlan = vi.fn(() => new Promise<WorkoutPlan>(() => {}));
+    const h = await start(makeDeps({ assistant: { generatePlan }, requestTimeoutMs: undefined }));
+    try {
+      const pending = post(h.base, validBody);
+      while (generatePlan.mock.calls.length === 0) await new Promise((resolve) => setImmediate(resolve));
+      await vi.advanceTimersByTimeAsync(55_000);
+      const res = await pending;
+      expect(res.status).toBe(504);
+    } finally {
+      vi.useRealTimers();
+      h.server.close();
+    }
+  });
+
   it('returns 504 when generation exceeds the request timeout (18.10)', async () => {
     const slow = makeDeps({
       assistant: { generatePlan: vi.fn(() => new Promise<WorkoutPlan>(() => {})) },

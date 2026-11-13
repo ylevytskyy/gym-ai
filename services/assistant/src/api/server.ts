@@ -26,6 +26,8 @@ import {
 } from '../types.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+/** A whole new plan takes a model longer than a reply. The app stops waiting at 60 seconds, so this ends first. */
+const DEFAULT_GENERATE_TIMEOUT_MS = 55_000;
 const DEFAULT_HEALTH_TIMEOUT_MS = 3_000;
 
 export interface AppDeps {
@@ -197,6 +199,7 @@ async function storeChecked(deps: AppDeps, userId: string, plan: WorkoutPlan): P
 
 export function createApp(deps: AppDeps): express.Express {
   const timeoutMs = deps.requestTimeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const generateTimeoutMs = deps.requestTimeoutMs ?? DEFAULT_GENERATE_TIMEOUT_MS;
   const admit = createGate(deps.limits ?? DEFAULT_LIMITS);
   const app = express();
 
@@ -235,7 +238,7 @@ export function createApp(deps: AppDeps): express.Express {
       logger.info({ correlationId: res.locals['correlationId'], userId }, 'plan generation started');
 
       const health = await loadHealth(deps, userId, res.locals['correlationId'] as string);
-      const plan = await withTimeout(deps.assistant.generatePlan(profile, validation.request, { health }), timeoutMs);
+      const plan = await withTimeout(deps.assistant.generatePlan(profile, validation.request, { health }), generateTimeoutMs);
       const planId = await storeChecked(deps, userId, plan);
 
       logger.info({ correlationId: res.locals['correlationId'], userId, planId }, 'plan generation finished');

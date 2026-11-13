@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { Alert } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { exerciseById, exerciseName } from '@/catalog/catalog';
@@ -21,6 +22,13 @@ export function TodayScreen() {
   const { days: healthDays } = useHealth();
   const profile = useProfile().state;
   const { today } = useServices();
+
+  /** A new plan takes the place of the current one, so the user is asked first. */
+  const confirmNewPlan = () =>
+    Alert.alert('Make a new plan?', 'It is built again from your profile and replaces the current plan. Your day count starts again. This can take up to a minute.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Make a new plan', onPress: () => void create() },
+    ]);
 
   return (
     <Screen testID="today">
@@ -85,6 +93,8 @@ export function TodayScreen() {
                 ) : (
                   <Button label="Start workout" onPress={() => router.push('/player')} testID="start-workout" />
                 )}
+                <Button label="Make a new plan" kind="secondary" busy={creating} onPress={confirmNewPlan} testID="new-plan" />
+                <ErrorText>{createError}</ErrorText>
               </>
             );
           })()

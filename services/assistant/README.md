@@ -196,7 +196,7 @@ Failure examples:
 { "error": "AUTHENTICATION_ERROR", "message": "Authentication required", "correlationId": "<uuid>" }
 ```
 
-Order of work: authenticate, validate the body, load the profile, generate (30 second limit), save.
+Order of work: authenticate, validate the body, load the profile, generate (55 second limit), save.
 
 ## Health data
 
@@ -230,7 +230,7 @@ From `describeError` in `src/api/server.ts`. Errors that are not listed fall int
 | 400 | `PLAN_GENERATION_FAILED` | `PlanGenerationError`: 2 attempts failed validation. `details.attempts` and `details.validation_errors`. |
 | 400 | `INVALID_JSON` | The request body is not valid JSON. |
 | 401 | `AUTHENTICATION_ERROR` | No Bearer token, or the token check failed or returned no user. |
-| 504 | `GATEWAY_TIMEOUT` | Generation took longer than the limit (30 seconds). |
+| 504 | `GATEWAY_TIMEOUT` | Generation took longer than the limit (55 seconds for a new plan). |
 | 500 | `PLAN_SERVICE_UNAVAILABLE` | The OpenRouter call failed (`APIError`). Upstream text is logged only, not returned. |
 | 500 | `INTERNAL_SERVER_ERROR` | Anything else, including `DatabaseError` (for example a missing profile). |
 
@@ -250,7 +250,7 @@ Request-body error codes inside `details`: `INVALID_BODY`, `INVALID_DURATION`, `
 | 500 `INTERNAL_SERVER_ERROR` right after a valid request | Often a missing `profiles` row for the user (`DatabaseError`). Check the service log for the correlation id. Not confirmed against a real database. |
 | 500 `PLAN_SERVICE_UNAVAILABLE` | The OpenRouter call failed: bad key, unknown model id, quota, or network. The log line "openrouter request failed" has the status code. |
 | 400 `PLAN_GENERATION_FAILED` | The model's output failed validation twice. Read `details.validation_errors`. Try another `OPENROUTER_MODEL`, or fewer focus areas. |
-| 504 `GATEWAY_TIMEOUT` | Slow model; two attempts can pass 30 seconds. The generation keeps running in the background but its result is dropped. |
+| 504 `GATEWAY_TIMEOUT` | Slow model; two attempts can pass 55 seconds. The generation keeps running in the background but its result is dropped. |
 | `npm run test:integration` skips every test | `SUPABASE_TEST_URL` or `SUPABASE_TEST_SECRET` is not set. Set both to run them. |
 | Cannot find `schemas/workout-plan.schema.json` or `catalog/exercises.json` | The service looks for these files in parent directories of the code (`src/repo-files.ts`). Run it from inside the repository checkout. |
 | More log detail needed | Set `LOG_LEVEL=debug`. Request and response bodies are logged at debug. |
