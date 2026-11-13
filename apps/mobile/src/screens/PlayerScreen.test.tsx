@@ -179,6 +179,28 @@ describe('PlayerScreen', () => {
     expect(screen.queryByTestId('save-workout')).toBeNull();
   });
 
+  it('shows the demo while a set is done and hides it during rest, so the next exercise does not play while the user rests', async () => {
+    const u = user();
+    await openPlayer();
+
+    await u.press(screen.getByTestId('begin'));
+    expect(screen.getByTestId('video-demo')).toBeTruthy();
+
+    await pass(20_000);
+    expect(await screen.findByText('Squat')).toBeTruthy();
+    expect(screen.getByTestId('video-demo')).toBeTruthy();
+
+    await pass(30_000);
+    await u.press(screen.getByTestId('set-done'));
+    expect(screen.getByTestId('rest')).toBeTruthy();
+    expect(screen.queryByTestId('video-demo')).toBeNull();
+    expect(screen.getByText('Next: Squat')).toBeTruthy();
+
+    await pass(15_500);
+    expect(screen.getByText('Set 2 of 2')).toBeTruthy();
+    expect(screen.getByTestId('video-demo')).toBeTruthy();
+  });
+
   it('does not count time while paused', async () => {
     const u = user();
     await openPlayer();

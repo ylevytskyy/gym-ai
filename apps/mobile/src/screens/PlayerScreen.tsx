@@ -277,7 +277,8 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
   }
 
   const paused = session.status === 'paused';
-  const exerciseId = step?.kind === 'work' ? step.exerciseId : step?.nextExerciseId;
+  // Only the set on screen has its demo. During rest the next exercise is named in the card, not played.
+  const exerciseId = step?.kind === 'work' ? step.exerciseId : undefined;
   const video = exerciseId ? exerciseById(exerciseId)?.media.video : undefined;
 
   return (
