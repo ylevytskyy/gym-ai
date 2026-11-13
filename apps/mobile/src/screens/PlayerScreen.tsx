@@ -2,7 +2,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
 import type { WorkoutDay } from '@aura-fit/health-core';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { Alert, AppState, BackHandler } from 'react-native';
+import { Alert, AppState, BackHandler, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { exerciseById, exerciseName, exerciseTips } from '@/catalog/catalog';
@@ -18,7 +18,27 @@ import { buildSteps, createSession, currentStep, reduce, secondsLeft, summarize,
 import { INJURIES } from '@/profile/model';
 import { useProfile } from '@/profile/ProfileProvider';
 import { useServices } from '@/services';
-import { Body, Button, Card, Choices, ErrorText, Label, Screen, Title } from '@/ui/kit';
+import { haptic } from '@/ui/haptics';
+import {
+  Banner,
+  Body,
+  Button,
+  Card,
+  Choices,
+  ErrorText,
+  Grid,
+  HeroCard,
+  HeroText,
+  IconBubble,
+  Label,
+  ListRow,
+  Pill,
+  ProgressBar,
+  Screen,
+  Stat,
+  Title,
+  usePalette,
+} from '@/ui/kit';
 import { VideoDemo } from '@/ui/VideoDemo';
 
 const TICK_MS = 250;
@@ -103,6 +123,7 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
   const services = useServices();
   const profile = useProfile().state;
   const plan = usePlan();
+  const palette = usePalette();
 
   const steps = useMemo(() => buildSteps(opened.day, (id) => exerciseById(id)?.unit), [opened]);
   const [session, rawDispatch] = useReducer(reduce, steps, createSession);
@@ -181,6 +202,19 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
     return () => subscription.remove();
   }, [leave]);
 
+  // A firm tap when the session moves on, and a success buzz at the end.
+  const lastIndex = useRef(session.index);
+  useEffect(() => {
+    if (session.status === 'done') {
+      haptic.success();
+      return;
+    }
+    if (session.index !== lastIndex.current) {
+      lastIndex.current = session.index;
+      haptic.step();
+    }
+  }, [session.index, session.status]);
+
   const step = currentStep(session);
   const left = secondsLeft(session);
   const healthName = platform === 'android' ? 'Health Connect' : 'Apple Health';
@@ -188,12 +222,15 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
   if (session.status === 'ready') {
     return (
       <Screen testID="player">
-        <Title>{opened.day.title}</Title>
-        <Body muted>
-          {steps.filter((s) => s.kind === 'work').length} sets, about {opened.day.minutes} minutes. Stop if anything hurts.
-        </Body>
-        <Button label="Begin" onPress={() => dispatch({ type: 'start', now: Date.now() })} testID="begin" />
-        <Button label="Back" kind="secondary" onPress={() => router.back()} />
+        <HeroCard>
+          <HeroText kind="eyebrow">{stored ? 'Ready when you are' : 'Time to stretch'}</HeroText>
+          <HeroText kind="title">{opened.day.title}</HeroText>
+          <HeroText>
+            {steps.filter((s) => s.kind === 'work').length} sets, about {opened.day.minutes} minutes. Stop if anything hurts.
+          </HeroText>
+          <Button label="Begin" kind="inverse" icon="play" onPress={() => dispatch({ type: 'start', now: Date.now() })} testID="begin" />
+        </HeroCard>
+        <Button label="Back" kind="ghost" icon="chevron-back" onPress={() => router.back()} />
       </Screen>
     );
   }
@@ -201,8 +238,13 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
   if (session.status === 'done' && stored === null) {
     return (
       <Screen testID="break-done">
-        <Title>Break done</Title>
-        <Body>Back to it. The next reminder is at least an hour away.</Body>
+        <View style={styles.celebrate}>
+          <IconBubble name="sparkles" gradient size={76} />
+          <Title>Break done</Title>
+          <Body muted center>
+            Back to it. The next reminder is at least an hour away.
+          </Body>
+        </View>
         <Button label="Close" onPress={leave} testID="leave-player" />
       </Screen>
     );
@@ -239,39 +281,53 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
         setSaving(false);
       }
     };
+    const totalSets = summary ? summary.exercises_completed.reduce((sum, e) => sum + e.sets_done, 0) : 0;
 
     return (
       <Screen testID="player-done">
-        <Title>{summary ? 'Well done' : 'Session ended'}</Title>
+        <View style={styles.celebrate}>
+          <IconBubble name={summary ? 'trophy' : 'flag-outline'} gradient size={76} />
+          <Title>{summary ? 'Well done' : 'Session ended'}</Title>
+        </View>
         {summary ? (
           <>
-            <Card testID="summary">
-              <Body>
-                {summary.duration_minutes} min · {summary.exercises_completed.reduce((sum, e) => sum + e.sets_done, 0)} sets
-              </Body>
-              {summary.exercises_completed.map((e) => (
-                <Body key={e.exercise_id} muted>
-                  {exerciseName(e.exercise_id)}: {e.sets_done} {e.sets_done === 1 ? 'set' : 'sets'}
-                </Body>
+            <View accessible accessibilityLabel={`${summary.duration_minutes} min · ${totalSets} sets`} testID="summary">
+              <Grid>
+                <Stat icon="time-outline" value={String(summary.duration_minutes)} label={summary.duration_minutes === 1 ? 'minute' : 'minutes'} />
+                <Stat icon="layers-outline" value={String(totalSets)} label={totalSets === 1 ? 'set' : 'sets'} tone="good" />
+              </Grid>
+            </View>
+            <Card style={styles.list}>
+              {summary.exercises_completed.map((e, index) => (
+                <ListRow
+                  key={e.exercise_id}
+                  icon="checkmark"
+                  tone="good"
+                  title={exerciseName(e.exercise_id)}
+                  right={`${e.sets_done} ${e.sets_done === 1 ? 'set' : 'sets'}`}
+                  last={index === summary.exercises_completed.length - 1}
+                />
               ))}
             </Card>
             {saved ? (
-              <Card testID="saved">
+              <Banner icon="checkmark-circle" tone="good" testID="saved">
                 <Body>Saved.</Body>
                 <Body muted>{saved === 'written' ? `Added to ${healthName}.` : `Not added to ${healthName}.`}</Body>
-              </Card>
+              </Banner>
             ) : (
-              <>
+              <Card>
                 <Choices label="How was it? (1 easy, 5 hard)" options={RATINGS} selected={rating ? [rating] : []} onToggle={(value) => setRating(value === rating ? null : value)} />
                 <ErrorText>{saveError}</ErrorText>
-                <Button label="Save workout" busy={saving} onPress={() => void save()} testID="save-workout" />
-              </>
+                <Button label="Save workout" icon="checkmark-done" busy={saving} onPress={() => void save()} testID="save-workout" />
+              </Card>
             )}
           </>
         ) : (
-          <Body>No set was finished, so there is nothing to save.</Body>
+          <Body muted center>
+            No set was finished, so there is nothing to save.
+          </Body>
         )}
-        <Button label={saved || !summary ? 'Back to Today' : 'Discard'} kind="secondary" onPress={leave} testID="leave-player" />
+        <Button label={saved || !summary ? 'Back to Today' : 'Discard'} kind={saved || !summary ? 'secondary' : 'ghost'} onPress={leave} testID="leave-player" />
       </Screen>
     );
   }
@@ -283,42 +339,89 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
 
   return (
     <Screen testID="player">
-      <Label>
-        Step {session.index + 1} of {session.steps.length}
-      </Label>
+      <View style={styles.progress}>
+        <View style={styles.progressLabels}>
+          <Label>
+            Step {session.index + 1} of {session.steps.length}
+          </Label>
+          {paused ? <Pill label="Paused" icon="pause" tone="warn" /> : null}
+        </View>
+        <ProgressBar value={session.index / Math.max(1, session.steps.length)} />
+      </View>
       {video && exerciseId ? <VideoDemo url={services.mediaUrl(video)} playing={!paused} label={exerciseName(exerciseId)} /> : null}
 
       {step?.kind === 'rest' ? (
-        <Card testID="rest">
-          <Title>Rest</Title>
-          <Body testID="countdown">{left} s</Body>
-          <Body muted>Next: {exerciseName(step.nextExerciseId)}</Body>
-          <Button label="Skip rest" kind="secondary" disabled={paused} onPress={() => dispatch({ type: 'complete', now: Date.now() })} testID="skip-rest" />
-        </Card>
+        <HeroCard testID="rest">
+          <HeroText kind="eyebrow">Rest</HeroText>
+          <View style={styles.restCenter}>
+            <View style={styles.restRing}>
+              <Text style={styles.restCount} testID="countdown">
+                {left} s
+              </Text>
+            </View>
+            <HeroText>Next: {exerciseName(step.nextExerciseId)}</HeroText>
+          </View>
+          <Button label="Skip rest" kind="inverse" icon="play-skip-forward" disabled={paused} onPress={() => dispatch({ type: 'complete', now: Date.now() })} testID="skip-rest" />
+        </HeroCard>
       ) : null}
 
       {step?.kind === 'work' ? (
         <Card testID="work">
+          <Pill icon="layers-outline" label={`Set ${step.set} of ${step.sets}`} />
           <Title>{exerciseName(step.exerciseId)}</Title>
-          <Body>
-            Set {step.set} of {step.sets}
-          </Body>
-          {step.unit === 'seconds' ? <Body testID="countdown">{left} s</Body> : <Body testID="reps">{step.amount} reps</Body>}
+          {step.unit === 'seconds' ? (
+            <Text style={[styles.display, { color: palette.accent }]} testID="countdown">
+              {left} s
+            </Text>
+          ) : (
+            <Text style={[styles.display, { color: palette.accent }]} testID="reps">
+              {step.amount} reps
+            </Text>
+          )}
           {exerciseTips(step.exerciseId) ? <Body muted>{exerciseTips(step.exerciseId)}</Body> : null}
           {step.unit === 'reps' ? (
-            <Button label="Done" disabled={paused} onPress={() => dispatch({ type: 'complete', now: Date.now() })} testID="set-done" />
+            <Button label="Done" icon="checkmark" disabled={paused} onPress={() => dispatch({ type: 'complete', now: Date.now() })} testID="set-done" />
           ) : null}
-          <Button label="Skip this set" kind="secondary" disabled={paused} onPress={() => dispatch({ type: 'skip', now: Date.now() })} testID="skip-set" />
+          <Button label="Skip this set" kind="ghost" icon="play-skip-forward-outline" disabled={paused} onPress={() => dispatch({ type: 'skip', now: Date.now() })} testID="skip-set" />
         </Card>
       ) : null}
 
-      <Button
-        label={paused ? 'Resume' : 'Pause'}
-        kind="secondary"
-        onPress={() => dispatch(paused ? { type: 'resume' } : { type: 'pause' })}
-        testID="pause-resume"
-      />
-      <Button label={stored ? 'End workout' : 'End break'} kind="secondary" onPress={() => dispatch({ type: 'finish', now: Date.now() })} testID="end-workout" />
+      <View style={styles.controls}>
+        <View style={styles.fill}>
+          <Button
+            label={paused ? 'Resume' : 'Pause'}
+            kind="secondary"
+            compact
+            icon={paused ? 'play' : 'pause'}
+            onPress={() => dispatch(paused ? { type: 'resume' } : { type: 'pause' })}
+            testID="pause-resume"
+          />
+        </View>
+        <View style={styles.fill}>
+          <Button label={stored ? 'End workout' : 'End break'} kind="danger" compact icon="stop" onPress={() => dispatch({ type: 'finish', now: Date.now() })} testID="end-workout" />
+        </View>
+      </View>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+  celebrate: { alignItems: 'center', gap: 12, paddingTop: 24, paddingBottom: 8 },
+  list: { paddingVertical: 6, gap: 0 },
+  progress: { gap: 8 },
+  progressLabels: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 26 },
+  restCenter: { alignItems: 'center', gap: 14, paddingVertical: 8 },
+  restRing: {
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    borderWidth: 10,
+    borderColor: 'rgba(255,255,255,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  restCount: { color: '#FFFFFF', fontSize: 52, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },
+  display: { fontSize: 56, fontWeight: '800', letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
+  controls: { flexDirection: 'row', gap: 12 },
+});

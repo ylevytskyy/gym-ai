@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { deleteHealthDays } from '@/account/repository';
 import { AssistantError, deleteAccount } from '@/assistant/client';
@@ -8,7 +8,18 @@ import { useAuth } from '@/auth/AuthProvider';
 import { clearMessages } from '@/chat/repository';
 import { useHealth } from '@/health/HealthProvider';
 import { useServices } from '@/services';
-import { Body, Button, Card, ErrorText, Label, Screen, Title } from '@/ui/kit';
+import { Banner, Body, Button, Card, ErrorText, Header, IconBubble, SectionTitle, Screen, usePalette, type IconName, type Tone } from '@/ui/kit';
+
+/** A short paragraph with an icon in front of it. */
+function Point({ icon, tone = 'accent', children, muted }: { icon: IconName; tone?: Tone; children: ReactNode; muted?: boolean }) {
+  const palette = usePalette();
+  return (
+    <View style={styles.point}>
+      <IconBubble name={icon} tone={tone} size={32} />
+      <Text style={[styles.pointText, { color: muted ? palette.muted : palette.text }]}>{children}</Text>
+    </View>
+  );
+}
 
 type Action = 'health' | 'chat' | 'account';
 
@@ -89,34 +100,47 @@ export function PrivacyScreen({ platform }: { platform: 'ios' | 'android' }) {
 
   return (
     <Screen testID="privacy">
-      <Title>Privacy and account</Title>
+      <Header eyebrow="Your data" title="Privacy and account" />
 
+      <SectionTitle>What Aura Fit stores</SectionTitle>
       <Card>
-        <Label>What Aura Fit stores</Label>
-        <Body>Your profile, your plans, the workouts you finish and your conversation with the coach.</Body>
-        <Body>
+        <Point icon="person">Your profile, your plans, the workouts you finish and your conversation with the coach.</Point>
+        <Point icon="heart" tone="danger">
           From {healthName}, only one summary per day: steps, active energy, resting heart rate, sleep, weight and workouts from other apps.
           Detailed readings never leave your phone.
-        </Body>
-        <Body>
+        </Point>
+        <Point icon="sparkles">
           The coach is an AI service. It receives your profile, your plan, your conversation and a short summary of those daily totals (averages,
           last night&apos;s sleep, yesterday&apos;s steps, your latest weight), never the readings themselves.
-        </Body>
-        <Body muted>Aura Fit uses this to adjust your training. It is not medical advice and not a health assessment.</Body>
-        <Body muted>Nothing is used for advertising or sold.</Body>
+        </Point>
+        <Point icon="medkit" tone="neutral" muted>
+          Aura Fit uses this to adjust your training. It is not medical advice and not a health assessment.
+        </Point>
+        <Point icon="ban" tone="good" muted>
+          Nothing is used for advertising or sold.
+        </Point>
       </Card>
 
       <ErrorText>{error}</ErrorText>
-      {done ? <Body testID="privacy-done">{done}</Body> : null}
+      {done ? (
+        <Banner icon="checkmark-circle" tone="good">
+          <Body testID="privacy-done">{done}</Body>
+        </Banner>
+      ) : null}
 
+      <SectionTitle>Delete</SectionTitle>
       <Card>
-        <Label>Delete</Label>
-        <Button label="Delete my health data" kind="secondary" busy={busy === 'health'} onPress={deleteHealth} testID="delete-health-data" />
-        <Button label="Clear my conversation" kind="secondary" busy={busy === 'chat'} onPress={clearChat} testID="clear-chat" />
-        <Button label="Delete my account" kind="secondary" busy={busy === 'account'} onPress={removeAccount} testID="delete-account" />
+        <Button label="Delete my health data" kind="danger" icon="heart-dislike-outline" busy={busy === 'health'} onPress={deleteHealth} testID="delete-health-data" />
+        <Button label="Clear my conversation" kind="danger" icon="chatbubbles-outline" busy={busy === 'chat'} onPress={clearChat} testID="clear-chat" />
+        <Button label="Delete my account" kind="danger" icon="trash-outline" busy={busy === 'account'} onPress={removeAccount} testID="delete-account" />
       </Card>
 
-      <Button label="Back" kind="secondary" onPress={() => router.back()} />
+      <Button label="Back" kind="ghost" icon="chevron-back" onPress={() => router.back()} />
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  point: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  pointText: { flex: 1, fontSize: 15, lineHeight: 22 },
+});

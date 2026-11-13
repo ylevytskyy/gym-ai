@@ -33,11 +33,11 @@ describe('HistoryScreen', () => {
     const harness = createHarness({ profile, rows: { workout_logs: logs } });
     await harness.renderScreen(<HistoryScreen platform="ios" />);
 
-    expect(await screen.findByText('This week: 1 workout, 12 min')).toBeTruthy();
+    expect(await screen.findByLabelText('This week: 1 workout, 12 min')).toBeTruthy();
     const rows = screen.getAllByTestId(/^log-/).map((node) => node.props.testID);
     expect(rows).toEqual(['log-l2', 'log-l1']);
-    expect(screen.getByText('12 Nov · Day 2 · 12 min · 5 sets · felt 4 of 5 · in Apple Health')).toBeTruthy();
-    expect(screen.getByText('3 Nov · Day 1 · 8 min')).toBeTruthy();
+    expect(screen.getByLabelText('12 Nov · Day 2 · 12 min · 5 sets · felt 4 of 5 · in Apple Health')).toBeTruthy();
+    expect(screen.getByLabelText('3 Nov · Day 1 · 8 min')).toBeTruthy();
   });
 
   it('says so when nothing was finished yet', async () => {
@@ -55,9 +55,9 @@ describe('HistoryScreen', () => {
     });
     await harness.renderScreen(<HistoryScreen platform="ios" />);
 
-    expect(await screen.findByText('Steps: 6000 a day on average')).toBeTruthy();
-    expect(screen.getByText('Sleep: 7 h 0 min a night on average')).toBeTruthy();
-    expect(screen.getByText('Resting heart rate: no data')).toBeTruthy();
+    expect(await screen.findByLabelText('Steps: 6000 a day on average')).toBeTruthy();
+    expect(screen.getByLabelText('Sleep: 7 h 0 min a night on average')).toBeTruthy();
+    expect(screen.getByLabelText('Resting heart rate: no data')).toBeTruthy();
     expect(screen.getAllByTestId(/^steps-bar-/).map((node) => node.props.testID)).toEqual(['steps-bar-2026-11-10', 'steps-bar-2026-11-12']);
     expect(screen.getByText(/not a health assessment/)).toBeTruthy();
   });

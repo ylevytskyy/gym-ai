@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 
 import { sendCode, verifyCode } from '@/auth/sign-in';
 import { useServices } from '@/services';
-import { Body, Button, ErrorText, Field, Screen, Title } from '@/ui/kit';
+import { Body, Button, ErrorText, Field, IconBubble, Screen, Title } from '@/ui/kit';
+
+const ICON = require('../../assets/images/icon.png');
 
 /** Email, then the one-time code from the email. Signing in is noticed by AuthProvider. */
 export function SignInScreen() {
@@ -25,8 +28,13 @@ export function SignInScreen() {
   if (step === 'email') {
     return (
       <Screen testID="sign-in-email">
-        <Title>Aura Fit</Title>
-        <Body muted>Short workouts without equipment. Enter your email and we will send you a code to sign in.</Body>
+        <View style={styles.brand}>
+          <Image source={ICON} style={styles.icon} accessibilityIgnoresInvertColors />
+          <Title>Aura Fit</Title>
+          <Body muted center>
+            Short workouts without equipment. Enter your email and we will send you a code to sign in.
+          </Body>
+        </View>
         <Field
           label="Email"
           value={email}
@@ -38,15 +46,20 @@ export function SignInScreen() {
           testID="email-input"
         />
         <ErrorText>{error}</ErrorText>
-        <Button label="Send code" busy={busy} onPress={() => submit(() => sendCode(supabase, email), () => setStep('code'))} testID="send-code" />
+        <Button label="Send code" icon="mail" busy={busy} onPress={() => submit(() => sendCode(supabase, email), () => setStep('code'))} testID="send-code" />
       </Screen>
     );
   }
 
   return (
     <Screen testID="sign-in-code">
-      <Title>Check your email</Title>
-      <Body muted>We sent a code to {email.trim().toLowerCase()}. Enter it here.</Body>
+      <View style={styles.brand}>
+        <IconBubble name="mail-open" gradient size={72} />
+        <Title>Check your email</Title>
+        <Body muted center>
+          We sent a code to {email.trim().toLowerCase()}. Enter it here.
+        </Body>
+      </View>
       <Field
         label="Code"
         value={code}
@@ -58,10 +71,10 @@ export function SignInScreen() {
         testID="code-input"
       />
       <ErrorText>{error}</ErrorText>
-      <Button label="Sign in" busy={busy} onPress={() => submit(() => verifyCode(supabase, email, code))} testID="verify-code" />
+      <Button label="Sign in" icon="arrow-forward" busy={busy} onPress={() => submit(() => verifyCode(supabase, email, code))} testID="verify-code" />
       <Button
         label="Use a different email"
-        kind="secondary"
+        kind="ghost"
         onPress={() => {
           setStep('email');
           setCode('');
@@ -71,3 +84,8 @@ export function SignInScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  brand: { alignItems: 'center', gap: 12, paddingTop: 48, paddingBottom: 16 },
+  icon: { width: 96, height: 96, borderRadius: 24 },
+});

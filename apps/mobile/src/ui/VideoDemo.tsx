@@ -19,13 +19,13 @@ export function VideoDemo({ url, playing, label }: { url: string; playing: boole
   }, [playing, player]);
 
   return (
-    <View style={[styles.frame, { backgroundColor: palette.surface, borderColor: palette.border }]} accessible accessibilityLabel={`Demo: ${label}`} testID="video-demo">
+    <View style={[styles.frame, { backgroundColor: palette.surfaceAlt }]} accessible accessibilityLabel={`Demo: ${label}`} testID="video-demo">
       <VideoView player={player} style={styles.video} nativeControls={false} contentFit="contain" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  frame: { aspectRatio: 1, borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
+  frame: { aspectRatio: 1, borderRadius: 26, overflow: 'hidden' },
   video: { flex: 1 },
 });

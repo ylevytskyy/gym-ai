@@ -1,5 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AssistantError, sendChat } from '@/assistant/client';
@@ -8,13 +10,17 @@ import { loadMessages, type ChatMessage } from '@/chat/repository';
 import { usePlan } from '@/plan/PlanProvider';
 import { useProfile } from '@/profile/ProfileProvider';
 import { useServices } from '@/services';
-import { Body, Button, ErrorText, Title, usePalette } from '@/ui/kit';
+import { haptic } from '@/ui/haptics';
+import { Body, ErrorText, Header, IconBubble, usePalette } from '@/ui/kit';
 
 const MAX_MESSAGE = 1000;
 
 /** A line the app adds to the conversation itself, to say what changed. */
 type Note = { id: string; kind: 'plan' | 'injuries'; text: string };
 type Entry = { type: 'message'; message: ChatMessage } | { type: 'note'; note: Note };
+
+/** Ready-made first messages: one tap puts them in the field. */
+const STARTERS = ['Make it easier', 'I only have ten minutes', 'My knee hurts', 'How am I doing?'];
 
 const readable = (injury: string) => injury.replace(/_/g, ' ');
 
@@ -99,6 +105,14 @@ export function ChatScreen({ refreshKey = 0 }: { refreshKey?: number }) {
     }
   };
 
+  const canSend = text.trim() !== '' && !sending;
+  const mine = (content: string, testID: string, dim?: boolean) => (
+    <View testID={testID} style={[styles.bubble, styles.mine, dim && styles.dimmed]}>
+      <LinearGradient colors={palette.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <Text style={[styles.bubbleText, { color: palette.onAccent }]}>{content}</Text>
+    </View>
+  );
+
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: palette.background }]} edges={['top', 'left', 'right']} testID="chat">
       {/* Found on the emulator: without this on Android too, the keyboard covers the message field and Send. */}
@@ -108,43 +122,64 @@ export function ChatScreen({ refreshKey = 0 }: { refreshKey?: number }) {
           style={styles.fill}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
           onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}>
-          <Title>Coach</Title>
+          <Header eyebrow="AI coach" title="Coach" />
           {entries === null ? <Body muted>Loading your conversation…</Body> : null}
           <ErrorText>{loadError}</ErrorText>
           {entries !== null && entries.length === 0 && !loadError ? (
             <View testID="chat-empty" style={styles.empty}>
-              <Body muted>
+              <IconBubble name="sparkles" gradient size={64} />
+              <Body muted center>
                 Ask about your plan, or tell the coach what you need: “make it easier”, “I only have ten minutes”, “my knee hurts”.
               </Body>
-              <Body muted>The coach is an AI. It can change your plan, but it is not a doctor and gives no medical advice.</Body>
+              <View style={styles.starters}>
+                {STARTERS.map((starter) => (
+                  <Pressable
+                    key={starter}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Write: ${starter}`}
+                    onPress={() => {
+                      haptic.select();
+                      setText(starter);
+                    }}
+                    style={({ pressed }) => [styles.starter, { backgroundColor: palette.accentSoft }, pressed && styles.dimmed]}>
+                    <Text style={[styles.starterText, { color: palette.accent }]}>{starter}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Body muted center>
+                The coach is an AI. It can change your plan, but it is not a doctor and gives no medical advice.
+              </Body>
             </View>
           ) : null}
           {(entries ?? []).map((entry) =>
             entry.type === 'note' ? (
-              <Text key={entry.note.id} style={[styles.note, { color: palette.muted }]} testID={entry.note.kind === 'plan' ? 'chat-plan-changed' : 'chat-injuries-added'}>
-                {entry.note.text}
-              </Text>
+              <View key={entry.note.id} style={[styles.note, { backgroundColor: palette.surfaceAlt }]}>
+                <Ionicons name={entry.note.kind === 'plan' ? 'calendar' : 'medkit'} size={14} color={palette.muted} />
+                <Text style={[styles.noteText, { color: palette.muted }]} testID={entry.note.kind === 'plan' ? 'chat-plan-changed' : 'chat-injuries-added'}>
+                  {entry.note.text}
+                </Text>
+              </View>
+            ) : entry.message.role === 'user' ? (
+              <View key={entry.message.id}>{mine(entry.message.content, 'message-user')}</View>
             ) : (
               <View
                 key={entry.message.id}
-                testID={`message-${entry.message.role}`}
-                style={[
-                  styles.bubble,
-                  entry.message.role === 'user'
-                    ? [styles.mine, { backgroundColor: palette.accent }]
-                    : [styles.theirs, { backgroundColor: palette.surface, borderColor: palette.border }],
-                ]}>
-                <Text style={{ color: entry.message.role === 'user' ? palette.onAccent : palette.text, fontSize: 16, lineHeight: 22 }}>{entry.message.content}</Text>
+                testID="message-assistant"
+                style={[styles.bubble, styles.theirs, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+                <Text style={[styles.bubbleText, { color: palette.text }]}>{entry.message.content}</Text>
               </View>
             ),
           )}
-          {pending !== undefined ? (
-            <View testID="message-user" style={[styles.bubble, styles.mine, styles.dimmed, { backgroundColor: palette.accent }]}>
-              <Text style={{ color: palette.onAccent, fontSize: 16, lineHeight: 22 }}>{pending}</Text>
+          {pending !== undefined ? mine(pending, 'message-user', true) : null}
+          {sending ? (
+            <View style={[styles.bubble, styles.theirs, styles.typing, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+              <ActivityIndicator size="small" color={palette.accent} />
+              <Text style={[styles.typingText, { color: palette.muted }]}>The coach is thinking…</Text>
             </View>
           ) : null}
-          {sending ? <Body muted>The coach is thinking…</Body> : null}
           <ErrorText>{sendError}</ErrorText>
         </ScrollView>
         <View style={[styles.composer, { borderTopColor: palette.border, backgroundColor: palette.background }]}>
@@ -160,7 +195,20 @@ export function ChatScreen({ refreshKey = 0 }: { refreshKey?: number }) {
             testID="chat-input"
             style={[styles.input, { color: palette.text, borderColor: palette.border, backgroundColor: palette.surface }]}
           />
-          <Button label="Send" busy={sending} disabled={text.trim() === ''} onPress={() => void send()} testID="chat-send" />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Send"
+            accessibilityState={{ disabled: !canSend, busy: sending }}
+            disabled={!canSend}
+            onPress={() => {
+              haptic.press();
+              void send();
+            }}
+            testID="chat-send"
+            style={({ pressed }) => [styles.send, !canSend && styles.dimmed, pressed && styles.pressed]}>
+            <LinearGradient colors={palette.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            {sending ? <ActivityIndicator color={palette.onAccent} /> : <Ionicons name="arrow-up" size={22} color={palette.onAccent} />}
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -170,13 +218,22 @@ export function ChatScreen({ refreshKey = 0 }: { refreshKey?: number }) {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   fill: { flex: 1 },
-  content: { padding: 20, gap: 12 },
-  empty: { gap: 12 },
-  dimmed: { opacity: 0.6 },
-  bubble: { maxWidth: '85%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16 },
-  mine: { alignSelf: 'flex-end' },
-  theirs: { alignSelf: 'flex-start', borderWidth: 1 },
-  note: { alignSelf: 'center', fontSize: 13, textAlign: 'center' },
-  composer: { padding: 12, gap: 8, borderTopWidth: StyleSheet.hairlineWidth },
-  input: { minHeight: 44, maxHeight: 120, borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
+  content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 20, gap: 12 },
+  empty: { gap: 16, alignItems: 'center', paddingTop: 24 },
+  starters: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
+  starter: { borderRadius: 999, paddingHorizontal: 14, paddingVertical: 9 },
+  starterText: { fontSize: 15, fontWeight: '600' },
+  dimmed: { opacity: 0.5 },
+  pressed: { transform: [{ scale: 0.94 }] },
+  bubble: { maxWidth: '84%', paddingHorizontal: 16, paddingVertical: 11, borderRadius: 22, overflow: 'hidden' },
+  bubbleText: { fontSize: 16, lineHeight: 23 },
+  mine: { alignSelf: 'flex-end', borderBottomRightRadius: 6 },
+  theirs: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: 6 },
+  typing: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  typingText: { fontSize: 15 },
+  note: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 6, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, maxWidth: '92%' },
+  noteText: { fontSize: 13, fontWeight: '600', flexShrink: 1 },
+  composer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingVertical: 10, gap: 10, borderTopWidth: StyleSheet.hairlineWidth },
+  input: { flex: 1, minHeight: 46, maxHeight: 120, borderWidth: 1, borderRadius: 23, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, fontSize: 16 },
+  send: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
 });
