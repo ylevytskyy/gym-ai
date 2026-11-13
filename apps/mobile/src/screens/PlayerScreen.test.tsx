@@ -78,8 +78,8 @@ describe('TodayScreen', () => {
 
     expect(await screen.findByText('Quick legs')).toBeTruthy();
     expect(screen.getByText(/Day 1 · about 5 min/)).toBeTruthy();
-    expect(screen.getByText('Warm-up: Plank 1 × 20 s')).toBeTruthy();
-    expect(screen.getByText('Main: Squat 2 × 10')).toBeTruthy();
+    expect(screen.getByLabelText('Warm-up: Plank 1 × 20 s')).toBeTruthy();
+    expect(screen.getByLabelText('Main: Squat 2 × 10')).toBeTruthy();
 
     await user().press(screen.getByTestId('start-workout'));
     expect(mockRouter.push).toHaveBeenCalledWith('/player');
@@ -146,7 +146,7 @@ describe('PlayerScreen', () => {
     await u.press(screen.getByTestId('set-done'));
 
     expect(await screen.findByTestId('player-done')).toBeTruthy();
-    expect(screen.getByText('2 min · 3 sets')).toBeTruthy();
+    expect(screen.getByLabelText('2 min · 3 sets')).toBeTruthy();
 
     await u.press(screen.getByRole('button', { name: 'How was it? (1 easy, 5 hard): 4' }));
     await u.press(screen.getByTestId('save-workout'));
@@ -177,6 +177,28 @@ describe('PlayerScreen', () => {
     expect(harness.updates).toEqual([{ table: 'workout_logs', row: { health_record_id: 'fake-1' } }]);
     // Nothing left to press that could save it again.
     expect(screen.queryByTestId('save-workout')).toBeNull();
+  });
+
+  it('shows the demo while a set is done and hides it during rest, so the next exercise does not play while the user rests', async () => {
+    const u = user();
+    await openPlayer();
+
+    await u.press(screen.getByTestId('begin'));
+    expect(screen.getByTestId('video-demo')).toBeTruthy();
+
+    await pass(20_000);
+    expect(await screen.findByText('Squat')).toBeTruthy();
+    expect(screen.getByTestId('video-demo')).toBeTruthy();
+
+    await pass(30_000);
+    await u.press(screen.getByTestId('set-done'));
+    expect(screen.getByTestId('rest')).toBeTruthy();
+    expect(screen.queryByTestId('video-demo')).toBeNull();
+    expect(screen.getByText('Next: Squat')).toBeTruthy();
+
+    await pass(15_500);
+    expect(screen.getByText('Set 2 of 2')).toBeTruthy();
+    expect(screen.getByTestId('video-demo')).toBeTruthy();
   });
 
   it('does not count time while paused', async () => {
@@ -406,7 +428,7 @@ describe('health days: sync and adjustment', () => {
     await harness.renderScreen(<TodayScreen />);
 
     expect(await screen.findByText('A lighter session today: you slept less than 6 hours and you slept much less than usual.')).toBeTruthy();
-    expect(screen.getByText('Main: Squat 1 × 10')).toBeTruthy();
+    expect(screen.getByLabelText('Main: Squat 1 × 10')).toBeTruthy();
     expect(screen.getByText(/not medical advice/)).toBeTruthy();
   });
 
@@ -453,7 +475,7 @@ describe('health days: sync and adjustment', () => {
     await waitFor(() => expect(harness.synced).toHaveLength(1));
 
     expect(screen.queryByTestId('adjustment')).toBeNull();
-    expect(screen.getByText('Main: Squat 2 × 10')).toBeTruthy();
+    expect(screen.getByLabelText('Main: Squat 2 × 10')).toBeTruthy();
   });
 });
 

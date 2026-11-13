@@ -111,9 +111,9 @@ sequenceDiagram
 ```
 
 In the server (`src/api/server.ts`) the order is: authenticate, validate the body, load the profile,
-generate (wrapped in a timeout, 30 seconds unless `requestTimeoutMs` is set), then store the plan.
+generate (wrapped in a timeout, 55 seconds unless `requestTimeoutMs` is set, so it ends before the app stops waiting at 60), then store the plan.
 The timeout does not cancel the work, it only stops the request from waiting (a late result is dropped).
-Two attempts to a slow model can pass 30 seconds and return `GATEWAY_TIMEOUT` (504).
+Two attempts to a slow model can pass 55 seconds and return `GATEWAY_TIMEOUT` (504).
 
 ## PlanGenerationError
 

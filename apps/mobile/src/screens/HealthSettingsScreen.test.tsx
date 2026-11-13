@@ -42,9 +42,9 @@ describe('HealthSettingsScreen', () => {
     await user.press(screen.getByTestId('connect-health'));
 
     expect(await screen.findByTestId('health-connected')).toBeTruthy();
-    expect(screen.getByText('Steps: 4200')).toBeTruthy();
-    expect(screen.getByText('Sleep last night: 7 h 30 min')).toBeTruthy();
-    expect(screen.getByText('Resting heart rate: No data')).toBeTruthy();
+    expect(screen.getByLabelText('Steps: 4200')).toBeTruthy();
+    expect(screen.getByLabelText('Sleep last night: 7 h 30 min')).toBeTruthy();
+    expect(screen.getByLabelText('Resting heart rate: No data')).toBeTruthy();
     expect(harness.preferences.get('health.enabled')).toBe('true');
     expect(harness.store.connectCalls).toBe(1);
   });
@@ -87,7 +87,7 @@ describe('HealthSettingsScreen', () => {
     const harness = createHarness({ health: { initial: 'connected', raw: today }, preferences: { 'health.enabled': 'true', 'health.asked': 'true' } });
     await harness.renderScreen(<HealthSettingsScreen platform="ios" />);
 
-    expect(await screen.findByText('Steps: 4200')).toBeTruthy();
+    expect(await screen.findByLabelText('Steps: 4200')).toBeTruthy();
     expect(screen.getByText(/To remove its access completely, turn it off in the Health app/)).toBeTruthy();
 
     await user.press(screen.getByTestId('disconnect-health'));

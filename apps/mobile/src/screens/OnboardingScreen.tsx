@@ -15,7 +15,7 @@ import {
 } from '@/profile/model';
 import { useProfile } from '@/profile/ProfileProvider';
 import { useServices } from '@/services';
-import { Body, Button, Card, Choices, ErrorText, NumberField, Screen, Title } from '@/ui/kit';
+import { Banner, Body, Button, Card, Choices, ErrorText, Header, IconBubble, NumberField, Screen, SectionTitle } from '@/ui/kit';
 
 const GOAL_LABELS: Record<(typeof GOALS)[number], string> = {
   move_more: 'Move more',
@@ -102,82 +102,94 @@ export function OnboardingScreen({ platform }: { platform: 'ios' | 'android' }) 
 
   return (
     <Screen testID="onboarding">
-      <Title>About you</Title>
+      <Header eyebrow="Welcome to Aura Fit" title="About you" />
       <Body muted>This shapes your plan. It is not medical advice: tell us about injuries and we will avoid exercises that load them.</Body>
 
       {canOfferHealth ? (
         <Card testID="health-offer">
+          <IconBubble name="heart" tone="danger" />
           <Body>Connect {healthName(platform)} to fill in your weight{platform === 'ios' ? ' and age range' : ''}, and later to adjust sessions to your sleep and activity.</Body>
-          <Button label={`Connect ${healthName(platform)}`} kind="secondary" busy={busy} onPress={() => void connect()} testID="connect-health" />
+          <Button label={`Connect ${healthName(platform)}`} kind="secondary" icon="link" busy={busy} onPress={() => void connect()} testID="connect-health" />
         </Card>
       ) : null}
 
       {hasSuggestions ? (
-        <Card testID="health-suggestion">
+        <Banner icon="sparkles" tone="good" testID="health-suggestion">
           <Body>
             {healthName(platform)} has your {describe(offered)}. Use {offered.weightKg !== undefined && offered.ageRange !== undefined ? 'them' : 'it'} here?
           </Body>
           <Button
             label="Use these values"
             kind="secondary"
+            icon="checkmark"
             onPress={() => {
               setForm((current) => applySuggestions(current, offered));
               setSuggestions({});
             }}
             testID="use-suggestion"
           />
-          <Button label="No, I will type them" kind="secondary" onPress={() => setSuggestions({})} testID="dismiss-suggestion" />
-        </Card>
+          <Button label="No, I will type them" kind="ghost" onPress={() => setSuggestions({})} testID="dismiss-suggestion" />
+        </Banner>
       ) : null}
 
-      <Choices
-        label="Age range"
-        options={AGE_RANGES.map((value) => ({ value, label: value }))}
-        selected={form.ageRange ? [form.ageRange] : []}
-        onToggle={(value) => set('ageRange', value)}
-        error={errors.ageRange}
-      />
-      <NumberField
-        label="Weight (kg)"
-        value={form.weightKg}
-        onChangeText={(text) => set('weightKg', text)}
-        maxLength={3}
-        error={errors.weightKg}
-        testID="weight-input"
-      />
-      <Choices
-        label="Goal"
-        options={GOALS.map((value) => ({ value, label: GOAL_LABELS[value] }))}
-        selected={form.goal ? [form.goal] : []}
-        onToggle={(value) => set('goal', value)}
-        error={errors.goal}
-      />
-      <Choices
-        label="Level"
-        options={LEVELS}
-        selected={form.fitnessLevel ? [form.fitnessLevel] : []}
-        onToggle={(value) => set('fitnessLevel', value)}
-        error={errors.fitnessLevel}
-      />
-      <Choices
-        label="Injuries to work around"
-        options={INJURIES.map((value) => ({ value, label: INJURY_LABELS[value] }))}
-        selected={form.injuries}
-        onToggle={(value) =>
-          set('injuries', form.injuries.includes(value) ? form.injuries.filter((i) => i !== value) : [...form.injuries, value])
-        }
-      />
-      <NumberField
-        label="Minutes per day"
-        value={form.minutesPerDay}
-        onChangeText={(text) => set('minutesPerDay', text)}
-        maxLength={3}
-        error={errors.minutesPerDay}
-        testID="minutes-input"
-      />
+      <SectionTitle>You</SectionTitle>
+      <Card>
+        <Choices
+          label="Age range"
+          options={AGE_RANGES.map((value) => ({ value, label: value }))}
+          selected={form.ageRange ? [form.ageRange] : []}
+          onToggle={(value) => set('ageRange', value)}
+          error={errors.ageRange}
+        />
+        <NumberField
+          label="Weight (kg)"
+          value={form.weightKg}
+          onChangeText={(text) => set('weightKg', text)}
+          maxLength={3}
+          error={errors.weightKg}
+          testID="weight-input"
+        />
+      </Card>
+      <SectionTitle>Your training</SectionTitle>
+      <Card>
+        <Choices
+          label="Goal"
+          options={GOALS.map((value) => ({ value, label: GOAL_LABELS[value] }))}
+          selected={form.goal ? [form.goal] : []}
+          onToggle={(value) => set('goal', value)}
+          error={errors.goal}
+        />
+        <Choices
+          label="Level"
+          options={LEVELS}
+          selected={form.fitnessLevel ? [form.fitnessLevel] : []}
+          onToggle={(value) => set('fitnessLevel', value)}
+          error={errors.fitnessLevel}
+        />
+        <NumberField
+          label="Minutes per day"
+          value={form.minutesPerDay}
+          onChangeText={(text) => set('minutesPerDay', text)}
+          maxLength={3}
+          error={errors.minutesPerDay}
+          testID="minutes-input"
+        />
+      </Card>
+      <SectionTitle>Your body</SectionTitle>
+      <Card>
+        <Choices
+          label="Injuries to work around"
+          options={INJURIES.map((value) => ({
+            value,
+            label: INJURY_LABELS[value],
+          }))}
+          selected={form.injuries}
+          onToggle={(value) => set('injuries', form.injuries.includes(value) ? form.injuries.filter((i) => i !== value) : [...form.injuries, value])}
+        />
+      </Card>
 
       <ErrorText>{saveError}</ErrorText>
-      <Button label="Save and continue" busy={saving} onPress={() => void submit()} testID="save-profile" />
+      <Button label="Save and continue" icon="arrow-forward" busy={saving} onPress={() => void submit()} testID="save-profile" />
     </Screen>
   );
 }

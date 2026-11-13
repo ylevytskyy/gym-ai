@@ -1,4 +1,5 @@
 import { Stack, usePathname, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useRef } from 'react';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
@@ -9,7 +10,7 @@ import { PlanProvider } from '@/plan/PlanProvider';
 import { ProfileProvider, useProfile } from '@/profile/ProfileProvider';
 import { getRealServices } from '@/real-services';
 import { ServicesProvider, useServices } from '@/services';
-import { Body, Button, Screen } from '@/ui/kit';
+import { Body, Button, Screen, usePalette } from '@/ui/kit';
 
 // The phone can start the app only to run background work, so it is set up when the bundle loads.
 startBackgroundWork();
@@ -62,8 +63,9 @@ function SignedRoutes({ signedIn, hasProfile }: { signedIn: boolean; hasProfile:
   useEffect(() => {
     if (healthState === 'connected') void watchStepsInBackground();
   }, [healthState]);
+  const palette = usePalette();
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.background } }}>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="sign-in" />
       </Stack.Protected>
@@ -90,6 +92,7 @@ export default function RootLayout() {
           <HealthProvider>
             <NudgeProvider>
               <PlanProvider>
+                <StatusBar style="auto" />
                 <Routes />
               </PlanProvider>
             </NudgeProvider>
