@@ -10,8 +10,58 @@ purchase and Google Play Billing.
 
 - Users see limits as actions (plans, coach messages), never as model tokens. Model tokens and cost
   stay an internal server metric.
-- Preferred model: a free tier plus a Pro subscription with fair-use limits. Credit packs for people
-  who hit a limit can come later. To be confirmed in the subscription design (priority 4).
+- Decided: monthly and annual Pro subscriptions, plus one-time credit packs for people who want to
+  use the service once without subscribing. Pro is about $5 a month.
+
+## Offer (draft, 2026-11-13)
+
+Prices are in USD; each store sets local prices from its own tiers.
+
+| Product | Store type | Price | What it gives |
+|---|---|---|---|
+| Pro monthly | auto-renewable subscription | $4.99 / month | plans and coach without a counter, fair-use limits below |
+| Pro annual | auto-renewable subscription, same group | $39.99 / year ($3.33 / month, −33%) | same as monthly; 7-day free trial |
+| 60 credits | consumable | $1.99 | 6 plans or 60 coach messages, or a mix |
+
+Credits:
+
+- 1 new plan = 10 credits. 1 coach message = 1 credit. A coach message that changes the plan costs
+  1 credit; the plan change it triggers is free (it is part of the conversation).
+- New account: 30 free credits (1 plan + 20 messages), granted once per device (priority 1).
+- Purchased credits never expire. Free credits: check whether they may expire under the store rules.
+- Pro users do not spend credits. If a Pro user reaches a fair-use limit, the coach says so and the
+  limit resets; credits can cover the gap.
+
+Pro fair-use limits (users should not normally see them): 20 new plans a month, 150 coach messages
+a day. At the measured worst-case cost this is under $1 a month per user, against $4.24 net of a 15%
+store fee on monthly (or roughly $3.49 at 30%).
+
+When a subscription ends: the current plan and history stay; new plans and coach messages use
+credits again.
+
+## Paywall
+
+Two surfaces. A mockup was shown in the session; this is the description.
+
+1. **Full paywall** (screen). Headline about the coach, three short benefits, annual option
+   pre-selected with the trial and per-month price, monthly option, main button
+   ("Try 7 days free" / "Subscribe for $4.99/month"), a quiet link to the credit pack, then the
+   store-required lines: auto-renewal, how to cancel, Restore purchases, Terms, Privacy.
+2. **Out-of-credits sheet** (bottom sheet). Says what the action costs and the balance
+   ("A new plan costs 10 credits. You have 3."), then Pro and the 60-credit pack, "Not now".
+
+When each shows:
+
+- Never before the user's first plan: they see the value first.
+- After the first finished workout: full paywall once, closable.
+- Whenever an action costs more credits than the balance: the sheet.
+- From a "Pro" entry in settings, any time.
+- The coach shows the remaining balance only when it is low (5 credits or fewer), so there is no
+  counter in normal use.
+
+Open questions: whether to show the paywall after onboarding instead of after the first workout;
+whether the trial applies to annual only; the free-credit amount; store rules on trials and
+free credits (check the current guidelines).
 
 ## Priorities, in order
 
