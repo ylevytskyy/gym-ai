@@ -137,7 +137,7 @@ Body:
 
 | Field | Type | Rule |
 |---|---|---|
-| `duration_days` | integer | Required. Greater than 0. |
+| `duration_days` | integer | Required. From 1 to 14. |
 | `focus_areas` | string[] | Required (may be empty). At most 10. Each must be a catalog group: `warm_up`, `lower_body`, `upper_body`, `core`, `cardio`. |
 | `custom_instructions` | string | Optional. At most 500 characters. |
 
@@ -175,7 +175,7 @@ Failure examples:
   "error": "VALIDATION_ERROR",
   "message": "Invalid request body",
   "details": [
-    { "path": "duration_days", "code": "INVALID_DURATION", "message": "duration_days must be a positive integer" }
+    { "path": "duration_days", "code": "INVALID_DURATION", "message": "duration_days must be an integer from 1 to 14" }
   ],
   "correlationId": "<uuid>"
 }

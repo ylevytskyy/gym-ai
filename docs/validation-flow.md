@@ -160,7 +160,7 @@ after changing it, or on the unchanged plan with a different profile.
 
 ```json
 [
-  { "path": "duration_days", "code": "INVALID_DURATION", "message": "duration_days must be a positive integer" },
+  { "path": "duration_days", "code": "INVALID_DURATION", "message": "duration_days must be an integer from 1 to 14" },
   { "path": "focus_areas[0]", "code": "INVALID_FOCUS_AREA", "message": "Unknown focus area; use one of: warm_up, lower_body, upper_body, core, cardio" }
 ]
 ```
