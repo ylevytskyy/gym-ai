@@ -1,132 +1,95 @@
 # Monetization plan
 
-Status: planning. Nothing here is built yet. Decided on 2026-11-13.
+Status: model decided 2026-11-13; nothing built yet. First slice: server-side Pro entitlement and AI
+usage limits (see "Build order").
 
 The coach and plan generation call a paid model (`OPENROUTER_MODEL`, currently
-`deepseek/deepseek-v4-flash`), so AI use must be paid for. Payments go only through Apple in-app
-purchase and Google Play Billing.
+`deepseek/deepseek-v4-flash`). Payments go only through Apple in-app purchase and Google Play
+Billing.
 
-## Direction
+## Decided model (2026-11-13)
 
-- Users see limits as actions (plans, coach messages), never as model tokens. Model tokens and cost
-  stay an internal server metric.
-- Decided: monthly and annual Pro subscriptions, plus one-time credit packs for people who want to
-  use the service once without subscribing. Pro is about $5 a month.
+Goal: earn money without pushing people away. The free tier is genuinely useful on its own; Pro is
+something people choose, never something they are pushed into.
 
-## What Pro sells (direction, 2026-11-13)
+- **Free + Pro subscription. No credits, no consumable packs.** AI costs cents per user a month
+  (see "Measured model cost"), so a credit wallet only adds a counter people dislike. Free users get
+  a daily AI allowance that resets; Pro removes it.
+- **Pricing does not mirror model cost.** Pro sells an adaptive coach for people who sit all day and
+  have no equipment; the AI coach is one part of it.
+- **Users see limits as actions** (coach messages, new plans), never as tokens. Tokens and cost stay
+  an internal server metric.
+- **Not doing:** ads, any use of user data for money, credits, a paywall that opens by itself.
 
-Pricing should not mirror model cost. AI costs cents per user a month (see "Measured model cost"),
-so it should not be the main paywall. People pay for the outcome: training regularly, seeing
-progress, less back pain from sitting. Pro sells an adaptive personal coach for people who sit all
-day and have no equipment; the AI coach is one part of it.
-
-Value the app already has, and the paid side of each:
-
-1. **Readiness and adjustments.** Today's session changes from sleep, resting heart rate, steps and
-   external workouts. Deterministic, no AI cost per use. Pro.
-2. **Progress.** History already shows health trends. Pro: monthly reports, streaks, links between
-   workouts and steps, sleep, weight.
-3. **Exercise library with 3D animations** (75 exercises, Blender pipeline). Content is made once
-   and sold many times. Free: a basic set. Pro: all of it, plus new exercises every month.
-4. **Sitting nudges.** A niche big fitness apps cover poorly. Pro "workday mode": a schedule, 2-5
-   minute micro-workouts, stairs instead of a gym.
-
-New things worth selling:
-
-- **Programs** ("30 days for a desk worker's back", "stairs instead of a gym") as one-time
-  purchases (non-consumable). A clearer "pay once" option than abstract credits. Open question:
-  keep credits only for AI actions without a subscription, or drop credits in favour of programs.
-- **Audio cues during a workout**, recorded ahead, so no cost per play.
-- **Widgets, Live Activity, Apple Watch.**
-- **Family subscription** (store family sharing).
-- **Later, B2B:** wellness programs sold as seats to companies with remote staff. Fits the niche;
-  the largest potential revenue.
-
-Not doing: ads, or any use of user data for money. This is a health app; both hurt trust and store
-review.
-
-Proposed split:
-
-| | Free | Pro ($4.99 / $39.99) |
+| | Free | Pro |
 |---|---|---|
-| Training | player, 1 plan, basic exercise set | all exercises, new ones monthly |
-| Adjustments | none | readiness from health data, automatic changes |
-| Progress | workout history | trends, reports, streaks |
-| Workday mode | basic nudges | schedule, micro-workouts |
-| Coach (AI) | a few messages | no counter (fair-use limits) |
-| Separate | programs as one-time purchases | programs discounted or included |
+| Training | player, plans, history, basic exercise set | all exercises with 3D animations, new ones monthly |
+| Adjustments | none | today's session adapts to sleep, resting heart rate, steps, external workouts |
+| Progress | workout history | trends, monthly reports, streaks, links to steps, sleep, weight |
+| Workday mode | basic sitting reminders | schedule, 2-5 minute micro-workouts (assumed, not asked) |
+| AI coach | 10 messages a day, 2 new plans a week | no visible limit; fair-use limits below |
 
-Before fixing prices, look at how 2-3 competitors in this niche split free and paid (not done yet).
-The "Offer" section below predates this direction and is to be revised against it.
+Free limits: 10 coach messages per calendar day and 2 new plans per rolling 7 days. The app shows
+what is left only when 3 or fewer remain. At the limit the coach says when it resets and mentions
+Pro once, in one line. Worst-case cost of a free user at the limit is about $0.09 a month.
 
-## Offer (draft, 2026-11-13)
+Pro fair-use limits (users should not normally see them): 20 new plans a month, 150 coach messages a
+day. At the limit the coach says it resets tomorrow.
 
-Prices are in USD; each store sets local prices from its own tiers.
+## Prices
 
-| Product | Store type | Price | What it gives |
+| Product | Store type | Price | Trial |
 |---|---|---|---|
-| Pro monthly | auto-renewable subscription | $4.99 / month | plans and coach without a counter, fair-use limits below |
-| Pro annual | auto-renewable subscription, same group | $39.99 / year ($3.33 / month, −33%) | same as monthly; 7-day free trial |
-| 60 credits | consumable | $1.99 | 6 plans or 60 coach messages, or a mix |
+| Pro monthly | auto-renewable subscription | $2.99 / month | 7 days free |
+| Pro annual | auto-renewable subscription, same group | $24.99 / year ($2.08 / month, −30%) | 7 days free |
 
-Credits:
+Prices are in USD; each store sets local prices from its own tiers. Prices live in App Store Connect
+and Play Console, so changing them needs no code. A trial is given once per store account (the
+stores enforce this). The app reminds the user 2 days before the trial ends.
 
-- 1 new plan = 10 credits. 1 coach message = 1 credit. A coach message that changes the plan costs
-  1 credit; the plan change it triggers is free (it is part of the conversation).
-- New account: 30 free credits (1 plan + 20 messages), granted once per device (priority 1).
-- Purchased credits never expire. Free credits: check whether they may expire under the store rules.
-- Pro users do not spend credits. If a Pro user reaches a fair-use limit, the coach says so and the
-  limit resets; credits can cover the gap.
-
-Pro fair-use limits (users should not normally see them): 20 new plans a month, 150 coach messages
-a day. At the measured worst-case cost this is under $1 a month per user, against $4.24 net of a 15%
-store fee on monthly (or roughly $3.49 at 30%).
-
-When a subscription ends: the current plan and history stay; new plans and coach messages use
-credits again.
+When Pro ends: plans, history and health data stay. Pro features lock again and the free AI
+allowance applies.
 
 ## Paywall
 
-Two surfaces. A mockup was shown in the session; this is the description.
+The paywall never opens by itself. It shows only when the user:
 
-1. **Full paywall** (screen). Headline about the coach, three short benefits, annual option
-   pre-selected with the trial and per-month price, monthly option, main button
-   ("Try 7 days free" / "Subscribe for $4.99/month"), a quiet link to the credit pack, then the
-   store-required lines: auto-renewal, how to cancel, Restore purchases, Terms, Privacy.
-2. **Out-of-credits sheet** (bottom sheet). Says what the action costs and the balance
-   ("A new plan costs 10 credits. You have 3."), then Pro and the 60-credit pack, "Not now".
+- taps a Pro feature (a locked exercise, adjustments, reports, workday schedule);
+- taps "Pro" in settings;
+- taps the one-line Pro mention after reaching the free AI limit.
 
-When each shows:
+Screen content: headline about the adaptive coach, three short benefits, annual option pre-selected
+with the trial and per-month price, monthly option, main button ("Try 7 days free"), then the
+store-required lines: price after the trial, auto-renewal, how to cancel, Restore purchases, Terms,
+Privacy. Closing it is always one tap.
 
-- Never before the user's first plan: they see the value first.
-- After the first finished workout: full paywall once, closable.
-- Whenever an action costs more credits than the balance: the sheet.
-- From a "Pro" entry in settings, any time.
-- The coach shows the remaining balance only when it is low (5 credits or fewer), so there is no
-  counter in normal use.
+## Later (not in the first version)
 
-Open questions: whether to show the paywall after onboarding instead of after the first workout;
-whether the trial applies to annual only; the free-credit amount; store rules on trials and
-free credits (check the current guidelines).
+- **Programs** ("30 days for a desk worker's back", "stairs instead of a gym") as one-time purchases
+  (non-consumable). Pro would include them or discount them.
+- Audio cues during a workout (recorded ahead, no cost per play).
+- Widgets, Live Activity, Apple Watch.
+- Family subscription (store family sharing).
+- B2B: wellness seats for companies with remote staff.
+- Check 2-3 competitors' free/paid split and prices before release.
 
-## Priorities, in order
+## Build order
 
-1. **Device binding against abuse.** App Attest on iOS, Play Integrity on Android. Stops one person
-   collecting the free allowance many times with new accounts, and stops scripts calling the API
-   outside the app. The server checks the attestation before granting the free allowance and on
-   AI requests.
-2. **RevenueCat integration.** `react-native-purchases` in `apps/mobile` (Expo), StoreKit 2 and
-   Play Billing behind it. The server trusts RevenueCat webhooks (signed), not the client:
-   purchase, renewal, cancellation, expiry, refund.
-3. **Balance and limits on the server only.** Supabase: an append-only ledger
-   (`credit_ledger` or usage counters), balance derived from it. Debit atomically in a Postgres
-   function before the model call, idempotent per request id, refund the debit if the call fails.
-   Refund webhooks claw credits back. Balance is tied to the Supabase account (consumables are not
-   restored by "Restore purchases"). Deleting stored data warns that the balance is lost.
-4. **Subscription design, planned carefully.** Tiers, prices (monthly/annual), free allowance,
-   fair-use limits per action, trial, what happens at the limit, store review rules (check
-   guideline 3.1.1 on credit expiry and 3.1.2 on subscriptions against the current text),
-   paywall placement. Based on the measured cost below.
+1. **Server-side entitlement and AI usage limits** (first slice). Supabase migration 010: who is Pro
+   and until when, plus usage counters per user and action. A Postgres function checks the limit and
+   records the use atomically before the model call, idempotent per request id, and releases the use
+   if the model call fails. The assistant service rejects over-limit requests with a clear error the
+   app can show. Pro status is written only by the server (later by the RevenueCat webhook), never by
+   the client. Testable without any store.
+2. **RevenueCat.** `react-native-purchases` in `apps/mobile` (Expo), StoreKit 2 and Play Billing
+   behind it. The server trusts signed RevenueCat webhooks, not the client: purchase, renewal,
+   cancellation, expiry, refund, each updating the entitlement. Needs a paid Apple Developer account.
+3. **Paywall screen and Pro locks in the app.**
+4. **Device binding** (App Attest on iOS, Play Integrity on Android) against scripts calling the API
+   outside the app and mass account creation. Lower priority than before: without free credits there
+   is no balance to farm.
+5. **Store rules check** before release: guideline 3.1.2 (subscriptions, trials, disclosure) against
+   the current text.
 
 ## Measured model cost
 
