@@ -22,6 +22,8 @@ import {
   type ChatTurn,
   type HealthSummary,
   type Profile,
+  type UsageAction,
+  type UsageDecision,
   type WorkoutPlan,
 } from '../types.js';
 
@@ -52,6 +54,13 @@ export interface AppDeps {
   archivePlans: (userId: string) => Promise<void>;
   /** How many model requests one user may make in a stretch of time. Kept in memory, per process. */
   limits?: { max: number; windowMs: number };
+  /**
+   * Reserves one AI use against the user's allowance before the model is called, or refuses at
+   * the limit. Throws when the allowance cannot be checked.
+   */
+  reserveUse: (userId: string, action: UsageAction, requestId: string) => Promise<UsageDecision>;
+  /** Marks a reserved use as used (ok) or released (the request failed, so it does not count). */
+  finishUse: (useId: string, ok: boolean) => Promise<void>;
   /** Deletes the user and, through the database, everything stored about them. */
   deleteAccount: (userId: string) => Promise<void>;
   /** How long the health lookup may take before the plan is generated without it. */
@@ -110,6 +119,72 @@ function createGate(limits: { max: number; windowMs: number }) {
   };
 }
 
+class UsageLimitError extends AppError {
+  constructor(public readonly decision: UsageDecision) {
+    super('You have used your AI allowance for now', 'USAGE_LIMIT', 429);
+  }
+}
+
+class DuplicateRequestError extends AppError {
+  constructor() {
+    super('This request was already sent', 'DUPLICATE_REQUEST', 409);
+  }
+}
+
+class UsageUnavailableError extends AppError {
+  constructor() {
+    super('The coach is temporarily unavailable; try again in a moment', 'USAGE_UNAVAILABLE', 503);
+  }
+}
+
+/** Longest Idempotency-Key accepted; the stored request id adds the action in front of it. */
+const MAX_IDEMPOTENCY_KEY = 100;
+const IDEMPOTENCY_KEY = /^[\x21-\x7e]+$/;
+
+/** What the app is told about the allowance; the use id stays on the server. */
+function usageView(decision: UsageDecision) {
+  return { tier: decision.tier, limit: decision.limit, remaining: decision.remaining, resetsAt: decision.resetsAt };
+}
+
+/**
+ * The request id for counting: the client's Idempotency-Key, so a retry is counted once, or a
+ * fresh id. Scoped to the action, so one key cannot be counted under another action.
+ * Returns null for a key that is not acceptable.
+ */
+function requestIdFor(req: Request, action: UsageAction): string | null {
+  const key = req.get('idempotency-key');
+  if (key === undefined) return `${action}:${randomUUID()}`;
+  if (key.length < 1 || key.length > MAX_IDEMPOTENCY_KEY || !IDEMPOTENCY_KEY.test(key)) return null;
+  return `${action}:${key}`;
+}
+
+/** Reserves one use or throws: 429 at the limit, 503 when the allowance cannot be checked. */
+async function reserveOrRefuse(deps: AppDeps, userId: string, action: UsageAction, requestId: string): Promise<UsageDecision & { useId: string }> {
+  let decision: UsageDecision;
+  try {
+    decision = await deps.reserveUse(userId, action, requestId);
+  } catch (err) {
+    logger.error({ userId, action, err: err instanceof Error ? { name: err.name, message: err.message } : String(err) }, 'AI allowance could not be checked');
+    throw new UsageUnavailableError();
+  }
+  if (decision.duplicate) throw new DuplicateRequestError();
+  if (!decision.allowed || decision.useId === null) throw new UsageLimitError(decision);
+  return { ...decision, useId: decision.useId };
+}
+
+/**
+ * Finishing a use never changes the answer: a use left reserved still counts, which is the safe side.
+ * A use is marked used as soon as the model has answered, and released only when no answer came
+ * (the model failed or took too long), so a later failure does not make the model call free.
+ */
+async function finishQuietly(deps: AppDeps, useId: string, ok: boolean, correlationId: string): Promise<void> {
+  try {
+    await deps.finishUse(useId, ok);
+  } catch (err) {
+    logger.warn({ correlationId, useId, ok, err: err instanceof Error ? { name: err.name, message: err.message } : String(err) }, 'AI use not finished');
+  }
+}
+
 class TimeoutError extends AppError {
   constructor() {
     super('Plan generation took too long; try again', 'GATEWAY_TIMEOUT', 504);
@@ -146,6 +221,15 @@ function describeError(err: unknown): { status: number; body: Omit<ErrorBody, 'c
   }
   if (err instanceof TooManyRequestsError) {
     return { status: 429, body: { error: err.code, message: err.message } };
+  }
+  if (err instanceof UsageLimitError) {
+    return { status: 429, body: { error: err.code, message: err.message, details: usageView(err.decision) } };
+  }
+  if (err instanceof DuplicateRequestError) {
+    return { status: 409, body: { error: err.code, message: err.message } };
+  }
+  if (err instanceof UsageUnavailableError) {
+    return { status: 503, body: { error: err.code, message: err.message } };
   }
   if (err instanceof NoActivePlanError) {
     return { status: 404, body: { error: err.code, message: err.message } };
@@ -217,8 +301,18 @@ export function createApp(deps: AppDeps): express.Express {
     res.json({ status: 'ok' });
   });
 
+  const badIdempotencyKey = (res: Response): void => {
+    res.status(400).json({
+      error: 'VALIDATION_ERROR',
+      message: `Idempotency-Key must be 1 to ${MAX_IDEMPOTENCY_KEY} visible ASCII characters`,
+      correlationId: res.locals['correlationId'],
+    });
+  };
+
   app.post('/api/plans/generate', async (req, res, next) => {
     let release: (() => void) | undefined;
+    let use: (UsageDecision & { useId: string }) | undefined;
+    let answered = false;
     try {
       const userId = await deps.authenticate(req);
 
@@ -233,17 +327,24 @@ export function createApp(deps: AppDeps): express.Express {
         return;
       }
 
+      const requestId = requestIdFor(req, 'new_plan');
+      if (requestId === null) return badIdempotencyKey(res);
+
       release = admit(userId);
+      use = await reserveOrRefuse(deps, userId, 'new_plan', requestId);
       const profile = await deps.loadProfile(userId);
       logger.info({ correlationId: res.locals['correlationId'], userId }, 'plan generation started');
 
       const health = await loadHealth(deps, userId, res.locals['correlationId'] as string);
       const plan = await withTimeout(deps.assistant.generatePlan(profile, validation.request, { health }), generateTimeoutMs);
+      answered = true;
+      await finishQuietly(deps, use.useId, true, res.locals['correlationId'] as string);
       const planId = await storeChecked(deps, userId, plan);
 
       logger.info({ correlationId: res.locals['correlationId'], userId, planId }, 'plan generation finished');
-      res.status(201).json({ id: planId, plan });
+      res.status(201).json({ id: planId, plan, usage: usageView(use) });
     } catch (err) {
+      if (use && !answered) await finishQuietly(deps, use.useId, false, res.locals['correlationId'] as string);
       next(err);
     } finally {
       release?.();
@@ -261,22 +362,30 @@ export function createApp(deps: AppDeps): express.Express {
 
   app.post('/api/plans/adjust', async (req, res, next) => {
     let release: (() => void) | undefined;
+    let use: (UsageDecision & { useId: string }) | undefined;
+    let answered = false;
     try {
       const userId = await deps.authenticate(req);
       const validation = validateAdjustRequest(req.body);
       if (!validation.valid) return invalid(res, validation.errors);
+      const requestId = requestIdFor(req, 'new_plan');
+      if (requestId === null) return badIdempotencyKey(res);
       release = admit(userId);
 
       const active = await deps.loadActivePlan(userId);
       if (!active) throw new NoActivePlanError();
+      use = await reserveOrRefuse(deps, userId, 'new_plan', requestId);
       const profile = await deps.loadProfile(userId);
       const health = await loadHealth(deps, userId, res.locals['correlationId'] as string);
 
       const plan = await withTimeout(deps.assistant.adjustPlan(profile, active.plan, validation.text, { health }), timeoutMs);
+      answered = true;
+      await finishQuietly(deps, use.useId, true, res.locals['correlationId'] as string);
       const planId = await storeChecked(deps, userId, plan);
       logger.info({ correlationId: res.locals['correlationId'], userId, planId }, 'plan adjusted');
-      res.status(201).json({ id: planId, plan });
+      res.status(201).json({ id: planId, plan, usage: usageView(use) });
     } catch (err) {
+      if (use && !answered) await finishQuietly(deps, use.useId, false, res.locals['correlationId'] as string);
       next(err);
     } finally {
       release?.();
@@ -290,13 +399,18 @@ export function createApp(deps: AppDeps): express.Express {
    */
   app.post('/api/chat', async (req, res, next) => {
     let release: (() => void) | undefined;
+    let use: (UsageDecision & { useId: string }) | undefined;
+    let answered = false;
     try {
       const correlationId = res.locals['correlationId'] as string;
       const userId = await deps.authenticate(req);
       const validation = validateChatRequest(req.body);
       if (!validation.valid) return invalid(res, validation.errors);
       const message = validation.text;
+      const requestId = requestIdFor(req, 'chat_message');
+      if (requestId === null) return badIdempotencyKey(res);
       release = admit(userId);
+      use = await reserveOrRefuse(deps, userId, 'chat_message', requestId);
 
       let profile = await deps.loadProfile(userId);
       const active = await deps.loadActivePlan(userId);
@@ -305,6 +419,8 @@ export function createApp(deps: AppDeps): express.Express {
       const history = await deps.loadMessages(userId, CHAT_HISTORY_TURNS).catch((): ChatTurn[] => []);
 
       const result = await withTimeout(deps.assistant.chat({ profile, message, history, plan: active?.plan ?? null, health }), timeoutMs);
+      answered = true;
+      await finishQuietly(deps, use.useId, true, correlationId);
       let reply = result.reply;
 
       const injuriesAdded = result.addInjuries ?? [];
@@ -357,8 +473,9 @@ export function createApp(deps: AppDeps): express.Express {
       }
 
       logger.info({ correlationId, userId, planChanged: changed !== null, planRemoved: removed, injuriesAdded: injuriesAdded.length }, 'chat answered');
-      res.json({ reply, plan: changed, plan_removed: removed, injuries_added: injuriesAdded });
+      res.json({ reply, plan: changed, plan_removed: removed, injuries_added: injuriesAdded, usage: usageView(use) });
     } catch (err) {
+      if (use && !answered) await finishQuietly(deps, use.useId, false, res.locals['correlationId'] as string);
       next(err);
     } finally {
       release?.();

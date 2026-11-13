@@ -33,6 +33,18 @@ import {
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const MAX_ATTEMPTS = 2;
 const TEMPERATURE = 0.7;
+/**
+ * Output caps in tokens. Reasoning tokens count against them on most providers. Measured
+ * 2026-11-13 (docs/monetization.md): plans used up to 4600 tokens, coach replies up to 1200.
+ */
+const PLAN_MAX_TOKENS = 12000;
+const CHAT_MAX_TOKENS = 4000;
+/**
+ * OpenRouter routing: only providers that neither store nor train on prompts, and only
+ * zero-data-retention endpoints. Chats and plans carry health data. If no provider qualifies,
+ * OpenRouter returns an error instead of falling back. https://openrouter.ai/docs/features/zdr
+ */
+const PROVIDER_PREFERENCES = { data_collection: 'deny', zdr: true } as const;
 
 /** The part of the OpenAI client this class uses. Tests pass a fake. */
 export type ChatClient = Pick<OpenAI, 'chat'>;
@@ -112,7 +124,7 @@ export class OpenRouterAssistant implements Assistant {
       ...input.history.map((turn) => ({ role: turn.role, content: turn.content })),
       { role: 'user', content: input.message },
     ];
-    const content = await this.callModel(messages, 1, false);
+    const content = await this.callModel(messages, 1, CHAT_MAX_TOKENS, false);
     return parseChatOutput(content, input.profile.injuries);
   }
 
@@ -121,7 +133,7 @@ export class OpenRouterAssistant implements Assistant {
     let lastErrors: ValidationError[] = [];
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      const content = await this.callModel(messages, attempt, logBodies);
+      const content = await this.callModel(messages, attempt, PLAN_MAX_TOKENS, logBodies);
       const { plan, errors } = this.checkCandidate(content, profile);
 
       if (plan && errors.length === 0) {
@@ -230,7 +242,7 @@ export class OpenRouterAssistant implements Assistant {
   }
 
   /** One chat completion. Requirement 10.10: metadata at info, bodies at debug. */
-  private async callModel(messages: ChatMessage[], attempt: number, logBodies = true): Promise<string> {
+  private async callModel(messages: ChatMessage[], attempt: number, maxTokens: number, logBodies = true): Promise<string> {
     logger.info({ model: this.model, attempt, messageCount: messages.length }, 'openrouter request');
     if (logBodies) {
       logger.debug(
@@ -241,12 +253,17 @@ export class OpenRouterAssistant implements Assistant {
 
     let response: Awaited<ReturnType<ChatClient['chat']['completions']['create']>>;
     try {
-      response = await this.client.chat.completions.create({
+      // `provider` is an OpenRouter field the OpenAI types do not know; the body is built first so
+      // TypeScript accepts the extra field.
+      const body = {
         model: this.model,
         messages,
         temperature: TEMPERATURE,
-        response_format: { type: 'json_object' },
-      });
+        max_tokens: maxTokens,
+        response_format: { type: 'json_object' as const },
+        provider: PROVIDER_PREFERENCES,
+      };
+      response = await this.client.chat.completions.create(body);
     } catch (err) {
       const status = (err as { status?: unknown }).status;
       const statusCode = typeof status === 'number' ? status : 500;
@@ -256,6 +273,13 @@ export class OpenRouterAssistant implements Assistant {
     }
 
     const content = response.choices[0]?.message?.content ?? '';
+    if (response.choices[0]?.finish_reason === 'length') {
+      // The answer was cut off and will fail to parse; this tells that apart from a bad answer.
+      logger.warn(
+        { model: this.model, attempt, maxTokens, completionTokens: response.usage?.completion_tokens },
+        'openrouter reply hit the token cap',
+      );
+    }
     if (logBodies) logger.debug({ body: content }, 'openrouter response body');
     return content;
   }

@@ -35,6 +35,13 @@ describe('validatePlanRequest', () => {
     expect((result as any).errors).toContainEqual(expect.objectContaining({ path: 'duration_days' }));
   });
 
+  it('accepts a plan of up to 14 days and rejects a longer one', () => {
+    expect(validatePlanRequest({ duration_days: 14, focus_areas: [] })).toMatchObject({ valid: true });
+    const result = validatePlanRequest({ duration_days: 15, focus_areas: [] });
+    expect(result).toMatchObject({ valid: false });
+    expect((result as any).errors).toContainEqual(expect.objectContaining({ path: 'duration_days', code: 'INVALID_DURATION' }));
+  });
+
   it('rejects missing focus_areas', () => {
     const result = validatePlanRequest({ duration_days: 3 });
     expect(result).toMatchObject({ valid: false });

@@ -15,7 +15,7 @@ import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { createClient } from '@supabase/supabase-js';
 import { createApp } from '../src/api/server';
-import { getProfile, savePlan } from '../src/tools/database';
+import { finishAiUse, getProfile, reserveAiUse, savePlan } from '../src/tools/database';
 import { AuthenticationError, type Assistant, type WorkoutPlan } from '../src/types';
 
 const url = process.env.SUPABASE_TEST_URL;
@@ -53,6 +53,8 @@ describe.skipIf(!enabled)('Integration: POST /api/plans/generate with real datab
       },
       loadProfile: (userId) => getProfile(userId, db),
       storePlan: (userId, plan, provider) => savePlan(userId, plan, provider, db),
+      reserveUse: (userId, action, requestId) => reserveAiUse(userId, action, requestId, db),
+      finishUse: (useId, ok) => finishAiUse(useId, ok, db),
     });
     server = app.listen(0, '127.0.0.1');
     await new Promise<void>((resolve) => server.once('listening', () => resolve()));

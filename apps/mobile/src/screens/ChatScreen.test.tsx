@@ -180,9 +180,109 @@ describe('ChatScreen', () => {
     await screen.findByTestId('chat-empty');
     await user().type(screen.getByTestId('chat-input'), 'hi');
     const send = screen.getByTestId('chat-send');
-    fireEvent.press(send);
-    fireEvent.press(send);
+    // Both presses inside one async act: a bare fireEvent left the send running outside act, and
+    // every later test in this file then rendered nothing.
+    await act(async () => {
+      fireEvent.press(send);
+      fireEvent.press(send);
+    });
     await waitFor(() => expect(screen.getByText('ok')).toBeTruthy());
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('ChatScreen: the AI allowance', () => {
+  // Local midnight in Kyiv (the test time zone) at the end of 12 November.
+  const midnight = '2026-11-12T22:00:00.000Z';
+  const usage = (remaining: number, tier = 'free') => ({ tier, limit: tier === 'free' ? 10 : 150, remaining, resetsAt: midnight });
+  const send = async (text: string) => {
+    await user().type(screen.getByTestId('chat-input'), text);
+    await user().press(screen.getByTestId('chat-send'));
+  };
+
+  it('sends a new Idempotency-Key with each message', async () => {
+    const fetch = answer({ reply: 'ok', plan: null, injuries_added: [] });
+    const harness = createHarness({ ...base, fetch });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('one');
+    await screen.findByText('ok');
+    await send('two');
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    const keys = fetch.mock.calls.map((call) => ((call as unknown as [string, RequestInit])[1].headers as Record<string, string>)['idempotency-key']);
+    expect(keys[0]).toBeTruthy();
+    expect(keys[1]).toBeTruthy();
+    expect(keys[0]).not.toBe(keys[1]);
+  });
+
+  it('shows no count while more than 3 messages are left', async () => {
+    const harness = createHarness({ ...base, fetch: answer({ reply: 'ok', plan: null, injuries_added: [], usage: usage(5) }) });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('hi');
+    await screen.findByText('ok');
+    expect(screen.queryByTestId('usage-left')).toBeNull();
+  });
+
+  it('shows how many messages are left once 3 or fewer remain', async () => {
+    const harness = createHarness({ ...base, fetch: answer({ reply: 'ok', plan: null, injuries_added: [], usage: usage(2) }) });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('hi');
+    expect(await screen.findByText('2 coach messages left today.')).toBeTruthy();
+  });
+
+  it('at the limit says calmly when messages come back and mentions Pro once, as plain text', async () => {
+    const harness = createHarness({ ...base, fetch: answer({ error: 'USAGE_LIMIT', message: 'detail', details: usage(0) }, 429) });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('One more question');
+
+    expect(await screen.findByText('You have used today’s coach messages. They come back at midnight.')).toBeTruthy();
+    const pro = screen.getByText('Pro raises this limit.');
+    expect(pro.props.onPress).toBeUndefined();
+    expect(screen.getAllByText('Pro raises this limit.')).toHaveLength(1);
+    expect(screen.queryByText(/still busy/)).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+    // Nothing is lost: the text stays for when messages come back.
+    expect(screen.getByTestId('chat-input').props.value).toBe('One more question');
+  });
+
+  it('says the limit right after the last allowed message', async () => {
+    const harness = createHarness({ ...base, fetch: answer({ reply: 'Last one!', plan: null, injuries_added: [], usage: usage(0) }) });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('hi');
+    expect(await screen.findByText('Last one!')).toBeTruthy();
+    expect(screen.getByTestId('usage-limit')).toBeTruthy();
+  });
+
+  it('stops saying the limit once the time it comes back has passed', async () => {
+    const soon = { tier: 'free', limit: 10, remaining: 0, resetsAt: new Date(Date.now() + 60_000).toISOString() };
+    const harness = createHarness({ ...base, fetch: answer({ error: 'USAGE_LIMIT', message: 'detail', details: soon }, 429) });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('hi');
+    expect(await screen.findByTestId('usage-limit')).toBeTruthy();
+    await act(async () => jest.advanceTimersByTime(61_000));
+    expect(screen.queryByTestId('usage-limit')).toBeNull();
+  });
+
+  it('does not mention Pro to someone who has it', async () => {
+    const harness = createHarness({ ...base, fetch: answer({ error: 'USAGE_LIMIT', message: 'detail', details: usage(0, 'pro') }, 429) });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('hi');
+    expect(await screen.findByText('You have reached today’s limit for the coach. It comes back at midnight.')).toBeTruthy();
+    expect(screen.queryByText('Pro raises this limit.')).toBeNull();
+  });
+
+  it('still reads a burst of messages as a busy coach', async () => {
+    const harness = createHarness({ ...base, fetch: answer({ error: 'TOO_MANY_REQUESTS', message: 'detail' }, 429) });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('hi');
+    expect(await screen.findByText(/still busy/)).toBeTruthy();
+    expect(screen.queryByTestId('usage-limit')).toBeNull();
   });
 });

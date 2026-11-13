@@ -128,6 +128,30 @@ describe('OpenRouterAssistant.generatePlan', () => {
     expect(create).toHaveBeenCalledTimes(2);
   });
 
+  it('caps plan output at 12000 tokens, reasoning included', async () => {
+    const { client, create } = fakeChat(JSON.stringify(plan()));
+
+    await assistantWith(client).generatePlan(beginner, request);
+
+    expect((create.mock.calls[0]![0] as any).max_tokens).toBe(12000);
+  });
+
+  it('sends plans and chat only to providers that keep no data', async () => {
+    const { client, create } = fakeChat(
+      JSON.stringify(plan()),
+      JSON.stringify({ reply: 'Rest today.', adjust_plan: null, add_injuries: [] }),
+    );
+    const assistant = assistantWith(client);
+
+    await assistant.generatePlan(beginner, request);
+    await assistant.chat({ profile: beginner, message: 'Hi', history: [], plan: null });
+
+    for (const call of create.mock.calls as unknown as Array<[{ provider?: unknown }]>) {
+      expect(call[0].provider).toEqual({ data_collection: 'deny', zdr: true });
+    }
+    expect(create).toHaveBeenCalledTimes(2);
+  });
+
   it('wraps provider failures in APIError without retrying', async () => {
     const { client, create } = fakeChat(Object.assign(new Error('rate limited'), { status: 429 }));
 

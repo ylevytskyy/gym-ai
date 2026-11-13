@@ -61,6 +61,8 @@ function makeDeps(overrides: Partial<AppDeps> = {}) {
     addInjuries: vi.fn(async () => profile),
     archivePlans: vi.fn(async () => undefined),
     deleteAccount: vi.fn(async () => undefined),
+    reserveUse: vi.fn(async () => ({ allowed: true, duplicate: false, useId: 'use-1', tier: 'free' as const, limit: 10, remaining: 9, resetsAt: '2026-11-13T22:00:00.000Z' })),
+    finishUse: vi.fn(async () => undefined),
     authenticate: vi.fn(async (req: any) => {
       if (req.headers.authorization === 'Bearer good') return 'user-1';
       throw new AuthenticationError();
@@ -123,7 +125,7 @@ describe('POST /api/plans/generate', () => {
     const res = await post(base, validBody);
 
     expect(res.status).toBe(201);
-    expect(await res.json()).toEqual({ id: 'plan-1', plan });
+    expect(await res.json()).toEqual({ id: 'plan-1', plan, usage: { tier: 'free', limit: 10, remaining: 9, resetsAt: '2026-11-13T22:00:00.000Z' } });
     expect(deps.loadProfile).toHaveBeenCalledWith('user-1');
     expect(deps.assistant.generatePlan).toHaveBeenCalledWith(
       profile,
@@ -315,7 +317,7 @@ describe('POST /api/plans/generate with health data', () => {
     const { res, deps, body } = await run(vi.fn(async () => null));
 
     expect(res.status).toBe(201);
-    expect(body).toEqual({ id: 'plan-1', plan });
+    expect(body).toEqual({ id: 'plan-1', plan, usage: { tier: 'free', limit: 10, remaining: 9, resetsAt: '2026-11-13T22:00:00.000Z' } });
     expect(deps.assistant.generatePlan).toHaveBeenCalledWith(profile, expect.anything(), { health: null });
   });
 
@@ -325,7 +327,7 @@ describe('POST /api/plans/generate with health data', () => {
     }));
 
     expect(res.status).toBe(201);
-    expect(body).toEqual({ id: 'plan-1', plan });
+    expect(body).toEqual({ id: 'plan-1', plan, usage: { tier: 'free', limit: 10, remaining: 9, resetsAt: '2026-11-13T22:00:00.000Z' } });
     expect(deps.assistant.generatePlan).toHaveBeenCalledWith(profile, expect.anything(), { health: null });
   });
 

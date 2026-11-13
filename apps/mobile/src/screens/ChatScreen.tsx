@@ -5,6 +5,8 @@ import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSh
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AssistantError, sendChat } from '@/assistant/client';
+import type { Usage } from '@/assistant/usage';
+import { UsageNotice } from '@/assistant/UsageNotice';
 import { useAuth } from '@/auth/AuthProvider';
 import { loadMessages, type ChatMessage } from '@/chat/repository';
 import { usePlan } from '@/plan/PlanProvider';
@@ -42,6 +44,8 @@ export function ChatScreen({ refreshKey = 0 }: { refreshKey?: number }) {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | undefined>();
+  /** The AI allowance as the service last reported it; unknown until a message was sent. */
+  const [usage, setUsage] = useState<Usage | null>(null);
   /** The message on its way: shown at once, and taken back if it could not be sent. */
   const [pending, setPending] = useState<string | undefined>();
   // Set before any re-render, so two quick presses send one message.
@@ -72,7 +76,9 @@ export function ChatScreen({ refreshKey = 0 }: { refreshKey?: number }) {
     setSendError(undefined);
     setPending(message);
     try {
-      const answer = await sendChat(services.fetch, services.assistantUrl, token, message);
+      // One key per message the user sends: the service counts it once.
+      const answer = await sendChat(services.fetch, services.assistantUrl, token, message, services.newId());
+      if (answer.usage) setUsage(answer.usage);
       const id = services.newId();
       const added: Entry[] = [
         { type: 'message', message: { id: `${id}-user`, role: 'user', content: message } },
@@ -94,7 +100,8 @@ export function ChatScreen({ refreshKey = 0 }: { refreshKey?: number }) {
       setText('');
     } catch (error) {
       // The typed text stays, so nothing has to be written again.
-      setSendError(error instanceof AssistantError ? error.message : 'The message could not be sent. Try again.');
+      if (error instanceof AssistantError && error.usage) setUsage(error.usage);
+      else setSendError(error instanceof AssistantError ? error.message : 'The message could not be sent. Try again.');
       // The service may have finished after the app stopped waiting: show what is really stored.
       plan.reload();
       void profile.refresh();
@@ -182,6 +189,9 @@ export function ChatScreen({ refreshKey = 0 }: { refreshKey?: number }) {
           ) : null}
           <ErrorText>{sendError}</ErrorText>
         </ScrollView>
+        <View style={styles.usage}>
+          <UsageNotice usage={usage} kind="chat" />
+        </View>
         <View style={[styles.composer, { borderTopColor: palette.border, backgroundColor: palette.background }]}>
           <TextInput
             value={text}
@@ -233,6 +243,7 @@ const styles = StyleSheet.create({
   typingText: { fontSize: 15 },
   note: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 6, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, maxWidth: '92%' },
   noteText: { fontSize: 13, fontWeight: '600', flexShrink: 1 },
+  usage: { paddingHorizontal: 16, paddingBottom: 6 },
   composer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingVertical: 10, gap: 10, borderTopWidth: StyleSheet.hairlineWidth },
   input: { flex: 1, minHeight: 46, maxHeight: 120, borderWidth: 1, borderRadius: 23, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, fontSize: 16 },
   send: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },

@@ -2,12 +2,25 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { parseUsage, type Usage } from '@/assistant/usage';
+
 import { isWorkoutPlan, type StoredPlan, type WorkoutLogRow } from './model';
 
 export type PlanClient = Pick<SupabaseClient, 'from'>;
 
-/** An error whose message is fit to show to the user. */
-export class PlanError extends Error {}
+/**
+ * An error whose message is fit to show to the user. `usage` is set when the AI allowance is used
+ * up; `duplicate` when the same request was already counted, so the plan may still appear.
+ */
+export class PlanError extends Error {
+  constructor(
+    message: string,
+    readonly usage?: Usage,
+    readonly duplicate = false,
+  ) {
+    super(message);
+  }
+}
 
 export async function loadActivePlan(client: PlanClient, userId: string): Promise<StoredPlan | null> {
   const { data, error } = await client
@@ -44,21 +57,45 @@ export interface PlanRequest {
 
 const GENERATION_TIMEOUT_MS = 60_000;
 
-/** Asks the assistant service for a new plan. The service validates and stores it; this returns it. */
+export interface PlanAnswer {
+  stored: StoredPlan;
+  /** The allowance after this plan, or null when the service did not say. */
+  usage: Usage | null;
+}
+
+/** Words for a failed response. Server text can carry details that mean nothing to the user; only the status and code decide. */
+function failure(status: number, body: unknown): PlanError {
+  const code = (body as { error?: unknown } | null)?.error;
+  if (status === 401) return new PlanError('Your session has expired. Sign in again.');
+  if (status === 400) return new PlanError('A plan could not be made this time. Try again.');
+  if (status === 429 && code === 'USAGE_LIMIT') {
+    return new PlanError('You have used your new plans for now.', parseUsage((body as { details?: unknown }).details) ?? undefined);
+  }
+  if (status === 429) return new PlanError('You have asked for a lot in a short time. Wait a few minutes and try again.');
+  if (status === 409) return new PlanError('This plan was already asked for. It shows here once it is ready.', undefined, true);
+  if (status === 503) return new PlanError('New plans are not available right now. Try again in a few minutes.');
+  return new PlanError('The plan service is not available right now. Try again later.');
+}
+
+/**
+ * Asks the assistant service for a new plan. The service validates and stores it; this returns it.
+ * `idempotencyKey` is new for each time the user asks and the same when that request is sent again.
+ */
 export async function requestPlan(
   fetchFn: typeof fetch,
   assistantUrl: string,
   accessToken: string,
   request: PlanRequest,
+  idempotencyKey: string,
   timeoutMs = GENERATION_TIMEOUT_MS,
-): Promise<StoredPlan> {
+): Promise<PlanAnswer> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let response: Response;
   try {
     response = await fetchFn(`${assistantUrl}/api/plans/generate`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${accessToken}` },
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${accessToken}`, 'idempotency-key': idempotencyKey },
       body: JSON.stringify(request),
       signal: controller.signal,
     });
@@ -71,23 +108,15 @@ export async function requestPlan(
     );
   }
 
-  if (response.status === 401 || !response.ok) {
-    clearTimeout(timer);
-    if (response.status === 401) throw new PlanError('Your session has expired. Sign in again.');
-    // Server text can carry details that mean nothing to the user; only the status decides the message.
-    throw new PlanError(
-      response.status === 400 ? 'A plan could not be made this time. Try again.' : 'The plan service is not available right now. Try again later.',
-    );
-  }
-
   // The time limit covers reading the body too: headers can arrive long before the plan does.
-  const body = (await response.json().catch(() => null)) as { id?: unknown; plan?: unknown } | null;
+  const body = (await response.json().catch(() => null)) as { id?: unknown; plan?: unknown; usage?: unknown } | null;
   clearTimeout(timer);
+  if (!response.ok) throw failure(response.status, body);
   if (controller.signal.aborted) throw new PlanError('Making your plan took too long. Try again.');
   if (!body || typeof body.id !== 'string' || !isWorkoutPlan(body.plan)) {
     throw new PlanError('The plan that came back could not be read. Try again.');
   }
-  return { id: body.id, plan: body.plan };
+  return { stored: { id: body.id, plan: body.plan }, usage: parseUsage(body.usage) };
 }
 
 export interface NewWorkoutLog {

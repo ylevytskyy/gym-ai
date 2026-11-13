@@ -283,6 +283,25 @@ export interface PlanContext {
 
 export type { HealthSummary } from '@aura-fit/health-core';
 
+/** An AI action counted against the user's allowance (see docs/usage-limits-spec.md). */
+export type UsageAction = 'chat_message' | 'new_plan';
+
+/** The database's answer to "may this user make one more AI request?". */
+export interface UsageDecision {
+  allowed: boolean;
+  /** The request id was seen before and not released: a replay, which must not run the model again. */
+  duplicate: boolean;
+  /** The reserved use, to be finished after the model call; null when refused. */
+  useId: string | null;
+  tier: 'free' | 'pro';
+  limit: number;
+  /** Uses left after this one. */
+  remaining: number;
+  /** ISO time when a refused user may ask again. */
+  resetsAt: string;
+}
+
+
 // ============================================================================
 // Custom Error Classes
 // ============================================================================

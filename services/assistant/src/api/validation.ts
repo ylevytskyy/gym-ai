@@ -7,6 +7,8 @@ import { loadCatalog } from '../tools/catalog.js';
 import type { PlanRequest, ValidationError } from '../types.js';
 
 const MAX_FOCUS_AREAS = 10;
+/** A 7-day plan is about 3400 output tokens; 14 days stays well under the plan token cap. */
+const MAX_DURATION_DAYS = 14;
 const MAX_CUSTOM_INSTRUCTIONS = 500;
 
 export type RequestValidation =
@@ -27,8 +29,8 @@ export function validatePlanRequest(body: unknown): RequestValidation {
   const errors: ValidationError[] = [];
 
   const duration = input['duration_days'];
-  if (!Number.isInteger(duration) || (duration as number) <= 0) {
-    errors.push(fail('duration_days', 'INVALID_DURATION', 'duration_days must be a positive integer'));
+  if (!Number.isInteger(duration) || (duration as number) <= 0 || (duration as number) > MAX_DURATION_DAYS) {
+    errors.push(fail('duration_days', 'INVALID_DURATION', `duration_days must be an integer from 1 to ${MAX_DURATION_DAYS}`));
   }
 
   const focus = input['focus_areas'];
