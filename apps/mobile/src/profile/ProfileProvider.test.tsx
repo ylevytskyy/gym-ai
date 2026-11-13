@@ -58,6 +58,9 @@ describe('ProfileProvider: the time zone the AI allowance counts days in', () =>
     await waitFor(() => expect(zoneUpdates(harness.updates)).toHaveLength(1));
     await act(async () => undefined);
     expect(screen.getByTestId('zone').props.children).toBe('UTC');
+    // A later change of the profile (here a save) must not write the refused zone again.
+    await act(async () => fireEvent.press(screen.getByTestId('zone')));
+    await waitFor(() => expect(screen.getByTestId('zone').props.children).toBe('none'));
     expect(zoneUpdates(harness.updates)).toHaveLength(1);
   });
 });

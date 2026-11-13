@@ -66,7 +66,7 @@ export function limitNotice(usage: Usage | null | undefined, kind: UsageKind, no
     };
   }
   return {
-    text: kind === 'chat' ? `You have used today’s coach messages. They come back ${when}.` : `You have made the new plans this week allows. The next one can be made ${when}.`,
+    text: kind === 'chat' ? `You have used today’s coach messages. They come back ${when}.` : `You have used this week’s new plans. The next one can be made ${when}.`,
     pro: 'Pro raises this limit.',
   };
 }

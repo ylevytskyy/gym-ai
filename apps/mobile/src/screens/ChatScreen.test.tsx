@@ -257,6 +257,17 @@ describe('ChatScreen: the AI allowance', () => {
     expect(screen.getByTestId('usage-limit')).toBeTruthy();
   });
 
+  it('stops saying the limit once the time it comes back has passed', async () => {
+    const soon = { tier: 'free', limit: 10, remaining: 0, resetsAt: new Date(Date.now() + 60_000).toISOString() };
+    const harness = createHarness({ ...base, fetch: answer({ error: 'USAGE_LIMIT', message: 'detail', details: soon }, 429) });
+    await harness.renderScreen(<ChatScreen />);
+    await screen.findByTestId('chat-empty');
+    await send('hi');
+    expect(await screen.findByTestId('usage-limit')).toBeTruthy();
+    await act(async () => jest.advanceTimersByTime(61_000));
+    expect(screen.queryByTestId('usage-limit')).toBeNull();
+  });
+
   it('does not mention Pro to someone who has it', async () => {
     const harness = createHarness({ ...base, fetch: answer({ error: 'USAGE_LIMIT', message: 'detail', details: usage(0, 'pro') }, 429) });
     await harness.renderScreen(<ChatScreen />);

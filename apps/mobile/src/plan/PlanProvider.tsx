@@ -44,7 +44,9 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   const [attempt, setAttempt] = useState(0);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | undefined>();
-  const [usage, setUsage] = useState<Usage | null>(null);
+  // Kept with the user it belongs to, so another user signing in on this device never sees it.
+  const [reported, setReported] = useState<{ userId: string; usage: Usage } | null>(null);
+  const usage = userId !== undefined && reported?.userId === userId ? reported.usage : null;
   const key = userId ? `${userId}:${attempt}` : null;
   const state = useMemo<PlanState>(() => (key !== null && loaded?.key === key ? loaded.state : { status: 'loading' }), [key, loaded]);
 
@@ -73,12 +75,12 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     try {
       // One key per time the user asks: the service counts it once.
       const answer = await requestPlan(services.fetch, services.assistantUrl, token, { duration_days: PLAN_DAYS, focus_areas: [] }, services.newId());
-      if (answer.usage) setUsage(answer.usage);
+      if (answer.usage && userId) setReported({ userId, usage: answer.usage });
       setLoaded({ key, state: { status: 'ready', stored: answer.stored, logs: [] } });
     } catch (error) {
       if (error instanceof PlanError && error.usage) {
         // Said by the allowance notice instead of as an error.
-        setUsage(error.usage);
+        if (userId) setReported({ userId, usage: error.usage });
         return;
       }
       setCreateError(error instanceof PlanError ? error.message : 'A plan could not be made. Try again.');
@@ -87,7 +89,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     } finally {
       setCreating(false);
     }
-  }, [services, token, key, creating]);
+  }, [services, token, key, creating, userId]);
 
   const addLog = useCallback(
     (log: WorkoutLogRow) =>

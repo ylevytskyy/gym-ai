@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { usePalette } from '@/ui/kit';
@@ -12,6 +13,15 @@ import { limitNotice, remainingHint, type Usage, type UsageKind } from './usage'
  */
 export function UsageNotice({ usage, kind }: { usage: Usage | null | undefined; kind: UsageKind }) {
   const palette = usePalette();
+  // Drawn again when the allowance comes back, so the notice does not outlive the limit.
+  const [, setWoken] = useState(0);
+  const resetsAt = usage && usage.remaining <= 0 ? Date.parse(usage.resetsAt) : NaN;
+  useEffect(() => {
+    const wait = resetsAt - Date.now();
+    if (!(wait > 0)) return;
+    const timer = setTimeout(() => setWoken((n) => n + 1), Math.min(wait + 1000, 2_147_483_647));
+    return () => clearTimeout(timer);
+  }, [resetsAt]);
   const notice = limitNotice(usage, kind, new Date());
   if (notice) {
     return (

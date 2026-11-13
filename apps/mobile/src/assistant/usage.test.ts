@@ -77,7 +77,7 @@ describe('limitNotice', () => {
   it('says when the next new plan can be made', () => {
     const at = new Date('2026-11-17T08:00:00');
     const notice = limitNotice({ tier: 'free', limit: 2, remaining: 0, resetsAt: at.toISOString() }, 'plan', now);
-    expect(notice?.text).toBe(`You have made the new plans this week allows. The next one can be made ${resetsText(at, now)}.`);
+    expect(notice?.text).toBe(`You have used this week’s new plans. The next one can be made ${resetsText(at, now)}.`);
     expect(notice?.pro).toBe('Pro raises this limit.');
   });
 

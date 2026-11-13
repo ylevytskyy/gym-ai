@@ -117,7 +117,7 @@ describe('TodayScreen: the allowance for new plans', () => {
     await screen.findByText('Quick legs');
     await makeNewPlan();
 
-    expect(await screen.findByText(/^You have made the new plans this week allows\. The next one can be made on .+ at .+\.$/)).toBeTruthy();
+    expect(await screen.findByText(/^You have used this week’s new plans\. The next one can be made on .+ at .+\.$/)).toBeTruthy();
     expect(screen.getAllByText('Pro raises this limit.')).toHaveLength(1);
     expect(screen.queryByRole('alert')).toBeNull();
     expect(screen.getByText('Quick legs')).toBeTruthy();
@@ -129,6 +129,19 @@ describe('TodayScreen: the allowance for new plans', () => {
     await harness.renderScreen(<TodayScreen />);
     await user().press(await screen.findByTestId('create-plan'));
     expect(await screen.findByTestId('usage-limit')).toBeTruthy();
+  });
+
+  it('does not carry the limit over to another user who signs in on the device', async () => {
+    const usage = { tier: 'free', limit: 2, remaining: 0, resetsAt: '2026-11-17T06:00:00.000Z' };
+    const harness = createHarness({ ...base, fetch: answer({ error: 'USAGE_LIMIT', message: 'detail', details: usage }, 429) });
+    await harness.renderScreen(<TodayScreen />);
+    await screen.findByText('Quick legs');
+    await makeNewPlan();
+    expect(await screen.findByTestId('usage-limit')).toBeTruthy();
+
+    await act(async () => harness.signInAs('user-2'));
+    await screen.findByText('Quick legs');
+    expect(screen.queryByTestId('usage-limit')).toBeNull();
   });
 
   it('reads a burst of requests as too many, not as the limit', async () => {

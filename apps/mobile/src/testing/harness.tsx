@@ -160,5 +160,8 @@ export function createHarness(options: HarnessOptions = {}) {
       </ServicesProvider>,
     );
 
-  return { services, auth, store, notifier, deleted, upserts, inserts, updates, synced, preferences: data, renderScreen };
+  /** Another user signs in on this device, as after a sign-out and a new code. */
+  const signInAs = (id: string) => listener?.('SIGNED_IN', { user: { id }, access_token: 'token' });
+
+  return { signInAs, services, auth, store, notifier, deleted, upserts, inserts, updates, synced, preferences: data, renderScreen };
 }
