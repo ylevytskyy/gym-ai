@@ -32,7 +32,16 @@ Limits of break reminders, by design of the platforms: iOS passes new steps to a
 about once an hour and Android only through the periodic task, so a reminder can arrive shortly
 after a walk. No step counted in the last 24 hours means "unknown", and nothing is planned.
 
-Chat and history are not built yet (see `.kiro/specs/health-integration/spec.md`, milestone 6).
+- Coach tab: a conversation with the AI coach. The assistant service stores each exchange; the
+  coach can change the plan ("make it easier") and add an injury the user reports ("my knee
+  hurts"), both applied by the service and checked by its rules, never by the model directly.
+- History tab: finished workouts, and 14-day trends from the health days (averages and bars;
+  a day without data has no bar).
+- Privacy and account (from the Health tab): what is stored, "Delete my health data" (deletes
+  the stored health days and disconnects), "Clear my conversation", "Delete my account".
+
+Not built: streamed replies, editing the profile after onboarding (an injury the coach added
+cannot be removed in the app), the weekly background plan refresh.
 
 ## Run it
 
@@ -78,6 +87,10 @@ local Supabase (`supabase start`). They work on the iOS Simulator and the Androi
 maestro test -e EMAIL=someone@example.com e2e/sign-in.yaml   # from the sign-in screen
 maestro test e2e/onboarding.yaml                             # from the onboarding screen
 maestro test e2e/workout.yaml                                # from Today, with a plan
+maestro test e2e/privacy.yaml                                # clears the conversation, deletes health data
+maestro test e2e/coach.yaml                                  # needs the assistant service and an empty conversation
+maestro test e2e/coach-injury.yaml                           # needs the assistant service
+maestro test e2e/delete-account.yaml                         # throwaway account only
 ```
 
 The demo videos come from the `exercise-media` bucket. Publish the rendered loops to the
@@ -121,6 +134,22 @@ Run on 2026-11-13 on the same simulators, for break reminders:
   the background; with no step counted in the last day the card says that nothing is planned.
 - A sitting nudge (sent from the developer screen) is shown on both platforms, and tapping it
   opens the desk break, which plays with its demo videos.
+
+Run on 2026-11-13 for the Coach, History and privacy screens, against the local Supabase and the
+real assistant service code with a canned model in place of the language model:
+
+- "Please make it easier" changes the plan and Today shows the new one (both platforms).
+- "My knee hurts" adds the knee injury to the profile and replaces the plan with one made for
+  it; the conversation is stored and shown again on the next visit (both platforms).
+- History lists the saved workouts; with Health connected and no data the trends say "no data".
+- "Clear my conversation" and "Delete my health data" remove the rows, and the health days stay
+  gone after the app is started again (iOS).
+- "Delete my account" removes the user with their health days and messages and ends on the
+  sign-in screen (Android).
+- Found on the emulator and fixed: the Android keyboard covered the message field and Send.
+
+Not verified for these: any reply of a real language model (no live call was made), and the
+hosted Supabase project (migrations 008 and 009 are applied locally only).
 
 Not verified for break reminders: a nudge planned from real steps (the simulators hold none, so
 this is tests only), step delivery and the periodic task waking a closed app (the iOS Simulator

@@ -239,6 +239,38 @@ export interface Assistant {
     request: PlanRequest,
     context?: PlanContext
   ): Promise<WorkoutPlan>;
+  /** The plan changed as the feedback asks. Validated like a new plan; throws PlanGenerationError otherwise. */
+  adjustPlan(
+    profile: Profile,
+    plan: WorkoutPlan,
+    feedback: string,
+    context?: PlanContext
+  ): Promise<WorkoutPlan>;
+  /** One reply in a conversation. Never throws for unreadable model output, only for a failed call. */
+  chat(input: ChatInput): Promise<ChatResult>;
+}
+
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatInput {
+  profile: Profile;
+  message: string;
+  /** Earlier turns, oldest first. */
+  history: ChatTurn[];
+  /** The user's active plan, or null when they have none. */
+  plan: WorkoutPlan | null;
+  health?: HealthSummary | null;
+}
+
+export interface ChatResult {
+  reply: string;
+  /** How the plan should change, in the model's words. The server applies it through adjustPlan. */
+  adjustPlan?: string;
+  /** Injuries the user reported, already limited to known ones the profile does not have. */
+  addInjuries?: string[];
 }
 
 /**

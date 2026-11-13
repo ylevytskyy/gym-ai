@@ -16,6 +16,8 @@ interface ProfileValue {
   state: ProfileState;
   save: (values: ProfileValues) => Promise<void>;
   reload: () => void;
+  /** Loads the profile again in place, after something else changed it (the coach added an injury). */
+  refresh: () => Promise<void>;
 }
 
 const ProfileContext = createContext<ProfileValue | null>(null);
@@ -58,7 +60,18 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     [supabase, userId, key],
   );
 
-  const value = useMemo<ProfileValue>(() => ({ state, save, reload: () => setAttempt((n) => n + 1) }), [state, save]);
+  // Loads the profile again without showing "loading": the screens stay where they are.
+  const refresh = useCallback(async () => {
+    if (!userId || key === null) return;
+    try {
+      const profile = await loadProfile(supabase, userId);
+      if (profile) setLoaded((current) => (current?.key === key ? { key, state: { status: 'ready', profile } } : current));
+    } catch {
+      // What is shown stays; the next launch loads it again.
+    }
+  }, [supabase, userId, key]);
+
+  const value = useMemo<ProfileValue>(() => ({ state, save, reload: () => setAttempt((n) => n + 1), refresh }), [state, save, refresh]);
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 

@@ -50,7 +50,17 @@ const plan: WorkoutPlan = {
 
 function makeDeps(overrides: Partial<AppDeps> = {}) {
   const deps: AppDeps = {
-    assistant: { generatePlan: vi.fn(async () => plan) } satisfies Assistant,
+    assistant: {
+      generatePlan: vi.fn(async () => plan),
+      adjustPlan: vi.fn(async () => plan),
+      chat: vi.fn(async () => ({ reply: 'ok' })),
+    } satisfies Assistant,
+    loadActivePlan: vi.fn(async () => null),
+    loadMessages: vi.fn(async () => []),
+    storeMessages: vi.fn(async () => undefined),
+    addInjuries: vi.fn(async () => profile),
+    archivePlans: vi.fn(async () => undefined),
+    deleteAccount: vi.fn(async () => undefined),
     authenticate: vi.fn(async (req: any) => {
       if (req.headers.authorization === 'Bearer good') return 'user-1';
       throw new AuthenticationError();

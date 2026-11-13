@@ -10,9 +10,11 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getConfig } from '../config.js';
 import { validateWorkoutPlan } from '../validator/index.js';
 import { loadCatalog } from './catalog.js';
+import { KNOWN_INJURIES } from '../providers/chat-prompt.js';
 import {
   DatabaseError,
   ValidationErrorClass,
+  type ChatTurn,
   type Profile,
   type WorkoutLog,
   type WorkoutPlan,
@@ -110,4 +112,104 @@ export async function savePlan(
     throw new DatabaseError(`Failed to save plan for user ${userId}`, 'savePlan', error);
   }
   return (data as { id: string }).id;
+}
+
+/** The user's newest active plan, or null when they have none (or the stored one is no longer valid). */
+export async function getActivePlan(
+  userId: string,
+  db: SupabaseClient = getDatabaseClient(),
+): Promise<{ id: string; plan: WorkoutPlan } | null> {
+  const { data, error } = await db
+    .from('plans')
+    .select('id, plan_json')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new DatabaseError(`Failed to load the active plan for user ${userId}`, 'getActivePlan', error);
+  }
+  if (!data) return null;
+  const row = data as { id: string; plan_json: WorkoutPlan };
+  // A plan stored before the catalog changed may no longer be valid; it is not handed to the model.
+  if (!validateWorkoutPlan(row.plan_json, loadCatalog()).success) return null;
+  return { id: row.id, plan: row.plan_json };
+}
+
+/** The user's last `limit` chat turns, oldest first. */
+export async function getMessages(
+  userId: string,
+  limit: number,
+  db: SupabaseClient = getDatabaseClient(),
+): Promise<ChatTurn[]> {
+  const { data, error } = await db
+    .from('assistant_messages')
+    .select('role, content')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new DatabaseError(`Failed to load messages for user ${userId}`, 'getMessages', error);
+  }
+  return ((data ?? []) as Array<{ role: string; content: string }>)
+    .filter((row): row is ChatTurn => (row.role === 'user' || row.role === 'assistant') && typeof row.content === 'string')
+    .reverse();
+}
+
+/** Stores one exchange: the user's message, then the reply. */
+export async function saveMessages(
+  userId: string,
+  message: string,
+  reply: string,
+  db: SupabaseClient = getDatabaseClient(),
+  now: Date = new Date(),
+): Promise<void> {
+  const { error } = await db.from('assistant_messages').insert([
+    { user_id: userId, role: 'user', content: message, created_at: now.toISOString() },
+    // One millisecond later, so the pair always reads back in order.
+    { user_id: userId, role: 'assistant', content: reply, created_at: new Date(now.getTime() + 1).toISOString() },
+  ]);
+  if (error) {
+    throw new DatabaseError(`Failed to store messages for user ${userId}`, 'saveMessages', error);
+  }
+}
+
+/**
+ * Adds injuries to the profile and returns the updated profile. Only injuries the catalog
+ * knows are written, and none is ever removed: this can only make plans more careful.
+ * The append is one database statement, so two requests at once cannot lose an injury.
+ */
+export async function addInjuries(
+  userId: string,
+  injuries: string[],
+  db: SupabaseClient = getDatabaseClient(),
+): Promise<Profile> {
+  const known = [...new Set(injuries)].filter((injury) => KNOWN_INJURIES.includes(injury));
+  if (known.length === 0) return getProfile(userId, db);
+
+  const { data, error } = await db.rpc('add_profile_injuries', { p_user_id: userId, p_injuries: known });
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) {
+    throw new DatabaseError(`Failed to update injuries for user ${userId}`, 'addInjuries', error);
+  }
+  return row as Profile;
+}
+
+/** Retires the user's active plans, so the app offers to make a new one. */
+export async function archivePlans(userId: string, db: SupabaseClient = getDatabaseClient()): Promise<void> {
+  const { error } = await db.from('plans').update({ status: 'archived' }).eq('user_id', userId).eq('status', 'active');
+  if (error) {
+    throw new DatabaseError(`Failed to archive plans for user ${userId}`, 'archivePlans', error);
+  }
+}
+
+/** Deletes the user. Their profile, plans, logs, messages and health days go with them (ON DELETE CASCADE). */
+export async function deleteAccount(userId: string, db: SupabaseClient = getDatabaseClient()): Promise<void> {
+  const { error } = await db.auth.admin.deleteUser(userId);
+  if (error) {
+    throw new DatabaseError(`Failed to delete user ${userId}`, 'deleteAccount', error);
+  }
 }

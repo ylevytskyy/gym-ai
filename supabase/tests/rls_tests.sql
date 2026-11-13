@@ -194,5 +194,38 @@ SELECT t_check((SELECT count(*) FROM workout_logs WHERE user_id = :'B') = curren
 INSERT INTO workout_logs (user_id, day_number, exercises_completed, duration_minutes, health_record_id) VALUES (:'A', 1, '[]', 5, 'shared-id'), (:'B', 1, '[]', 5, 'shared-id');
 SELECT t_check((SELECT count(*) FROM workout_logs WHERE health_record_id = 'shared-id') = 2, 'W6 the same health record id may exist under two users');
 
+-- ---------------------------------------------------------------- chat messages can be cleared by their owner
+INSERT INTO assistant_messages (user_id, role, content) VALUES (:'A', 'user', 'mine'), (:'A', 'assistant', 'reply'), (:'B', 'user', 'theirs');
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', :'A', false);
+DELETE FROM assistant_messages WHERE user_id = :'B';
+UPDATE assistant_messages SET content = 'changed' WHERE user_id = :'A';
+RESET ROLE;
+SELECT t_check((SELECT count(*) FROM assistant_messages WHERE user_id = :'B' AND content = 'theirs') = 1, 'M1 user A cannot delete B messages');
+SELECT t_check((SELECT count(*) FROM assistant_messages WHERE content = 'changed') = 0, 'M2 a stored message cannot be changed by its owner');
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', :'A', false);
+DELETE FROM assistant_messages WHERE user_id = :'A' AND content IN ('mine', 'reply');
+RESET ROLE;
+SELECT t_check((SELECT count(*) FROM assistant_messages WHERE user_id = :'A' AND content IN ('mine', 'reply')) = 0, 'M3 user A can delete own messages');
+INSERT INTO auth.users (id, email) VALUES ('cccccccc-0000-4000-8000-000000000004', 'temp3@example.com');
+INSERT INTO profiles (id, age_range, weight_kg, goal, fitness_level, minutes_per_day) VALUES ('cccccccc-0000-4000-8000-000000000004', '18-24', 60, 'g', 1, 10);
+INSERT INTO assistant_messages (user_id, role, content) VALUES ('cccccccc-0000-4000-8000-000000000004', 'user', 'bye');
+INSERT INTO workout_logs (user_id, day_number, exercises_completed, duration_minutes) VALUES ('cccccccc-0000-4000-8000-000000000004', 1, '[]', 5);
+DELETE FROM auth.users WHERE id = 'cccccccc-0000-4000-8000-000000000004';
+SELECT t_check(
+  (SELECT count(*) FROM assistant_messages WHERE user_id = 'cccccccc-0000-4000-8000-000000000004') = 0
+  AND (SELECT count(*) FROM workout_logs WHERE user_id = 'cccccccc-0000-4000-8000-000000000004') = 0
+  AND (SELECT count(*) FROM profiles WHERE id = 'cccccccc-0000-4000-8000-000000000004') = 0,
+  'M4 deleting the account removes the profile, messages and logs');
+
+-- ---------------------------------------------------------------- injuries are added in one statement, by the service only
+SELECT t_check((SELECT injuries FROM add_profile_injuries(:'A', ARRAY['knee_injury', 'knee_injury', 'neck_injury'])) @> ARRAY['knee_injury', 'neck_injury'], 'P1 injuries are added to the profile');
+SELECT t_check((SELECT array_length(injuries, 1) FROM add_profile_injuries(:'A', ARRAY['knee_injury'])) = (SELECT array_length(injuries, 1) FROM profiles WHERE id = :'A') AND (SELECT count(*) FROM unnest((SELECT injuries FROM profiles WHERE id = :'A')) x WHERE x = 'knee_injury') = 1, 'P2 an injury is never stored twice');
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', :'A', false);
+SELECT t_expect_error(format($q$SELECT add_profile_injuries(%L, ARRAY['hip_injury'])$q$, :'B'), '42501', 'P3 a signed-in user cannot call the function, for anyone');
+RESET ROLE;
+
 -- ---------------------------------------------------------------- done
 SELECT 'ALL CHECKS PASSED' AS result;

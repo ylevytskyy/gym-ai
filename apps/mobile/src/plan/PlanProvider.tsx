@@ -19,6 +19,8 @@ interface PlanValue {
   /** Asks the assistant service for a new plan. */
   create: () => Promise<void>;
   reload: () => void;
+  /** The assistant changed the plan: show the new one at once. Its day count starts again. */
+  replace: (stored: StoredPlan) => void;
   /** Called after a session was saved, so Today shows it as done without a round trip. */
   addLog: (log: WorkoutLogRow) => void;
 }
@@ -82,9 +84,15 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const replace = useCallback(
+    (stored: StoredPlan) => {
+      if (key !== null) setLoaded({ key, state: { status: 'ready', stored, logs: [] } });
+    },
+    [key],
+  );
   const value = useMemo<PlanValue>(
-    () => ({ state, creating, createError, create, reload: () => setAttempt((n) => n + 1), addLog }),
-    [state, creating, createError, create, addLog],
+    () => ({ state, creating, createError, create, reload: () => setAttempt((n) => n + 1), replace, addLog }),
+    [state, creating, createError, create, replace, addLog],
   );
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
 }

@@ -1,0 +1,23 @@
+# Tells the coach about a knee that hurts: the injury is added to the profile and the plan is
+# made again without exercises that conflict with it. Start from any tab of a signed-in user
+# who has a plan, with the assistant service running. With the canned model used for local
+# checks the new plan is called "Knee-friendly core".
+appId: app.aurafit.mobile
+---
+- tapOn:
+    id: tab-chat
+- tapOn:
+    id: chat-input
+- inputText: "My knee hurts"
+# The composer moves up with the keyboard; tapping before it has settled hits the keyboard instead.
+- waitForAnimationToEnd
+- tapOn:
+    id: chat-send
+- extendedWaitUntil:
+    visible:
+      id: chat-injuries-added
+    timeout: 30000
+- assertVisible: "Added to your profile: knee injury."
+- tapOn:
+    id: tab-today
+- assertVisible: "Knee-friendly core"

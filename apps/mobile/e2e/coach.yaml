@@ -1,0 +1,32 @@
+# Asks the coach to make the plan easier and checks that Today shows the changed plan.
+# Start from any tab of a signed-in user who has a plan and an empty conversation (run
+# privacy.yaml first), with the assistant service running.
+# With the canned model used for local checks (see README) the new plan is called "Gentle core".
+appId: app.aurafit.mobile
+---
+- tapOn:
+    id: tab-chat
+- assertVisible:
+    id: chat
+- tapOn:
+    id: chat-input
+- inputText: "Please make it easier"
+# The composer moves up with the keyboard; tapping before it has settled hits the keyboard instead.
+- waitForAnimationToEnd
+- tapOn:
+    id: chat-send
+- extendedWaitUntil:
+    visible:
+      id: chat-plan-changed
+    timeout: 30000
+- assertVisible:
+    id: message-user
+- assertVisible:
+    id: message-assistant
+- tapOn:
+    id: tab-today
+- assertVisible: "Gentle core"
+- tapOn:
+    id: tab-history
+- assertVisible:
+    id: workouts

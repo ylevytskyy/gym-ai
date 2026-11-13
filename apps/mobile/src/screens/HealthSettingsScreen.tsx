@@ -94,7 +94,7 @@ function BreakReminders({ platform }: { platform: 'ios' | 'android' }) {
   );
 }
 
-export function HealthSettingsScreen({ platform }: { platform: 'ios' | 'android' }) {
+export function HealthSettingsScreen({ platform, onOpenPrivacy }: { platform: 'ios' | 'android'; onOpenPrivacy?: () => void }) {
   const { state, today, busy, connect, disconnect, openSettings } = useHealth();
   const name = platform === 'android' ? 'Health Connect' : 'Apple Health';
   const where = platform === 'android' ? 'Health Connect, under App permissions' : 'the Health app, under Sharing, then Apps';
@@ -165,6 +165,12 @@ export function HealthSettingsScreen({ platform }: { platform: 'ios' | 'android'
             <Button label={`Open ${name}`} kind="secondary" onPress={() => void openSettings()} testID="open-settings" />
           </Card>
         </>
+      ) : null}
+      {onOpenPrivacy ? (
+        <Card testID="privacy-link">
+          <Body muted>See what Aura Fit stores, delete your health data or your conversation, or delete your account.</Body>
+          <Button label="Privacy and account" kind="secondary" onPress={onOpenPrivacy} testID="open-privacy" />
+        </Card>
       ) : null}
     </Screen>
   );

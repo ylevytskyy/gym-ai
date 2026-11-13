@@ -74,6 +74,7 @@ function SignedRoutes({ signedIn, hasProfile }: { signedIn: boolean; hasProfile:
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="player" options={{ gestureEnabled: false }} />
         <Stack.Screen name="break" />
+        <Stack.Screen name="privacy" />
         <Stack.Screen name="dev-health" />
       </Stack.Protected>
     </Stack>

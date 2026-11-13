@@ -22,7 +22,9 @@ export interface HarnessOptions {
   /** Stored health choices, e.g. { 'health.enabled': 'true' }. */
   preferences?: Record<string, string>;
   /** Rows the fake database answers with, by table. */
-  rows?: { plans?: unknown; workout_logs?: unknown[] };
+  rows?: { plans?: unknown; workout_logs?: unknown[]; messages?: unknown[] };
+  /** Makes every delete answer with an error. */
+  deleteFails?: boolean;
   fetch?: jest.Mock;
   /** How the fake notifier starts and answers a permission request. */
   notifier?: Parameters<typeof createFakeNotifier>[0];
@@ -41,6 +43,15 @@ export function createHarness(options: HarnessOptions = {}) {
   let idCounter = 0;
   /** Each sync of health days, as the rows that were sent. */
   const synced: Record<string, unknown>[][] = [];
+  /** Tables whose rows of the user were deleted, in order. */
+  const deleted: string[] = [];
+  const remove = (table: string) => ({
+    eq: async () => {
+      if (options.deleteFails) return { error: { message: 'boom' } };
+      deleted.push(table);
+      return { error: null };
+    },
+  });
 
   const auth = {
     getSession: jest.fn(async () => ({ data: { session }, error: null })),
@@ -64,7 +75,16 @@ export function createHarness(options: HarnessOptions = {}) {
   const from = jest.fn((table: string) => {
     let upserted: Record<string, unknown> | undefined;
     if (table === 'health_days') {
-      return { upsert: async (rows: Record<string, unknown>[]) => (synced.push(rows), { error: null }) };
+      return { upsert: async (rows: Record<string, unknown>[]) => (synced.push(rows), { error: null }), delete: () => remove(table) };
+    }
+    if (table === 'assistant_messages') {
+      const rows: Record<string, unknown> = {};
+      for (const method of ['select', 'eq', 'order', 'limit']) rows[method] = () => rows;
+      // Newest first, as the query asks; cleared once the user deleted them.
+      rows['then'] = (resolve: (v: unknown) => unknown) =>
+        Promise.resolve({ data: deleted.includes(table) ? [] : [...(options.rows?.messages ?? [])].reverse(), error: null }).then(resolve);
+      rows['delete'] = () => remove(table);
+      return rows;
     }
     if (table === 'plans' || table === 'workout_logs') {
       const answer = table === 'plans' ? { data: options.rows?.plans ?? null, error: null } : { data: options.rows?.workout_logs ?? [], error: null };
@@ -127,5 +147,5 @@ export function createHarness(options: HarnessOptions = {}) {
       </ServicesProvider>,
     );
 
-  return { services, auth, store, notifier, upserts, inserts, updates, synced, preferences: data, renderScreen };
+  return { services, auth, store, notifier, deleted, upserts, inserts, updates, synced, preferences: data, renderScreen };
 }

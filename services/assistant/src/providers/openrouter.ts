@@ -7,17 +7,21 @@
  * schema, catalog-reference and injury-safety validation.
  */
 
+import { randomUUID } from 'node:crypto';
 import OpenAI from 'openai';
 import { getConfig } from '../config.js';
 import { logger } from '../logger.js';
 import { loadRepoJson } from '../repo-files.js';
 import { parseWorkoutPlan, validatePlanSafety, validateWorkoutPlan } from '../validator/index.js';
 import { loadCatalog } from '../tools/catalog.js';
+import { buildChatSystemPrompt, parseChatOutput } from './chat-prompt.js';
 import { buildHealthSection, redactHealth } from './health-prompt.js';
 import {
   APIError,
   PlanGenerationError,
   type Assistant,
+  type ChatInput,
+  type ChatResult,
   type Exercise,
   type PlanContext,
   type PlanRequest,
@@ -70,14 +74,54 @@ export class OpenRouterAssistant implements Assistant {
    * Requirements 10.6-10.9.
    */
   async generatePlan(profile: Profile, request: PlanRequest, context: PlanContext = {}): Promise<WorkoutPlan> {
-    const messages: ChatMessage[] = [
+    return this.planFrom(profile, [
       { role: 'system', content: this.buildSystemPrompt(profile, request, context) },
       { role: 'user', content: this.buildUserPrompt(profile, request) },
+    ]);
+  }
+
+  /**
+   * Change an existing plan as the feedback asks. The result goes through the same checks and
+   * the same single retry as a new plan, and comes back as a new plan (new id and date).
+   */
+  async adjustPlan(profile: Profile, plan: WorkoutPlan, feedback: string, context: PlanContext = {}): Promise<WorkoutPlan> {
+    const request: PlanRequest = { duration_days: plan.days.length, focus_areas: [] };
+    const system = [
+      this.buildSystemPrompt(profile, request, context),
+      '',
+      '## Current plan',
+      'Change this plan as the user asks. Keep what they did not ask to change, and keep the number of days.',
+      JSON.stringify(plan),
+    ].join('\n');
+    // The feedback can repeat what the user wrote about their health, so bodies are not logged.
+    const adjusted = await this.planFrom(
+      profile,
+      [
+        { role: 'system', content: system },
+        { role: 'user', content: `Change the plan like this: ${feedback}` },
+      ],
+      false,
+    );
+    return { ...adjusted, id: randomUUID(), created_at: new Date().toISOString() };
+  }
+
+  /** One reply in a conversation. Message bodies are never logged: users write about their health here. */
+  async chat(input: ChatInput): Promise<ChatResult> {
+    const messages: ChatMessage[] = [
+      { role: 'system', content: buildChatSystemPrompt(input.profile, input.plan, input.health) },
+      ...input.history.map((turn) => ({ role: turn.role, content: turn.content })),
+      { role: 'user', content: input.message },
     ];
+    const content = await this.callModel(messages, 1, false);
+    return parseChatOutput(content, input.profile.injuries);
+  }
+
+  /** Ask for a plan and accept it only when it passes every check; one retry carries the errors back. */
+  private async planFrom(profile: Profile, messages: ChatMessage[], logBodies = true): Promise<WorkoutPlan> {
     let lastErrors: ValidationError[] = [];
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      const content = await this.callModel(messages, attempt);
+      const content = await this.callModel(messages, attempt, logBodies);
       const { plan, errors } = this.checkCandidate(content, profile);
 
       if (plan && errors.length === 0) {
@@ -186,12 +230,14 @@ export class OpenRouterAssistant implements Assistant {
   }
 
   /** One chat completion. Requirement 10.10: metadata at info, bodies at debug. */
-  private async callModel(messages: ChatMessage[], attempt: number): Promise<string> {
+  private async callModel(messages: ChatMessage[], attempt: number, logBodies = true): Promise<string> {
     logger.info({ model: this.model, attempt, messageCount: messages.length }, 'openrouter request');
-    logger.debug(
-      { body: messages.map((m) => ({ ...m, content: redactHealth(m.content) })) },
-      'openrouter request body',
-    );
+    if (logBodies) {
+      logger.debug(
+        { body: messages.map((m) => ({ ...m, content: redactHealth(m.content) })) },
+        'openrouter request body',
+      );
+    }
 
     let response: Awaited<ReturnType<ChatClient['chat']['completions']['create']>>;
     try {
@@ -210,7 +256,7 @@ export class OpenRouterAssistant implements Assistant {
     }
 
     const content = response.choices[0]?.message?.content ?? '';
-    logger.debug({ body: content }, 'openrouter response body');
+    if (logBodies) logger.debug({ body: content }, 'openrouter response body');
     return content;
   }
 }

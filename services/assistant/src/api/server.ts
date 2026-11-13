@@ -9,7 +9,9 @@
 import { randomUUID } from 'node:crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { logger } from '../logger.js';
-import { validatePlanRequest } from './validation.js';
+import { loadCatalog } from '../tools/catalog.js';
+import { validatePlanSafety } from '../validator/index.js';
+import { validateAdjustRequest, validateChatRequest, validatePlanRequest } from './validation.js';
 import {
   AppError,
   APIError,
@@ -17,6 +19,7 @@ import {
   PlanGenerationError,
   ValidationErrorClass,
   type Assistant,
+  type ChatTurn,
   type HealthSummary,
   type Profile,
   type WorkoutPlan,
@@ -36,6 +39,19 @@ export interface AppDeps {
    * it plans are generated from the profile alone.
    */
   loadHealthSummary?: (userId: string) => Promise<HealthSummary | null>;
+  /** The user's newest active plan, or null when they have none. */
+  loadActivePlan: (userId: string) => Promise<{ id: string; plan: WorkoutPlan } | null>;
+  /** The last `limit` chat turns, oldest first. */
+  loadMessages: (userId: string, limit: number) => Promise<ChatTurn[]>;
+  storeMessages: (userId: string, message: string, reply: string) => Promise<void>;
+  /** Adds injuries to the profile and returns the updated profile. Injuries are never removed here. */
+  addInjuries: (userId: string, injuries: string[]) => Promise<Profile>;
+  /** Retires the user's active plans, so the app offers to make a new one. */
+  archivePlans: (userId: string) => Promise<void>;
+  /** How many model requests one user may make in a stretch of time. Kept in memory, per process. */
+  limits?: { max: number; windowMs: number };
+  /** Deletes the user and, through the database, everything stored about them. */
+  deleteAccount: (userId: string) => Promise<void>;
   /** How long the health lookup may take before the plan is generated without it. */
   healthTimeoutMs?: number;
   requestTimeoutMs?: number;
@@ -46,6 +62,50 @@ interface ErrorBody {
   message: string;
   details?: unknown;
   correlationId: string;
+}
+
+class NoActivePlanError extends AppError {
+  constructor() {
+    super('There is no plan to change yet', 'NO_ACTIVE_PLAN', 404);
+  }
+}
+
+/** Chat turns sent to the model with each message. */
+const CHAT_HISTORY_TURNS = 20;
+
+const PLAN_NOT_CHANGED = 'I could not change your plan this time, so it stays as it was. Please try again in a moment.';
+const NO_SAFE_PLAN =
+  'I have added that to your profile, but I could not make a safe plan right now, so I took the old plan away. Create a new one on the Today tab. Skip any exercise that hurts, and see a professional if the pain stays.';
+const NO_SAFE_PLAN_KEPT =
+  'I have added that to your profile, but I could not change your plan right now. Skip any exercise that hurts, and see a professional if the pain stays.';
+
+const DEFAULT_LIMITS = { max: 30, windowMs: 10 * 60_000 };
+
+class TooManyRequestsError extends AppError {
+  constructor() {
+    super('Too many requests; wait a moment and try again', 'TOO_MANY_REQUESTS', 429);
+  }
+}
+
+/**
+ * Holds back a user who asks too often, and lets one model request per user run at a time:
+ * every request costs model calls, and two at once could each work from an outdated profile.
+ */
+function createGate(limits: { max: number; windowMs: number }) {
+  const recent = new Map<string, number[]>();
+  const running = new Set<string>();
+  return function admit(userId: string): () => void {
+    const now = Date.now();
+    const times = (recent.get(userId) ?? []).filter((time) => now - time < limits.windowMs);
+    if (running.has(userId) || times.length >= limits.max) {
+      recent.set(userId, times);
+      throw new TooManyRequestsError();
+    }
+    times.push(now);
+    recent.set(userId, times);
+    running.add(userId);
+    return () => void running.delete(userId);
+  };
 }
 
 class TimeoutError extends AppError {
@@ -82,6 +142,12 @@ function describeError(err: unknown): { status: number; body: Omit<ErrorBody, 'c
   if (err instanceof ValidationErrorClass) {
     return { status: 400, body: { error: 'VALIDATION_ERROR', message: err.message } };
   }
+  if (err instanceof TooManyRequestsError) {
+    return { status: 429, body: { error: err.code, message: err.message } };
+  }
+  if (err instanceof NoActivePlanError) {
+    return { status: 404, body: { error: err.code, message: err.message } };
+  }
   if (err instanceof TimeoutError) {
     return { status: 504, body: { error: err.code, message: err.message } };
   }
@@ -112,8 +178,26 @@ async function loadHealth(deps: AppDeps, userId: string, correlationId: string):
   }
 }
 
+/**
+ * Stores a plan only if it is safe for the profile as it is now. The model's own check ran
+ * against the profile loaded when the request began; an injury may have been added since.
+ */
+async function storeChecked(deps: AppDeps, userId: string, plan: WorkoutPlan): Promise<string> {
+  const profile = await deps.loadProfile(userId);
+  const safety = validatePlanSafety(plan, profile, loadCatalog());
+  if (!safety.success) {
+    throw new PlanGenerationError(
+      'The plan conflicts with an injury in the profile',
+      1,
+      safety.violations.map((v) => ({ path: v.location, message: `Exercise '${v.exercise_id}' conflicts with injury '${v.injury}'`, code: 'INJURY_CONFLICT' })),
+    );
+  }
+  return deps.storePlan(userId, plan, 'openrouter');
+}
+
 export function createApp(deps: AppDeps): express.Express {
   const timeoutMs = deps.requestTimeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const admit = createGate(deps.limits ?? DEFAULT_LIMITS);
   const app = express();
 
   app.use(express.json());
@@ -131,6 +215,7 @@ export function createApp(deps: AppDeps): express.Express {
   });
 
   app.post('/api/plans/generate', async (req, res, next) => {
+    let release: (() => void) | undefined;
     try {
       const userId = await deps.authenticate(req);
 
@@ -145,15 +230,144 @@ export function createApp(deps: AppDeps): express.Express {
         return;
       }
 
+      release = admit(userId);
       const profile = await deps.loadProfile(userId);
       logger.info({ correlationId: res.locals['correlationId'], userId }, 'plan generation started');
 
       const health = await loadHealth(deps, userId, res.locals['correlationId'] as string);
       const plan = await withTimeout(deps.assistant.generatePlan(profile, validation.request, { health }), timeoutMs);
-      const planId = await deps.storePlan(userId, plan, 'openrouter');
+      const planId = await storeChecked(deps, userId, plan);
 
       logger.info({ correlationId: res.locals['correlationId'], userId, planId }, 'plan generation finished');
       res.status(201).json({ id: planId, plan });
+    } catch (err) {
+      next(err);
+    } finally {
+      release?.();
+    }
+  });
+
+  const invalid = (res: Response, details: unknown): void => {
+    res.status(400).json({
+      error: 'VALIDATION_ERROR',
+      message: 'Invalid request body',
+      details,
+      correlationId: res.locals['correlationId'],
+    });
+  };
+
+  app.post('/api/plans/adjust', async (req, res, next) => {
+    let release: (() => void) | undefined;
+    try {
+      const userId = await deps.authenticate(req);
+      const validation = validateAdjustRequest(req.body);
+      if (!validation.valid) return invalid(res, validation.errors);
+      release = admit(userId);
+
+      const active = await deps.loadActivePlan(userId);
+      if (!active) throw new NoActivePlanError();
+      const profile = await deps.loadProfile(userId);
+      const health = await loadHealth(deps, userId, res.locals['correlationId'] as string);
+
+      const plan = await withTimeout(deps.assistant.adjustPlan(profile, active.plan, validation.text, { health }), timeoutMs);
+      const planId = await storeChecked(deps, userId, plan);
+      logger.info({ correlationId: res.locals['correlationId'], userId, planId }, 'plan adjusted');
+      res.status(201).json({ id: planId, plan });
+    } catch (err) {
+      next(err);
+    } finally {
+      release?.();
+    }
+  });
+
+  /**
+   * Chat. The model can ask for two changes, and the server applies them: injuries to add to
+   * the profile, and an adjustment of the plan, which is validated like a new plan. A change
+   * that fails leaves things as they were and the reply says so.
+   */
+  app.post('/api/chat', async (req, res, next) => {
+    let release: (() => void) | undefined;
+    try {
+      const correlationId = res.locals['correlationId'] as string;
+      const userId = await deps.authenticate(req);
+      const validation = validateChatRequest(req.body);
+      if (!validation.valid) return invalid(res, validation.errors);
+      const message = validation.text;
+      release = admit(userId);
+
+      let profile = await deps.loadProfile(userId);
+      const active = await deps.loadActivePlan(userId);
+      const health = await loadHealth(deps, userId, correlationId);
+      // Earlier turns make the answer better but are not required for one.
+      const history = await deps.loadMessages(userId, CHAT_HISTORY_TURNS).catch((): ChatTurn[] => []);
+
+      const result = await withTimeout(deps.assistant.chat({ profile, message, history, plan: active?.plan ?? null, health }), timeoutMs);
+      let reply = result.reply;
+
+      const injuriesAdded = result.addInjuries ?? [];
+      if (injuriesAdded.length > 0) profile = await deps.addInjuries(userId, injuriesAdded);
+
+      // A plan made before an injury was known has to be made again with it, asked for or not.
+      const feedback =
+        result.adjustPlan ?? (injuriesAdded.length > 0 ? `The user now has: ${injuriesAdded.join(', ')}. Replace every exercise that conflicts with it.` : undefined);
+
+      let changed: { id: string; plan: WorkoutPlan } | null = null;
+      let removed = false;
+      if (feedback !== undefined && active) {
+        const attempts: Array<() => Promise<WorkoutPlan>> = [() => deps.assistant.adjustPlan(profile, active.plan, feedback, { health })];
+        if (injuriesAdded.length > 0) {
+          attempts.push(() => deps.assistant.generatePlan(profile, { duration_days: active.plan.days.length, focus_areas: [] }, { health }));
+        }
+        // All attempts share one stretch of time, so the whole request ends well before the app stops waiting.
+        const deadline = Date.now() + timeoutMs;
+        for (const attempt of attempts) {
+          const left = deadline - Date.now();
+          // Too little time left to get a plan back: not worth a model call.
+          if (left < timeoutMs / 10) break;
+          try {
+            const plan = await withTimeout(attempt(), left);
+            changed = { id: await storeChecked(deps, userId, plan), plan };
+            break;
+          } catch (err) {
+            logger.warn({ correlationId, userId, err: err instanceof Error ? { name: err.name, message: err.message } : String(err) }, 'plan change from chat failed');
+          }
+        }
+        if (!changed && injuriesAdded.length > 0) {
+          // The old plan was made without the injury. It is taken away rather than left to be played.
+          try {
+            await deps.archivePlans(userId);
+            removed = true;
+            reply = NO_SAFE_PLAN;
+          } catch (err) {
+            logger.error({ correlationId, userId, err: err instanceof Error ? { name: err.name, message: err.message } : String(err) }, 'unsafe plan could not be archived');
+            reply = NO_SAFE_PLAN_KEPT;
+          }
+        } else if (!changed) {
+          reply = PLAN_NOT_CHANGED;
+        }
+      }
+
+      try {
+        await deps.storeMessages(userId, message, reply);
+      } catch (err) {
+        logger.warn({ correlationId, userId, err: err instanceof Error ? { name: err.name, message: err.message } : String(err) }, 'chat turn not stored');
+      }
+
+      logger.info({ correlationId, userId, planChanged: changed !== null, planRemoved: removed, injuriesAdded: injuriesAdded.length }, 'chat answered');
+      res.json({ reply, plan: changed, plan_removed: removed, injuries_added: injuriesAdded });
+    } catch (err) {
+      next(err);
+    } finally {
+      release?.();
+    }
+  });
+
+  app.delete('/api/account', async (req, res, next) => {
+    try {
+      const userId = await deps.authenticate(req);
+      await deps.deleteAccount(userId);
+      logger.info({ correlationId: res.locals['correlationId'], userId }, 'account deleted');
+      res.status(204).end();
     } catch (err) {
       next(err);
     }
