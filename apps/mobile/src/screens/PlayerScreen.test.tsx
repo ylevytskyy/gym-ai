@@ -4,7 +4,7 @@ import { Alert, AppState } from 'react-native';
 import { usePlan } from '@/plan/PlanProvider';
 import { createHarness, type HarnessOptions } from '@/testing/harness';
 
-import { PlayerScreen } from './PlayerScreen';
+import { BreakScreen, PlayerScreen } from './PlayerScreen';
 import { TodayScreen } from './TodayScreen';
 
 const mockRouter = { push: jest.fn(), back: jest.fn() };
@@ -454,5 +454,69 @@ describe('health days: sync and adjustment', () => {
 
     expect(screen.queryByTestId('adjustment')).toBeNull();
     expect(screen.getByText('Main: Squat 2 × 10')).toBeTruthy();
+  });
+});
+
+describe('sitting nudges and the player', () => {
+  const nudgesOn = { ...base.preferences, 'nudges.settings': JSON.stringify({ enabled: true, startHour: 7, endHour: 18, weekdaysOnly: true }) };
+  const withNudges: HarnessOptions = { ...base, health: { initial: 'connected', recentSteps: [] }, preferences: nudgesOn, notifier: { initial: 'granted' } };
+
+  it('holds nudges while a workout is open and waits an hour after it', async () => {
+    const harness = await openPlayer(withNudges);
+    await waitFor(() => expect(harness.notifier.scheduled).toEqual([]));
+
+    await user().press(screen.getByTestId('begin'));
+    await pass(60_000);
+    // Coming back from another app plans again; nothing may be planned in the middle of a workout.
+    await harness.services.nudges.refresh();
+    expect(harness.notifier.scheduled).toEqual([]);
+    await screen.unmount();
+
+    // The player closed at 07:31: nothing before 08:31.
+    await waitFor(() => expect(harness.notifier.scheduled.length).toBeGreaterThan(0));
+    const first = harness.notifier.scheduled[0]?.getTime() ?? 0;
+    expect(first - new Date('2026-11-12T08:31:00').getTime()).toBeGreaterThanOrEqual(0);
+    expect(first - new Date('2026-11-12T08:31:00').getTime()).toBeLessThan(1000);
+  });
+});
+
+describe('sitting nudges and a session that was not started', () => {
+  it('plans as before when the player is opened and left without beginning', async () => {
+    const nudgesOn = { ...base.preferences, 'nudges.settings': JSON.stringify({ enabled: true, startHour: 7, endHour: 18, weekdaysOnly: true }) };
+    const harness = await openPlayer({ ...base, health: { initial: 'connected', recentSteps: [] }, preferences: nudgesOn, notifier: { initial: 'granted' } });
+    await waitFor(() => expect(harness.notifier.scheduled).toEqual([]));
+    await pass(60_000);
+    await screen.unmount();
+    await waitFor(() => expect(harness.notifier.scheduled[0]).toEqual(new Date('2026-11-12T07:31:00')));
+  });
+});
+
+describe('BreakScreen', () => {
+  const breakOptions: HarnessOptions = { ...base, profile: { ...profile, injuries: ['neck_injury'] as never } };
+
+  it('plays a desk break that is safe for the profile and saves nothing', async () => {
+    const press = user();
+    const harness = createHarness(breakOptions);
+    await harness.renderScreen(<BreakScreen platform="ios" />);
+
+    expect(await screen.findByText('Desk break')).toBeTruthy();
+    await press.press(screen.getByTestId('begin'));
+    expect(screen.queryByText('neck rolls', { exact: false })).toBeNull();
+
+    await press.press(screen.getByTestId('end-workout'));
+
+    expect(await screen.findByTestId('break-done')).toBeTruthy();
+    expect(screen.queryByTestId('save-workout')).toBeNull();
+    expect(harness.inserts).toEqual([]);
+    expect(harness.store.written).toEqual([]);
+
+    await press.press(screen.getByTestId('leave-player'));
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('works without a plan', async () => {
+    const harness = createHarness({ ...breakOptions, rows: { plans: null, workout_logs: [] } });
+    await harness.renderScreen(<BreakScreen platform="ios" />);
+    expect(await screen.findByTestId('begin')).toBeTruthy();
   });
 });

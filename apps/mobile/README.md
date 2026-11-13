@@ -20,8 +20,19 @@ HealthKit and Health Connect are native modules and do not run in Expo Go.
 - Adjustment: after a short night the session is lighter, after a good one it gains a set, and
   after a long workout elsewhere today it becomes mobility work. Today says why.
 
-Sync while the app is closed, sitting nudges, chat and history are not built yet (see
-`.kiro/specs/health-integration/spec.md`, milestones 5 and 6).
+- Break reminders (sitting nudges): off until turned on in the Health tab, which is when
+  notifications are asked for. After an hour with fewer than 250 steps, inside the chosen hours,
+  a local notification offers a two-minute desk break (`/break`); at most 3 a day, 90 minutes
+  apart. The times are planned ahead (`planNudges` in `packages/health-core`) and planned again
+  when the app opens, when iOS delivers new steps and when the periodic background task runs.
+- Background refresh (`src/background/`): the same wake also sends the health days to the
+  server, so sync no longer needs the app to be opened.
+
+Limits of break reminders, by design of the platforms: iOS passes new steps to a closed app
+about once an hour and Android only through the periodic task, so a reminder can arrive shortly
+after a walk. No step counted in the last 24 hours means "unknown", and nothing is planned.
+
+Chat and history are not built yet (see `.kiro/specs/health-integration/spec.md`, milestone 6).
 
 ## Run it
 
@@ -104,6 +115,17 @@ local Supabase:
 - Today shows "Done for today" after a session and the next day on a later date (tests only for
   the date change).
 
+Run on 2026-11-13 on the same simulators, for break reminders:
+
+- Turning reminders on shows the notification request, and on Android the request to read in
+  the background; with no step counted in the last day the card says that nothing is planned.
+- A sitting nudge (sent from the developer screen) is shown on both platforms, and tapping it
+  opens the desk break, which plays with its demo videos.
+
+Not verified for break reminders: a nudge planned from real steps (the simulators hold none, so
+this is tests only), step delivery and the periodic task waking a closed app (the iOS Simulator
+runs no background tasks), and anything on a physical phone.
+
 Not verified: reading steps, sleep, resting heart rate and other apps' workouts from real data
 (the simulators hold none), and therefore any adjusted session on a device (tests only), creating a plan through the real assistant service (the request
 was checked against a stand-in; with the service down the app says so), anything on a physical
@@ -117,6 +139,8 @@ phone, and the hosted Supabase project.
 | Writes | workouts, active energy | exercise sessions, active energy |
 | Declared in | `app.config.ts` usage descriptions | `app.config.ts` `android.permissions` |
 | Requested in | `src/health/healthkit-store.ts` | `src/health/health-connect-store.ts` |
+| While closed | hourly step delivery (background-delivery entitlement) | background read permission, asked when break reminders are turned on |
+| Notifications | asked when break reminders are turned on | asked when break reminders are turned on |
 
 Change those places together. Rules the code keeps:
 

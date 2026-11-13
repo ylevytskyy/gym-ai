@@ -6,10 +6,8 @@ import { useAuth } from '@/auth/AuthProvider';
 import { useServices } from '@/services';
 
 import type { HealthState } from './controller';
-import { createHealthSync } from './sync';
+import { createHealthSync, HISTORY_DAYS } from './sync';
 
-/** Today and the 14 days before it: what readiness needs, and what is synced. */
-const HISTORY_DAYS = 14;
 
 interface HealthValue {
   /** undefined while the first check runs. */

@@ -40,6 +40,9 @@ export type HealthKitApi = Pick<
   | 'currentAppSource'
   | 'saveWorkoutSample'
   | 'deleteObjects'
+  | 'configureBackgroundTypes'
+  | 'clearBackgroundTypes'
+  | 'subscribeToChanges'
 >;
 
 const STEPS = 'HKQuantityTypeIdentifierStepCount';
@@ -55,6 +58,12 @@ export const HEALTHKIT_ACCESS = {
   toRead: [STEPS, ACTIVE_ENERGY, RESTING_HR, BODY_MASS, SLEEP, WORKOUT, DATE_OF_BIRTH],
   toShare: [WORKOUT, ACTIVE_ENERGY],
 } as const;
+
+// HKUpdateFrequency.hourly: the most often HealthKit delivers steps to an app in the background.
+const HOURLY = 2;
+const HOUR_MS = 3_600_000;
+const DAY_MS = 24 * HOUR_MS;
+const STRETCH_MS = 5 * 60_000;
 
 // HKAuthorizationRequestStatus.unnecessary and HKAuthorizationStatus.sharingAuthorized.
 const REQUEST_UNNECESSARY = 2;
@@ -264,6 +273,58 @@ export function createHealthKitStore(hk: HealthKitApi, timeZone: () => string = 
         // The energy stays; the workout is still removed below.
       }
       await hk.deleteObjects(WORKOUT, { uuid: recordId });
+    },
+
+    async readRecentSteps(now) {
+      try {
+        if ((await status()) !== 'connected') return null;
+        // A whole day is read so that "no steps this hour" can be told from "steps cannot be read".
+        // The stretches sit on a fixed five-minute grid, so their ends do not shift from one
+        // read to the next (a shifting end would move the planned nudge by minutes every time).
+        const start = new Date(Math.floor((now.getTime() - DAY_MS) / STRETCH_MS) * STRETCH_MS);
+        const entries = await hk.queryStatisticsCollectionForQuantity(STEPS, ['cumulativeSum'], start, { minute: 5 }, {
+          filter: { date: { startDate: start, endDate: now } },
+          unit: 'count',
+        });
+        const totals = entries.flatMap((entry) => {
+          const steps = entry.sumQuantity?.quantity;
+          const ends = entry.endDate ?? entry.startDate;
+          // The stretch that is still running ends now, as far as anyone knows.
+          const end = ends && ends.getTime() > now.getTime() ? now : ends;
+          return end && steps !== undefined && Number.isFinite(steps) && steps > 0 ? [{ end, steps }] : [];
+        });
+        if (totals.length === 0) return null;
+        return totals.filter(({ end }) => end.getTime() > now.getTime() - HOUR_MS && end.getTime() <= now.getTime());
+      } catch {
+        return null;
+      }
+    },
+
+    async setBackground(on) {
+      try {
+        if (!on) return await hk.clearBackgroundTypes();
+        if ((await status()) !== 'connected') return false;
+        return await hk.configureBackgroundTypes([STEPS], HOURLY as unknown as Parameters<HealthKitApi['configureBackgroundTypes']>[1]);
+      } catch {
+        return false;
+      }
+    },
+
+    watchSteps(handler) {
+      try {
+        const subscription = hk.subscribeToChanges(STEPS, (change) => {
+          if (!change.errorMessage) handler();
+        });
+        return () => {
+          try {
+            subscription.remove();
+          } catch {
+            // Already stopped.
+          }
+        };
+      } catch {
+        return () => {};
+      }
     },
   };
 }

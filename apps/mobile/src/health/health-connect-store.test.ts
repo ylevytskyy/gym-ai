@@ -14,6 +14,7 @@ function fakeHealthConnect(overrides: Partial<Fake> = {}): Fake {
     requestPermission: jest.fn(async () => allGranted()),
     getGrantedPermissions: jest.fn(async () => allGranted()),
     aggregateRecord: jest.fn(async () => ({ dataOrigins: [] })),
+    aggregateGroupByDuration: jest.fn(async () => []),
     readRecords: jest.fn(async () => ({ records: [] })),
     insertRecords: jest.fn(async () => ['HC-ID-1']),
     deleteRecordsByUuids: jest.fn(async () => undefined),
@@ -263,5 +264,89 @@ describe('Health Connect store: writing workouts', () => {
     await store(hc).deleteWorkout('HC-ID-1');
     expect(hc.deleteRecordsByUuids).toHaveBeenCalledWith('ExerciseSession', ['HC-ID-1'], []);
     expect(hc.deleteRecordsByUuids).toHaveBeenCalledWith('ActiveCaloriesBurned', [], ['energy-HC-ID-1']);
+  });
+});
+
+describe('Health Connect store: recent steps', () => {
+  const now = at('2026-11-12T09:00:00Z');
+  const group = (endIso: string, steps: number, origins: string[] = ['com.google.android.apps.fitness']) => ({
+    startTime: new Date(at(endIso).getTime() - 5 * 60_000).toISOString(),
+    endTime: endIso,
+    result: { COUNT_TOTAL: steps, dataOrigins: origins },
+  });
+
+  it('returns the five-minute totals of the last hour with their end times', async () => {
+    const hc = fakeHealthConnect({
+      aggregateGroupByDuration: jest.fn(async () => [
+        group('2026-11-12T03:00:00.000Z', 900),
+        group('2026-11-12T08:00:00.000Z', 50), // exactly an hour old
+        group('2026-11-12T08:20:00.000Z', 120),
+        group('2026-11-12T08:40:00.000Z', 0, []), // an empty stretch is not a reading
+        group('2026-11-12T08:55:00.000Z', 30),
+      ]),
+    });
+    expect(await store(hc).readRecentSteps(now)).toEqual([
+      { end: at('2026-11-12T08:20:00Z'), steps: 120 },
+      { end: at('2026-11-12T08:55:00Z'), steps: 30 },
+    ]);
+    expect(hc.aggregateGroupByDuration).toHaveBeenCalledWith({
+      recordType: 'Steps',
+      timeRangeFilter: { operator: 'between', startTime: '2026-11-11T09:00:00.000Z', endTime: '2026-11-12T09:00:00.000Z' },
+      timeRangeSlicer: { duration: 'MINUTES', length: 5 },
+    });
+  });
+
+  it('reads on a fixed five-minute grid and ends the running stretch now', async () => {
+    const later = at('2026-11-12T09:02:30Z');
+    const hc = fakeHealthConnect({ aggregateGroupByDuration: jest.fn(async () => [group('2026-11-12T09:05:00.000Z', 40)]) });
+    expect(await store(hc).readRecentSteps(later)).toEqual([{ end: later, steps: 40 }]);
+    expect(hc.aggregateGroupByDuration.mock.calls[0][0].timeRangeFilter.startTime).toBe('2026-11-11T09:00:00.000Z');
+  });
+
+  it('is an hour without steps when earlier steps prove that steps can be read', async () => {
+    const hc = fakeHealthConnect({ aggregateGroupByDuration: jest.fn(async () => [group('2026-11-12T03:00:00.000Z', 900)]) });
+    expect(await store(hc).readRecentSteps(now)).toEqual([]);
+  });
+
+  it('is unknown when there were no steps in 24 hours, the read fails, or steps may not be read', async () => {
+    expect(await store(fakeHealthConnect()).readRecentSteps(now)).toBeNull();
+    const failing = fakeHealthConnect({ aggregateGroupByDuration: jest.fn(async () => { throw new Error('no background access'); }) });
+    expect(await store(failing).readRecentSteps(now)).toBeNull();
+    const noSteps = fakeHealthConnect({ getGrantedPermissions: jest.fn(async () => allGranted().filter((p) => p.recordType !== 'Steps')) });
+    expect(await store(noSteps).readRecentSteps(now)).toBeNull();
+    expect(noSteps.aggregateGroupByDuration).not.toHaveBeenCalled();
+    expect(await store(fakeHealthConnect({ getSdkStatus: jest.fn(async () => 1) })).readRecentSteps(now)).toBeNull();
+  });
+});
+
+describe('Health Connect store: background reading', () => {
+  const background = { accessType: 'read', recordType: 'BackgroundAccessPermission' };
+
+  it('asks for background reading and says whether it was given', async () => {
+    const granted = fakeHealthConnect({ requestPermission: jest.fn(async () => [...allGranted(), background]) });
+    expect(await store(granted).setBackground(true)).toBe(true);
+    expect(granted.requestPermission).toHaveBeenCalledWith([background]);
+    expect(await store(fakeHealthConnect()).setBackground(true)).toBe(false);
+  });
+
+  it('does not ask again when background reading is already allowed', async () => {
+    const hc = fakeHealthConnect({ getGrantedPermissions: jest.fn(async () => [...allGranted(), background]) });
+    expect(await store(hc).setBackground(true)).toBe(true);
+    expect(hc.requestPermission).not.toHaveBeenCalled();
+  });
+
+  it('reports false when Health Connect is missing or the request fails, and turning off asks nothing', async () => {
+    expect(await store(fakeHealthConnect({ getSdkStatus: jest.fn(async () => 1) })).setBackground(true)).toBe(false);
+    const failing = fakeHealthConnect({ requestPermission: jest.fn(async () => { throw new Error('boom'); }) });
+    expect(await store(failing).setBackground(true)).toBe(false);
+    const hc = fakeHealthConnect();
+    expect(await store(hc).setBackground(false)).toBe(true);
+    expect(hc.requestPermission).not.toHaveBeenCalled();
+  });
+
+  it('has no step delivery: watching does nothing', () => {
+    const handler = jest.fn();
+    expect(() => store(fakeHealthConnect()).watchSteps(handler)()).not.toThrow();
+    expect(handler).not.toHaveBeenCalled();
   });
 });

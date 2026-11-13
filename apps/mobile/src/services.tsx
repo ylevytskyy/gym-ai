@@ -7,10 +7,15 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createContext, useContext, type ReactNode } from 'react';
 
 import type { HealthController } from '@/health/controller';
+import type { NudgeController } from '@/nudges/controller';
+import type { Notifier } from '@/nudges/notifier';
 
 export interface Services {
   supabase: Pick<SupabaseClient, 'auth' | 'from'>;
   health: HealthController;
+  /** Sitting nudges: settings and the scheduled notifications. */
+  nudges: NudgeController;
+  notifier: Notifier;
   /** Today's local day (YYYY-MM-DD); injectable so tests are not tied to the clock. */
   today: () => string;
   /** Base URL of the assistant service that makes plans. */

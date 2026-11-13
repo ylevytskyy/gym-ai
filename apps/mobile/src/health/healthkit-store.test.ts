@@ -46,6 +46,9 @@ function fakeHealthKit(overrides: Partial<Fake> = {}): Fake {
     currentAppSource: jest.fn(() => ({ bundleIdentifier: 'app.aurafit.mobile', name: 'Aura Fit' })),
     saveWorkoutSample: jest.fn(async () => ({ uuid: 'HK-UUID-1' })),
     deleteObjects: jest.fn(async () => 1),
+    configureBackgroundTypes: jest.fn(async () => true),
+    clearBackgroundTypes: jest.fn(async () => true),
+    subscribeToChanges: jest.fn(() => ({ remove: jest.fn(() => true) })),
     ...overrides,
   });
 }
@@ -327,5 +330,99 @@ describe('HealthKit store: writing workouts', () => {
     });
     await expect(store(failing).deleteWorkout('HK-UUID-1')).resolves.toBeUndefined();
     expect(failing.deleteObjects).toHaveBeenLastCalledWith('HKWorkoutTypeIdentifier', { uuid: 'HK-UUID-1' });
+  });
+});
+
+describe('HealthKit store: recent steps', () => {
+  const now = at('2026-11-12T09:00:00Z');
+  const bucket = (endIso: string, steps: number) => ({
+    startDate: new Date(at(endIso).getTime() - 5 * 60_000),
+    endDate: at(endIso),
+    sumQuantity: { quantity: steps, unit: 'count' },
+    sources: [],
+  });
+
+  it('returns the five-minute totals of the last hour with their end times', async () => {
+    const hk = fakeHealthKit({
+      queryStatisticsCollectionForQuantity: jest.fn(async () => [
+        bucket('2026-11-12T03:00:00Z', 900), // this morning: proves steps are readable, not part of the hour
+        bucket('2026-11-12T08:00:00Z', 50), // exactly an hour old: no longer in the last hour
+        bucket('2026-11-12T08:20:00Z', 120),
+        bucket('2026-11-12T08:55:00Z', 30),
+      ]),
+    });
+    expect(await store(hk).readRecentSteps(now)).toEqual([
+      { end: at('2026-11-12T08:20:00Z'), steps: 120 },
+      { end: at('2026-11-12T08:55:00Z'), steps: 30 },
+    ]);
+    const [type, statistics, , interval, options] = hk.queryStatisticsCollectionForQuantity.mock.calls[0];
+    expect(type).toBe('HKQuantityTypeIdentifierStepCount');
+    expect(statistics).toEqual(['cumulativeSum']);
+    expect(interval).toEqual({ minute: 5 });
+    expect(options).toEqual({ filter: { date: { startDate: at('2026-11-11T09:00:00Z'), endDate: now } }, unit: 'count' });
+  });
+
+  it('reads on a fixed five-minute grid and ends the running stretch now', async () => {
+    const later = at('2026-11-12T09:02:30Z');
+    const hk = fakeHealthKit({ queryStatisticsCollectionForQuantity: jest.fn(async () => [bucket('2026-11-12T09:05:00Z', 40)]) });
+    expect(await store(hk).readRecentSteps(later)).toEqual([{ end: later, steps: 40 }]);
+    expect(hk.queryStatisticsCollectionForQuantity.mock.calls[0][2]).toEqual(at('2026-11-11T09:00:00Z'));
+  });
+
+  it('is an hour without steps when earlier steps prove that steps can be read', async () => {
+    const hk = fakeHealthKit({ queryStatisticsCollectionForQuantity: jest.fn(async () => [bucket('2026-11-12T03:00:00Z', 900)]) });
+    expect(await store(hk).readRecentSteps(now)).toEqual([]);
+  });
+
+  it('is unknown, not sitting, when no step was read in 24 hours (denied access looks the same)', async () => {
+    expect(await store(fakeHealthKit()).readRecentSteps(now)).toBeNull();
+    const zeros = fakeHealthKit({ queryStatisticsCollectionForQuantity: jest.fn(async () => [bucket('2026-11-12T08:20:00Z', 0)]) });
+    expect(await store(zeros).readRecentSteps(now)).toBeNull();
+  });
+
+  it('is unknown when the query fails, and never queries before the request was answered', async () => {
+    const failing = fakeHealthKit({ queryStatisticsCollectionForQuantity: jest.fn(async () => { throw new Error('locked'); }) });
+    expect(await store(failing).readRecentSteps(now)).toBeNull();
+    const unanswered = fakeHealthKit({ getRequestStatusForAuthorization: jest.fn(async () => 1) });
+    expect(await store(unanswered).readRecentSteps(now)).toBeNull();
+    expect(unanswered.queryStatisticsCollectionForQuantity).not.toHaveBeenCalled();
+  });
+});
+
+describe('HealthKit store: background delivery', () => {
+  it('turns hourly step delivery on and off', async () => {
+    const hk = fakeHealthKit();
+    expect(await store(hk).setBackground(true)).toBe(true);
+    expect(hk.configureBackgroundTypes).toHaveBeenCalledWith(['HKQuantityTypeIdentifierStepCount'], 2);
+    expect(await store(hk).setBackground(false)).toBe(true);
+    expect(hk.clearBackgroundTypes).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not turn delivery on before the request was answered, and reports a failure as false', async () => {
+    const unanswered = fakeHealthKit({ getRequestStatusForAuthorization: jest.fn(async () => 1) });
+    expect(await store(unanswered).setBackground(true)).toBe(false);
+    expect(unanswered.configureBackgroundTypes).not.toHaveBeenCalled();
+    const failing = fakeHealthKit({ configureBackgroundTypes: jest.fn(async () => { throw new Error('no entitlement'); }) });
+    expect(await store(failing).setBackground(true)).toBe(false);
+  });
+
+  it('calls the handler when steps change, not on an error, and stops when asked', () => {
+    const remove = jest.fn(() => true);
+    const hk = fakeHealthKit({ subscribeToChanges: jest.fn(() => ({ remove })) });
+    const handler = jest.fn();
+    const stop = store(hk).watchSteps(handler);
+    const [type, callback] = hk.subscribeToChanges.mock.calls[0];
+    expect(type).toBe('HKQuantityTypeIdentifierStepCount');
+    callback({ typeIdentifier: type });
+    expect(handler).toHaveBeenCalledTimes(1);
+    callback({ typeIdentifier: type, errorMessage: 'boom' });
+    expect(handler).toHaveBeenCalledTimes(1);
+    stop();
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
+
+  it('survives a subscription that cannot be made', () => {
+    const hk = fakeHealthKit({ subscribeToChanges: jest.fn(() => { throw new Error('boom'); }) });
+    expect(() => store(hk).watchSteps(jest.fn())()).not.toThrow();
   });
 });

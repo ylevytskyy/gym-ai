@@ -34,6 +34,7 @@ export type HealthConnectApi = Pick<
   | 'requestPermission'
   | 'getGrantedPermissions'
   | 'aggregateRecord'
+  | 'aggregateGroupByDuration'
   | 'readRecords'
   | 'insertRecords'
   | 'deleteRecordsByUuids'
@@ -51,6 +52,12 @@ export const HEALTH_CONNECT_ACCESS = [
   ...READ_TYPES.map((recordType) => ({ accessType: 'read' as const, recordType })),
   ...WRITE_TYPES.map((recordType) => ({ accessType: 'write' as const, recordType })),
 ];
+
+/** Reading while the app is closed: a separate permission, asked for only when nudges are turned on. */
+const BACKGROUND_READ = { accessType: 'read' as const, recordType: 'BackgroundAccessPermission' as const };
+const HOUR_MS = 3_600_000;
+const DAY_MS = 24 * HOUR_MS;
+const STRETCH_MS = 5 * 60_000;
 
 // SdkAvailabilityStatus
 const SDK_UPDATE_REQUIRED = 2;
@@ -280,6 +287,51 @@ export function createHealthConnectStore(
       if ((await availability()) !== 'available') return;
       await hc.deleteRecordsByUuids('ExerciseSession', [recordId], []);
       await orUndefined(() => hc.deleteRecordsByUuids('ActiveCaloriesBurned', [], [`energy-${recordId}`]));
+    },
+
+    async readRecentSteps(now) {
+      if ((await availability()) !== 'available') return null;
+      const { read } = await granted();
+      if (!read.has('Steps')) return null;
+      // A whole day is read so that "no steps this hour" can be told from "no steps recorded at all".
+      const groups = await orUndefined(() =>
+        hc.aggregateGroupByDuration({
+          recordType: 'Steps',
+          // The stretches sit on a fixed five-minute grid, so their ends do not shift from one read to the next.
+          timeRangeFilter: {
+            operator: 'between',
+            startTime: new Date(Math.floor((now.getTime() - DAY_MS) / STRETCH_MS) * STRETCH_MS).toISOString(),
+            endTime: now.toISOString(),
+          },
+          timeRangeSlicer: { duration: 'MINUTES', length: 5 },
+        }),
+      );
+      if (!groups) return null;
+      const totals = groups.flatMap((group) => {
+        const steps = group.result?.COUNT_TOTAL;
+        const ends = new Date(group.endTime);
+        const end = ends.getTime() > now.getTime() ? now : ends;
+        const counted = (group.result?.dataOrigins?.length ?? 0) > 0 && Number.isFinite(steps) && steps > 0 && Number.isFinite(end.getTime());
+        return counted ? [{ end, steps }] : [];
+      });
+      if (totals.length === 0) return null;
+      return totals.filter(({ end }) => end.getTime() > now.getTime() - HOUR_MS && end.getTime() <= now.getTime());
+    },
+
+    async setBackground(on) {
+      // Health Connect only takes a permission back after a restart, so turning off is the
+      // app's own state: it simply stops reading in the background.
+      if (!on) return true;
+      if ((await availability()) !== 'available') return false;
+      const has = (permissions: readonly { accessType: string; recordType: string }[] | undefined) =>
+        (permissions ?? []).some((p) => p.recordType === BACKGROUND_READ.recordType);
+      if (has(await orUndefined(() => hc.getGrantedPermissions()))) return true;
+      return has(await orUndefined(() => hc.requestPermission([BACKGROUND_READ])));
+    },
+
+    watchSteps() {
+      // Health Connect does not deliver changes to a closed app; the periodic task reads instead.
+      return () => {};
     },
   };
 }

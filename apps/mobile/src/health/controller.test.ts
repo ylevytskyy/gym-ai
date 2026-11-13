@@ -123,3 +123,44 @@ describe('health controller', () => {
     expect(store.settingsOpened).toBe(1);
   });
 });
+
+describe('health controller: recent steps and background', () => {
+  const recentSteps = [{ end: new Date('2026-11-12T09:40:00'), steps: 120 }];
+  const connected = { 'health.enabled': 'true' };
+
+  it('reads recent steps only while connected', async () => {
+    const on = setup({ initial: 'connected', recentSteps }, connected);
+    expect(await on.controller.readRecentSteps(now)).toEqual(recentSteps);
+    const off = setup({ initial: 'connected', recentSteps });
+    expect(await off.controller.readRecentSteps(now)).toBeNull();
+  });
+
+  it('turns background delivery on only while connected, and off at any time', async () => {
+    const off = setup({ initial: 'connected' });
+    expect(await off.controller.setBackground(true)).toBe(false);
+    expect(off.store.background).toBe(false);
+
+    const on = setup({ initial: 'connected' }, connected);
+    expect(await on.controller.setBackground(true)).toBe(true);
+    expect(on.store.background).toBe(true);
+    await on.controller.disconnect();
+    expect(await on.controller.setBackground(false)).toBe(true);
+    expect(on.store.background).toBe(false);
+  });
+
+  it('reports a refused background request', async () => {
+    const { controller } = setup({ initial: 'connected', backgroundGranted: false }, connected);
+    expect(await controller.setBackground(true)).toBe(false);
+  });
+
+  it('passes step changes to the handler until stopped', async () => {
+    const { controller, store } = setup({ initial: 'connected' }, connected);
+    const handler = jest.fn();
+    const stop = controller.watchSteps(handler);
+    store.emitSteps();
+    expect(handler).toHaveBeenCalledTimes(1);
+    stop();
+    store.emitSteps();
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+});

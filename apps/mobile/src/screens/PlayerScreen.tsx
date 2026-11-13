@@ -8,11 +8,14 @@ import { useAuth } from '@/auth/AuthProvider';
 import { exerciseById, exerciseName, exerciseTips } from '@/catalog/catalog';
 import { finishWorkout } from '@/plan/finish-workout';
 import { useHealth } from '@/health/HealthProvider';
+import { deskBreak } from '@/nudges/desk-break';
+import { useNudges } from '@/nudges/NudgeProvider';
 import { adjustedToday } from '@/plan/adjusted-today';
 import { sessionKind, type StoredPlan } from '@/plan/model';
 import { usePlan } from '@/plan/PlanProvider';
 import { PlanError } from '@/plan/repository';
 import { buildSteps, createSession, currentStep, reduce, secondsLeft, summarize, type Action } from '@/player/session';
+import { INJURIES } from '@/profile/model';
 import { useProfile } from '@/profile/ProfileProvider';
 import { useServices } from '@/services';
 import { Body, Button, Card, Choices, ErrorText, Label, Screen, Title } from '@/ui/kit';
@@ -27,7 +30,8 @@ const HEALTH_WAIT_MS = 3000;
 /** How much time one tick may add. A longer gap means the app was stalled, not that the user trained. */
 const MAX_TICK_MS = 1000;
 
-type Opened = { stored: StoredPlan; day: WorkoutDay };
+/** `stored` is null for a desk break: it belongs to no plan and is not saved. */
+type Opened = { stored: StoredPlan | null; day: WorkoutDay };
 
 /** Waits for the plan, then fixes the day for this visit: saving must not swap it for tomorrow's. */
 export function PlayerScreen({ platform }: { platform: 'ios' | 'android' }) {
@@ -61,15 +65,50 @@ export function PlayerScreen({ platform }: { platform: 'ios' | 'android' }) {
   );
 }
 
+/** The desk break a sitting nudge offers: a short session played like a workout, but never saved. */
+export function BreakScreen({ platform }: { platform: 'ios' | 'android' }) {
+  const router = useRouter();
+  const profile = useProfile().state;
+  const [opened, setOpened] = useState<Opened | null>(null);
+  // The minute it was opened picks the exercises, so two breaks in a day differ.
+  const [seed] = useState(() => Math.floor(Date.now() / 60_000));
+  if (!opened && profile.status !== 'loading') {
+    // Without a profile nothing is known about injuries, so only moves that are safe for all of them are used.
+    const injuries = profile.status === 'ready' ? profile.profile.injuries : INJURIES;
+    setOpened({ stored: null, day: deskBreak(injuries, seed) });
+  }
+  if (opened) return <ActivePlayer platform={platform} opened={opened} userId="" />;
+  return (
+    <Screen testID="player">
+      <Body>Loading your break…</Body>
+      <Button label="Back" kind="secondary" onPress={() => router.back()} />
+    </Screen>
+  );
+}
+
 function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android'; opened: Opened; userId: string }) {
   useKeepAwake();
   const router = useRouter();
+  // No sitting nudge while a session is open, and none for an hour after it.
+  const { hold, release, moved } = useNudges();
+  const begun = useRef(false);
+  useEffect(() => {
+    void hold();
+    return () => {
+      // Only a session that was started counts as moving.
+      void (begun.current ? moved() : release());
+    };
+  }, [hold, release, moved]);
+  const stored = opened.stored;
   const services = useServices();
   const profile = useProfile().state;
   const plan = usePlan();
 
   const steps = useMemo(() => buildSteps(opened.day, (id) => exerciseById(id)?.unit), [opened]);
   const [session, rawDispatch] = useReducer(reduce, steps, createSession);
+  useEffect(() => {
+    if (session.status !== 'ready') begun.current = true;
+  }, [session.status]);
 
   // Time comes from the clock, not from counting ticks, so a tick that arrives late still
   // accounts for the time that passed (up to a limit: a long gap is a stall, not training).
@@ -121,7 +160,7 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
   // Set as soon as a save starts, before any re-render: two presses in a row start one save.
   const saveStarted = useRef(false);
 
-  const unsaved = (session.status === 'active' || session.status === 'paused' || (session.status === 'done' && summarize(session) !== null)) && !saved;
+  const unsaved = stored !== null && (session.status === 'active' || session.status === 'paused' || (session.status === 'done' && summarize(session) !== null)) && !saved;
   const leave = useCallback(() => {
     if (!unsaved) {
       router.back();
@@ -159,7 +198,17 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
     );
   }
 
-  if (session.status === 'done') {
+  if (session.status === 'done' && stored === null) {
+    return (
+      <Screen testID="break-done">
+        <Title>Break done</Title>
+        <Body>Back to it. The next reminder is at least an hour away.</Body>
+        <Button label="Close" onPress={leave} testID="leave-player" />
+      </Screen>
+    );
+  }
+
+  if (session.status === 'done' && stored !== null) {
     const summary = summarize(session);
     const save = async () => {
       if (!summary || saved || saveStarted.current) return;
@@ -172,7 +221,7 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
           {
             logId,
             userId,
-            planId: opened.stored.id,
+            planId: stored.id,
             dayNumber: opened.day.day,
             title: opened.day.title,
             kind: sessionKind(opened.day, exerciseById),
@@ -181,7 +230,7 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
             summary,
           },
         );
-        plan.addLog({ id: logId, plan_id: opened.stored.id, day_number: opened.day.day, completed_at: new Date(summary.finishedAt).toISOString(), health_record_id: null });
+        plan.addLog({ id: logId, plan_id: stored.id, day_number: opened.day.day, completed_at: new Date(summary.finishedAt).toISOString(), health_record_id: null });
         setSaved(result.health);
       } catch (error) {
         setSaveError(error instanceof PlanError ? error.message : 'Could not save your workout. Try again.');
@@ -268,7 +317,7 @@ function ActivePlayer({ platform, opened, userId }: { platform: 'ios' | 'android
         onPress={() => dispatch(paused ? { type: 'resume' } : { type: 'pause' })}
         testID="pause-resume"
       />
-      <Button label="End workout" kind="secondary" onPress={() => dispatch({ type: 'finish', now: Date.now() })} testID="end-workout" />
+      <Button label={stored ? 'End workout' : 'End break'} kind="secondary" onPress={() => dispatch({ type: 'finish', now: Date.now() })} testID="end-workout" />
     </Screen>
   );
 }

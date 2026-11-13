@@ -12,7 +12,7 @@ import { useServices } from '@/services';
 import { Body, Button, Card, Screen, Title } from '@/ui/kit';
 
 export function DevHealthScreen() {
-  const { health } = useServices();
+  const { health, notifier } = useServices();
   const [recordId, setRecordId] = useState<string | null>(null);
   const [days, setDays] = useState<HealthDay[] | null>(null);
   const [message, setMessage] = useState('');
@@ -52,12 +52,29 @@ export function DevHealthScreen() {
     await read();
   };
 
+  const recentSteps = async () => {
+    const steps = await health.readRecentSteps(new Date());
+    setMessage(steps === null ? 'Recent steps: unknown' : `Recent steps: ${JSON.stringify(steps)}`);
+  };
+
+  const testNudge = async () => {
+    const permission = await notifier.request();
+    if (permission !== 'granted') {
+      setMessage(`Notifications: ${permission}`);
+      return;
+    }
+    await notifier.schedule(new Date(Date.now() + 10_000));
+    setMessage('A sitting nudge will show in 10 seconds');
+  };
+
   return (
     <Screen testID="dev-health">
       <Title>Health (developer)</Title>
       <Button label="Read yesterday and today" onPress={() => void read()} testID="dev-read" />
       <Button label="Write a 15-minute test workout" kind="secondary" onPress={() => void write()} testID="dev-write" />
       <Button label="Delete the test workout" kind="secondary" disabled={!recordId} onPress={() => void remove()} testID="dev-delete" />
+      <Button label="Read steps of the last hour" kind="secondary" onPress={() => void recentSteps()} testID="dev-steps" />
+      <Button label="Show a sitting nudge in 10 seconds" kind="secondary" onPress={() => void testNudge()} testID="dev-nudge" />
       <Body testID="dev-message">{message}</Body>
       <Card>
         <Body testID="dev-days">{days ? JSON.stringify(days) : 'Nothing read yet'}</Body>

@@ -15,4 +15,7 @@ export const healthStore: HealthStore = {
   readProfileHints: async () => ({}),
   writeWorkout: async () => null,
   deleteWorkout: async () => {},
+  readRecentSteps: async () => null,
+  setBackground: async (on) => !on,
+  watchSteps: () => () => {},
 };

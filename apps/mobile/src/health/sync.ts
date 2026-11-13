@@ -9,6 +9,9 @@
 import type { HealthDay } from '@aura-fit/health-core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+/** Today and the 14 days before it: what readiness needs, and what is synced. */
+export const HISTORY_DAYS = 14;
+
 export type SyncClient = Pick<SupabaseClient, 'from'>;
 
 /** A health day as a row: every column present, NULL where the day has no data. */

@@ -1,7 +1,10 @@
 import type { HealthDay } from '@aura-fit/health-core';
 
+import { Linking } from 'react-native';
+
 import { useHealth } from '@/health/HealthProvider';
-import { Body, Button, Card, Label, Screen, Title } from '@/ui/kit';
+import { useNudges } from '@/nudges/NudgeProvider';
+import { Body, Button, Card, Choices, Label, Screen, Title } from '@/ui/kit';
 
 const hours = (minutes: number) => `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
 
@@ -19,6 +22,76 @@ export function describeToday(day: HealthDay | null): { label: string; value: st
       value: day?.external_workouts?.length ? day.external_workouts.map((w) => `${w.type} ${w.minutes} min`).join(', ') : 'None today',
     },
   ];
+}
+
+const clock = (hour: number) => `${String(hour).padStart(2, '0')}:00`;
+const timeOf = (at: Date) => `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+const START_HOURS = [7, 8, 9, 10, 11].map((value) => ({ value, label: clock(value) }));
+const END_HOURS = [16, 17, 18, 19, 20, 21].map((value) => ({ value, label: clock(value) }));
+const DAYS = [
+  { value: 'weekdays' as const, label: 'Weekdays' },
+  { value: 'every' as const, label: 'Every day' },
+];
+
+/** Break reminders (sitting nudges): off until the user turns them on, which is when notifications are asked for. */
+function BreakReminders({ platform }: { platform: 'ios' | 'android' }) {
+  const { status, busy, turnOn, turnOff, save } = useNudges();
+  if (!status) return null;
+  const { settings, permission, next, background } = status;
+  const refused = permission === 'denied';
+
+  return (
+    <Card testID="nudges">
+      <Label>Break reminders</Label>
+      {!settings.enabled ? (
+        <>
+          <Body>
+            After an hour with very few steps, Aura Fit can remind you to take a two-minute break: at most {settings.maxPerDay} times a
+            day, only during the hours you choose.
+          </Body>
+          {refused ? (
+            <>
+              <Body>Notifications are turned off for Aura Fit. Allow them in Settings, then turn reminders on.</Body>
+              <Button label="Open Settings" kind="secondary" onPress={() => void Linking.openSettings()} testID="nudges-settings" />
+            </>
+          ) : null}
+          <Button label="Turn on break reminders" busy={busy} onPress={() => void turnOn()} testID="nudges-on" />
+        </>
+      ) : (
+        <>
+          {refused ? (
+            <>
+              <Body>Notifications are turned off for Aura Fit, so no reminder can be shown. Allow them in Settings.</Body>
+              <Button label="Open Settings" kind="secondary" onPress={() => void Linking.openSettings()} testID="nudges-settings" />
+            </>
+          ) : next ? (
+            <Body testID="nudges-next">Next reminder: {timeOf(next)}</Body>
+          ) : (
+            <Body testID="nudges-next">
+              No reminder is planned right now. One is planned during your hours, once your phone has counted steps in the last day.
+            </Body>
+          )}
+          <Choices label="From" options={START_HOURS} selected={[settings.startHour]} onToggle={(startHour) => void save({ startHour })} />
+          <Choices label="Until" options={END_HOURS} selected={[settings.endHour]} onToggle={(endHour) => void save({ endHour })} />
+          <Choices
+            label="Days"
+            options={DAYS}
+            selected={[settings.weekdaysOnly ? 'weekdays' : 'every']}
+            onToggle={(days) => void save({ weekdaysOnly: days === 'weekdays' })}
+          />
+          <Body muted>
+            {platform === 'ios'
+              ? 'Your phone passes on new steps about once an hour, so a reminder can arrive shortly after a walk.'
+              : 'Your phone is checked for new steps from time to time, so a reminder can arrive shortly after a walk.'}
+          </Body>
+          {!background ? (
+            <Body muted>Aura Fit cannot read your steps while it is closed, so reminders follow the last time you opened the app.</Body>
+          ) : null}
+          <Button label="Turn off break reminders" kind="secondary" busy={busy} onPress={() => void turnOff()} testID="nudges-off" />
+        </>
+      )}
+    </Card>
+  );
 }
 
 export function HealthSettingsScreen({ platform }: { platform: 'ios' | 'android' }) {
@@ -83,6 +156,7 @@ export function HealthSettingsScreen({ platform }: { platform: 'ios' | 'android'
               </Body>
             ))}
           </Card>
+          <BreakReminders platform={platform} />
           <Card>
             <Body muted>
               Disconnecting stops Aura Fit from reading or writing. To remove its access completely, turn it off in {where}.

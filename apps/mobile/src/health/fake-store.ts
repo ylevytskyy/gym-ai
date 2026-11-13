@@ -4,6 +4,8 @@
  * come back as the app's own (so they are not external workouts).
  */
 
+import type { StepBucket } from '@aura-fit/health-core';
+
 import { buildHealthDays } from './build-health-days';
 import {
   EMPTY_RAW_HEALTH,
@@ -28,24 +30,54 @@ export interface FakeHealthOptions {
   raw?: RawHealth;
   hints?: ProfileHints;
   tz?: string;
+  /** What readRecentSteps answers when connected; null (the default) means unknown. */
+  recentSteps?: StepBucket[] | null;
+  /** Whether a request for background reading is granted (default true). */
+  backgroundGranted?: boolean;
 }
 
 export interface FakeHealthStore extends HealthStore {
   readonly written: (WorkoutToWrite & { id: string })[];
   connectCalls: number;
   settingsOpened: number;
+  /** Whether background reading is on. */
+  background: boolean;
+  /** Changes what readRecentSteps answers from now on. */
+  setRecentSteps(steps: StepBucket[] | null): void;
+  /** Delivers a step change to everyone watching, as HealthKit does. */
+  emitSteps(): void;
 }
 
 export function createFakeHealthStore(options: FakeHealthOptions = {}): FakeHealthStore {
   const platform = options.platform ?? 'ios';
   let current: HealthStatus = options.initial ?? 'not_connected';
   let nextId = 1;
+  let recentSteps = options.recentSteps ?? null;
+  const watchers = new Set<() => void>();
 
   const store: FakeHealthStore = {
     platform,
     written: [],
     connectCalls: 0,
     settingsOpened: 0,
+    background: false,
+    setRecentSteps(steps) {
+      recentSteps = steps;
+    },
+    emitSteps() {
+      watchers.forEach((handler) => handler());
+    },
+    async readRecentSteps() {
+      return current === 'connected' ? recentSteps : null;
+    },
+    async setBackground(on) {
+      store.background = on && current === 'connected' && (options.backgroundGranted ?? true);
+      return on ? store.background : true;
+    },
+    watchSteps(handler) {
+      watchers.add(handler);
+      return () => void watchers.delete(handler);
+    },
 
     async status() {
       return current;

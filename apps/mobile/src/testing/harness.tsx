@@ -7,6 +7,9 @@ import { AuthProvider } from '@/auth/AuthProvider';
 import { createHealthController, type Preferences } from '@/health/controller';
 import { createFakeHealthStore, type FakeHealthOptions } from '@/health/fake-store';
 import { HealthProvider } from '@/health/HealthProvider';
+import { createNudgeController } from '@/nudges/controller';
+import { createFakeNotifier } from '@/nudges/notifier';
+import { NudgeProvider } from '@/nudges/NudgeProvider';
 import { PlanProvider } from '@/plan/PlanProvider';
 import { ProfileProvider } from '@/profile/ProfileProvider';
 import type { StoredProfile } from '@/profile/repository';
@@ -21,6 +24,8 @@ export interface HarnessOptions {
   /** Rows the fake database answers with, by table. */
   rows?: { plans?: unknown; workout_logs?: unknown[] };
   fetch?: jest.Mock;
+  /** How the fake notifier starts and answers a permission request. */
+  notifier?: Parameters<typeof createFakeNotifier>[0];
   /** What verifyOtp answers. */
   codeIsValid?: boolean;
   saveFails?: boolean;
@@ -93,9 +98,13 @@ export function createHarness(options: HarnessOptions = {}) {
   const data = new Map(Object.entries(options.preferences ?? {}));
   const preferences: Preferences = { get: async (key) => data.get(key) ?? null, set: async (key, value) => void data.set(key, value) };
 
+  const health = createHealthController(store, preferences);
+  const notifier = createFakeNotifier({ ...options.notifier, now: () => new Date() });
   const services: Services = {
     supabase: { auth, from } as unknown as Services['supabase'],
-    health: createHealthController(store, preferences),
+    health,
+    nudges: createNudgeController({ health, notifier, preferences, now: () => new Date(), timeZone: () => 'Europe/Kyiv' }),
+    notifier,
     today: () => '2026-11-12',
     assistantUrl: 'http://assistant.test',
     fetch: (options.fetch ?? (async () => { throw new TypeError('Network request failed'); })) as typeof fetch,
@@ -109,12 +118,14 @@ export function createHarness(options: HarnessOptions = {}) {
         <AuthProvider>
           <ProfileProvider>
             <HealthProvider>
-              <PlanProvider>{screen}</PlanProvider>
+              <NudgeProvider>
+                <PlanProvider>{screen}</PlanProvider>
+              </NudgeProvider>
             </HealthProvider>
           </ProfileProvider>
         </AuthProvider>
       </ServicesProvider>,
     );
 
-  return { services, auth, store, upserts, inserts, updates, synced, preferences: data, renderScreen };
+  return { services, auth, store, notifier, upserts, inserts, updates, synced, preferences: data, renderScreen };
 }

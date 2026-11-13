@@ -14,6 +14,9 @@ const HEALTH_CONNECT_PERMISSIONS = [
   'android.permission.health.READ_EXERCISE',
   'android.permission.health.WRITE_EXERCISE',
   'android.permission.health.WRITE_ACTIVE_CALORIES_BURNED',
+  // Sitting nudges: lets the periodic task read steps while the app is closed. Asked for only
+  // when the user turns break reminders on.
+  'android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND',
 ];
 
 const APP_ID = 'app.aurafit.mobile';
@@ -54,11 +57,15 @@ const config: ExpoConfig = {
         NSHealthShareUsageDescription:
           'Aura Fit reads your steps, active energy, resting heart rate, sleep, weight and workouts to adjust your daily session, and your date of birth to suggest an age range.',
         NSHealthUpdateUsageDescription: 'Aura Fit saves the workouts you finish to Health.',
-        // Background delivery arrives with sitting nudges (milestone 5).
-        background: false,
+        // Sitting nudges: HealthKit wakes the app when new steps arrive.
+        background: true,
       },
     ],
     'react-native-health-connect',
+    // Sitting nudges are local notifications; no push token is requested.
+    'expo-notifications',
+    // The periodic task that plans nudges again and syncs health days.
+    'expo-background-task',
     [
       'expo-build-properties',
       { android: { minSdkVersion: 26 } },

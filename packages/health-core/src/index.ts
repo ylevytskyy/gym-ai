@@ -10,7 +10,7 @@ export {
 } from './readiness.js';
 export { adjustDay, EXTERNAL_WORKOUT_MINUTES, MAX_SETS } from './adjust.js';
 export type { Adjustment, AdjustmentChange, AdjustmentInput } from './adjust.js';
-export { nudgeDue, DEFAULT_NUDGE_SETTINGS } from './nudge.js';
-export type { NudgeInput, NudgeSettings } from './nudge.js';
+export { nudgeDue, planNudges, stepsInLastHour, DEFAULT_NUDGE_SETTINGS, SEDENTARY_WINDOW_MINUTES } from './nudge.js';
+export type { NudgeInput, NudgePlanInput, NudgeSettings, StepBucket } from './nudge.js';
 export { summarize, SUMMARY_DAYS, EXTERNAL_WORKOUT_DAYS } from './summary.js';
 export type { HealthSummary } from './summary.js';

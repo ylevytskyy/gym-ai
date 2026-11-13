@@ -7,7 +7,7 @@
  * (Health Connect only after a restart, HealthKit not at all).
  */
 
-import type { HealthDay } from '@aura-fit/health-core';
+import type { HealthDay, StepBucket } from '@aura-fit/health-core';
 
 import { localDayOf } from './local-day';
 import type { CheckedDays, HealthStore, ProfileHints, WorkoutToWrite } from './types';
@@ -43,6 +43,11 @@ export interface HealthController {
   writeWorkout(workout: WorkoutToWrite): Promise<string | null>;
   /** Removes a workout this app wrote. Allowed after disconnect too, so the user can still clean up. */
   deleteWorkout(recordId: string): Promise<void>;
+  /** Step totals of the last hour, or null when unknown or not connected. */
+  readRecentSteps(now: Date): Promise<StepBucket[] | null>;
+  /** Background reading: turned on only while connected, turned off at any time. */
+  setBackground(on: boolean): Promise<boolean>;
+  watchSteps(handler: () => void): () => void;
 }
 
 export function createHealthController(store: HealthStore, preferences: Preferences): HealthController {
@@ -113,5 +118,16 @@ export function createHealthController(store: HealthStore, preferences: Preferen
     },
 
     deleteWorkout: (recordId) => store.deleteWorkout(recordId),
+
+    async readRecentSteps(now) {
+      return (await connected()) ? store.readRecentSteps(now) : null;
+    },
+
+    async setBackground(on) {
+      if (!on) return store.setBackground(false);
+      return (await connected()) ? store.setBackground(true) : false;
+    },
+
+    watchSteps: (handler) => store.watchSteps(handler),
   };
 }
