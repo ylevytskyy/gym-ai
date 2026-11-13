@@ -28,13 +28,17 @@ A user who injects instructions breaks only their own coach. The real risks are:
 
 ## To do, in order
 
-1. **Cap model output.** `callModel` in `src/providers/openrouter.ts` sets no `max_tokens`; the 2000
-   character cut happens after we have paid for the whole answer. Set a cap per call type (chat,
-   plan).
-2. **No data retention at providers.** The request sets no OpenRouter provider preferences, so it
-   is unknown which provider processes chats with health data and what it keeps. Use OpenRouter's
-   provider settings to deny data collection / require zero retention (check the exact parameter
-   names in the OpenRouter docs) and record which providers serve the model.
+1. **Cap model output.** Done 2026-11-13: `max_tokens` 12000 for plans, 4000 for coach replies
+   (`src/providers/openrouter.ts`). Reasoning tokens count against the cap; measured maxima were
+   4600 and 1200.
+2. **No data retention at providers.** Done 2026-11-13: every call sends
+   `provider: { data_collection: "deny", zdr: true }`. Checked live with OpenRouter routing
+   metadata: 9 of 13 providers of `deepseek/deepseek-v4-flash` stay eligible (Wafer, DeepInfra,
+   Venice, Relace, SiliconFlow, Mancer 2, Azure, Parasail, Fireworks); without the setting a
+   request could go to Baidu, GMICloud, AtlasCloud or StreamLake. If no provider qualifies,
+   OpenRouter returns an error rather than falling back. Re-check eligibility when changing models.
+   Not done: the account-wide "ZDR only" privacy setting on openrouter.ai (excludes Safety
+   Retention endpoints, which the request flag alone allows on self-serve accounts).
 3. **Check answers, not only requests.** A safety model on risky topics (self-harm, eating
    disorders, medical advice), for example Llama Guard. Check whether it is available on
    OpenRouter or must be self-hosted.

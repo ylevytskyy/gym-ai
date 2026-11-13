@@ -78,6 +78,10 @@ describe('OpenRouterAssistant.adjustPlan', () => {
     await expect(assistantWith(client).adjustPlan(kneeInjured, plan(), 'More legs')).rejects.toBeInstanceOf(PlanGenerationError);
     expect(create).toHaveBeenCalledTimes(2);
     expect(create.mock.calls[1]![0].messages.at(-1)!.content).toContain('INJURY_CONFLICT');
+    for (const [body] of create.mock.calls as unknown as Array<[{ max_tokens?: number; provider?: unknown }]>) {
+      expect(body.max_tokens).toBe(12000);
+      expect(body.provider).toEqual({ data_collection: 'deny', zdr: true });
+    }
   });
 
   it('accepts the corrected plan from the retry', async () => {
@@ -148,6 +152,12 @@ describe('OpenRouterAssistant.chat', () => {
       expect(result.addInjuries).toBeUndefined();
     }
   });
+
+  it('caps a coach reply at 4000 tokens, reasoning included', async () => {
+    const { client, create } = fakeChat(JSON.stringify({ reply: 'Rest today.', adjust_plan: null, add_injuries: [] }));
+    await assistantWith(client).chat(input);
+    expect((create.mock.calls[0]![0] as { max_tokens?: number }).max_tokens).toBe(4000);
+  });
 });
 
 describe('parseChatOutput', () => {
@@ -184,5 +194,24 @@ describe('logging', () => {
     const text = JSON.stringify(logged);
     for (const secret of ['sore', 'Tuesday', 'earlier words', '4321']) expect(text).not.toContain(secret);
     expect(logged.length).toBeGreaterThan(0);
+  });
+
+  it('warns, without the text, when the token cap cuts a reply off', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation((() => undefined) as never);
+    const create = vi.fn(async () => ({
+      choices: [{ message: { content: '{"reply": "Stretch your sore' }, finish_reason: 'length' }],
+      usage: { completion_tokens: 4000 },
+    }));
+    const client = { chat: { completions: { create } } } as unknown as ChatClient;
+
+    const result = await assistantWith(client).chat({ profile: beginner, message: 'Hi', history: [], plan: null });
+    const calls = warn.mock.calls.map((args) => JSON.stringify(args));
+    warn.mockRestore();
+
+    expect(result.reply).toMatch(/could not answer/i);
+    const capped = calls.filter((text) => text.includes('token cap'));
+    expect(capped).toHaveLength(1);
+    expect(capped[0]).toContain('"completionTokens":4000');
+    expect(capped[0]).not.toContain('sore');
   });
 });
