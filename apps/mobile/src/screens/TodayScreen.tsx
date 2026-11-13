@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Alert, StyleSheet, View } from 'react-native';
 
+import { UsageNotice } from '@/assistant/UsageNotice';
 import { exerciseById, exerciseName } from '@/catalog/catalog';
 import { useHealth } from '@/health/HealthProvider';
 import { adjustedToday } from '@/plan/adjusted-today';
@@ -37,7 +38,7 @@ const longDate = (at: Date) => `${WEEKDAYS[at.getDay()]}, ${at.getDate()} ${MONT
 
 export function TodayScreen() {
   const router = useRouter();
-  const { state, creating, createError, create, reload } = usePlan();
+  const { state, creating, createError, usage, create, reload } = usePlan();
   const { days: healthDays } = useHealth();
   const profile = useProfile().state;
   const { today } = useServices();
@@ -61,6 +62,7 @@ export function TodayScreen() {
           <Body>{state.message}</Body>
           <Button label="Try again" kind="secondary" icon="refresh" onPress={reload} />
           <Button label="Create a new plan" busy={creating} onPress={() => void create()} testID="create-plan" />
+          <UsageNotice usage={usage} kind="plan" />
           <ErrorText>{createError}</ErrorText>
         </Card>
       ) : null}
@@ -74,6 +76,7 @@ export function TodayScreen() {
           <Button label="Create my plan" kind="inverse" icon="sparkles" busy={creating} onPress={() => void create()} testID="create-plan" />
         </HeroCard>
       ) : null}
+      {state.status === 'none' ? <UsageNotice usage={usage} kind="plan" /> : null}
       {state.status === 'none' ? <ErrorText>{createError}</ErrorText> : null}
 
       {state.status === 'ready'
@@ -141,6 +144,7 @@ export function TodayScreen() {
                 ))}
 
                 <Button label="Make a new plan" kind="ghost" icon="refresh" busy={creating} onPress={confirmNewPlan} testID="new-plan" />
+                <UsageNotice usage={usage} kind="plan" />
                 <ErrorText>{createError}</ErrorText>
               </>
             );

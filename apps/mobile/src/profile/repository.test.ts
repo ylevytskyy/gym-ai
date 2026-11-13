@@ -1,10 +1,10 @@
-import { loadProfile, ProfileError, saveProfile, type ProfileClient } from './repository';
+import { loadProfile, ProfileError, saveProfile, saveTimeZone, type ProfileClient } from './repository';
 import type { ProfileValues } from './model';
 
 function fakeClient(response: { data?: unknown; error?: unknown }) {
   const calls: { method: string; args: unknown[] }[] = [];
   const builder: Record<string, unknown> = {};
-  for (const method of ['select', 'eq', 'upsert']) {
+  for (const method of ['select', 'eq', 'upsert', 'update']) {
     builder[method] = (...args: unknown[]) => {
       calls.push({ method, args });
       return builder;
@@ -44,5 +44,16 @@ describe('profile repository', () => {
   it('throws a message fit for the user when the save fails, without the server text', async () => {
     const failing = fakeClient({ data: null, error: { message: 'new row violates check constraint "profiles_weight_kg_check"' } });
     await expect(saveProfile(failing.client, 'user-1', values)).rejects.toThrow('Could not save your profile.');
+  });
+
+  it('writes only the time zone, on the user row, and returns the stored row', async () => {
+    const { client, calls } = fakeClient({ data: { id: 'user-1', ...values, timezone: 'Europe/Kyiv' }, error: null });
+    expect(await saveTimeZone(client, 'user-1', 'Europe/Kyiv')).toEqual({ id: 'user-1', ...values, timezone: 'Europe/Kyiv' });
+    expect(calls).toContainEqual({ method: 'update', args: [{ timezone: 'Europe/Kyiv' }] });
+    expect(calls).toContainEqual({ method: 'eq', args: ['id', 'user-1'] });
+  });
+
+  it('throws when the time zone is refused', async () => {
+    await expect(saveTimeZone(fakeClient({ data: null, error: { code: '22023', message: 'unknown time zone' } }).client, 'user-1', 'Mars/Base')).rejects.toBeInstanceOf(ProfileError);
   });
 });

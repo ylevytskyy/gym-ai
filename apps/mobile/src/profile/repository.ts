@@ -8,6 +8,8 @@ export type ProfileClient = Pick<SupabaseClient, 'from'>;
 
 export interface StoredProfile extends ProfileValues {
   id: string;
+  /** IANA name the server counts the AI allowance's days in; UTC until the app writes the device's. */
+  timezone?: string;
 }
 
 export class ProfileError extends Error {}
@@ -26,5 +28,12 @@ export async function saveProfile(client: ProfileClient, userId: string, values:
     .select('*')
     .single();
   if (error || !data) throw new ProfileError('Could not save your profile. Check your connection and try again.');
+  return data as StoredProfile;
+}
+
+/** Writes the device time zone. The database refuses a name it does not know. */
+export async function saveTimeZone(client: ProfileClient, userId: string, timeZone: string): Promise<StoredProfile> {
+  const { data, error } = await client.from('profiles').update({ timezone: timeZone }).eq('id', userId).select('*').single();
+  if (error || !data) throw new ProfileError('Could not save your time zone.');
   return data as StoredProfile;
 }

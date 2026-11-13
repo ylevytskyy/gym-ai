@@ -1,10 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { deviceTimeZone } from '@/health/local-day';
 import { useServices } from '@/services';
 
 import type { ProfileValues } from './model';
-import { loadProfile, saveProfile, type StoredProfile } from './repository';
+import { loadProfile, saveProfile, saveTimeZone, type StoredProfile } from './repository';
 
 type ProfileState =
   | { status: 'loading' }
@@ -50,6 +51,22 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, [supabase, userId, key]);
+
+  // The server counts the AI allowance in the user's local day, so it needs the device time zone.
+  // Written after sign-in or onboarding, and again whenever a loaded profile has another one.
+  // Tried once per user and zone: a refused name must not loop.
+  const zoneTried = useRef<string | null>(null);
+  useEffect(() => {
+    if (!userId || key === null || state.status !== 'ready') return;
+    const zone = deviceTimeZone();
+    if (state.profile.timezone === zone || zoneTried.current === `${userId}:${zone}`) return;
+    zoneTried.current = `${userId}:${zone}`;
+    saveTimeZone(supabase, userId, zone)
+      .then((profile) => setLoaded((current) => (current?.key === key ? { key, state: { status: 'ready', profile } } : current)))
+      .catch(() => {
+        // The server keeps counting in the zone it has; the next launch tries again.
+      });
+  }, [supabase, userId, key, state]);
 
   const save = useCallback(
     async (values: ProfileValues) => {

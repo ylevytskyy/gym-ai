@@ -31,6 +31,8 @@ export interface HarnessOptions {
   /** What verifyOtp answers. */
   codeIsValid?: boolean;
   saveFails?: boolean;
+  /** Makes writing profiles.timezone fail, as the database does for a name it does not know. */
+  timeZoneFails?: boolean;
 }
 
 export function createHarness(options: HarnessOptions = {}) {
@@ -96,6 +98,7 @@ export function createHarness(options: HarnessOptions = {}) {
       rows['then'] = (resolve: (v: unknown) => unknown) => Promise.resolve(answer).then(resolve);
       return rows;
     }
+    let updated: Record<string, unknown> | undefined;
     const builder = {
       select: () => builder,
       eq: () => builder,
@@ -104,8 +107,18 @@ export function createHarness(options: HarnessOptions = {}) {
         upserts.push(row);
         return builder;
       },
+      update: (row: Record<string, unknown>) => {
+        updated = row;
+        updates.push({ table, row });
+        return builder;
+      },
       maybeSingle: async () => ({ data: storedProfile, error: null }),
       single: async () => {
+        if (updated) {
+          if (options.timeZoneFails || !storedProfile) return { data: null, error: { code: '22023', message: 'unknown time zone' } };
+          storedProfile = { ...storedProfile, ...updated } as StoredProfile;
+          return { data: storedProfile, error: null };
+        }
         if (options.saveFails) return { data: null, error: { message: 'boom' } };
         storedProfile = upserted as unknown as StoredProfile;
         return { data: storedProfile, error: null };

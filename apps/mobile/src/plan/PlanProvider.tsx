@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import type { Usage } from '@/assistant/usage';
 import { useAuth } from '@/auth/AuthProvider';
 import { useServices } from '@/services';
 
@@ -16,6 +17,8 @@ interface PlanValue {
   state: PlanState;
   creating: boolean;
   createError: string | undefined;
+  /** The allowance for new plans as the service last reported it; null until a plan was asked for. */
+  usage: Usage | null;
   /** Asks the assistant service for a new plan. */
   create: () => Promise<void>;
   reload: () => void;
@@ -41,6 +44,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   const [attempt, setAttempt] = useState(0);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | undefined>();
+  const [usage, setUsage] = useState<Usage | null>(null);
   const key = userId ? `${userId}:${attempt}` : null;
   const state = useMemo<PlanState>(() => (key !== null && loaded?.key === key ? loaded.state : { status: 'loading' }), [key, loaded]);
 
@@ -67,10 +71,19 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     setCreating(true);
     setCreateError(undefined);
     try {
-      const stored = await requestPlan(services.fetch, services.assistantUrl, token, { duration_days: PLAN_DAYS, focus_areas: [] });
-      setLoaded({ key, state: { status: 'ready', stored, logs: [] } });
+      // One key per time the user asks: the service counts it once.
+      const answer = await requestPlan(services.fetch, services.assistantUrl, token, { duration_days: PLAN_DAYS, focus_areas: [] }, services.newId());
+      if (answer.usage) setUsage(answer.usage);
+      setLoaded({ key, state: { status: 'ready', stored: answer.stored, logs: [] } });
     } catch (error) {
+      if (error instanceof PlanError && error.usage) {
+        // Said by the allowance notice instead of as an error.
+        setUsage(error.usage);
+        return;
+      }
       setCreateError(error instanceof PlanError ? error.message : 'A plan could not be made. Try again.');
+      // The same request was counted already: the plan may be stored by now.
+      if (error instanceof PlanError && error.duplicate) setAttempt((n) => n + 1);
     } finally {
       setCreating(false);
     }
@@ -91,8 +104,8 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     [key],
   );
   const value = useMemo<PlanValue>(
-    () => ({ state, creating, createError, create, reload: () => setAttempt((n) => n + 1), replace, addLog }),
-    [state, creating, createError, create, replace, addLog],
+    () => ({ state, creating, createError, usage, create, reload: () => setAttempt((n) => n + 1), replace, addLog }),
+    [state, creating, createError, usage, create, replace, addLog],
   );
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
 }

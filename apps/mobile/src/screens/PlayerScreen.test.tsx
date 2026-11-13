@@ -174,7 +174,7 @@ describe('PlayerScreen', () => {
     expect(seconds).toBeGreaterThanOrEqual(95);
     expect(seconds).toBeLessThan(101);
     expect(harness.store.written[0]!.energyKcal).toBeGreaterThan(0);
-    expect(harness.updates).toEqual([{ table: 'workout_logs', row: { health_record_id: 'fake-1' } }]);
+    expect(harness.updates.filter((u) => u.table === 'workout_logs')).toEqual([{ table: 'workout_logs', row: { health_record_id: 'fake-1' } }]);
     // Nothing left to press that could save it again.
     expect(screen.queryByTestId('save-workout')).toBeNull();
   });
@@ -292,7 +292,7 @@ describe('PlayerScreen: things found in review', () => {
     await screen.findByTestId('saved');
     expect(harness.inserts).toHaveLength(1);
     expect(harness.store.written).toHaveLength(1);
-    expect(harness.updates).toHaveLength(1);
+    expect(harness.updates.filter((u) => u.table === 'workout_logs')).toHaveLength(1);
   });
 
   it('pauses when the app goes to the background, so that time is neither logged nor sent to Health', async () => {
