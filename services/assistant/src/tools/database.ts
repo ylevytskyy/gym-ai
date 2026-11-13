@@ -16,6 +16,8 @@ import {
   ValidationErrorClass,
   type ChatTurn,
   type Profile,
+  type UsageAction,
+  type UsageDecision,
   type WorkoutLog,
   type WorkoutPlan,
 } from '../types.js';
@@ -211,5 +213,51 @@ export async function deleteAccount(userId: string, db: SupabaseClient = getData
   const { error } = await db.auth.admin.deleteUser(userId);
   if (error) {
     throw new DatabaseError(`Failed to delete user ${userId}`, 'deleteAccount', error);
+  }
+}
+
+/**
+ * Reserves one AI use for the user, or refuses when the allowance is used up. The check and the
+ * reservation are one database call, so parallel requests cannot both take the last use.
+ * Any failure throws: a request is never let through without being counted.
+ */
+export async function reserveAiUse(
+  userId: string,
+  action: UsageAction,
+  requestId: string,
+  db: SupabaseClient = getDatabaseClient(),
+): Promise<UsageDecision> {
+  const { data, error } = await db.rpc('reserve_ai_use', { p_user_id: userId, p_action: action, p_request_id: requestId });
+  const row = data as Record<string, unknown> | null;
+  if (
+    error ||
+    !row ||
+    typeof row['allowed'] !== 'boolean' ||
+    typeof row['duplicate'] !== 'boolean' ||
+    (row['tier'] !== 'free' && row['tier'] !== 'pro') ||
+    typeof row['limit'] !== 'number' ||
+    typeof row['remaining'] !== 'number' ||
+    typeof row['resets_at'] !== 'string' ||
+    Number.isNaN(Date.parse(row['resets_at'])) ||
+    (row['allowed'] === true && typeof row['use_id'] !== 'string')
+  ) {
+    throw new DatabaseError(`Failed to check the AI allowance for user ${userId}`, 'reserveAiUse', error);
+  }
+  return {
+    allowed: row['allowed'],
+    duplicate: row['duplicate'],
+    useId: row['allowed'] ? (row['use_id'] as string) : null,
+    tier: row['tier'],
+    limit: row['limit'],
+    remaining: row['remaining'],
+    resetsAt: new Date(row['resets_at']).toISOString(),
+  };
+}
+
+/** Marks a reserved use as used (ok) or released (the request failed, so it does not count). */
+export async function finishAiUse(useId: string, ok: boolean, db: SupabaseClient = getDatabaseClient()): Promise<void> {
+  const { error } = await db.rpc('finish_ai_use', { p_use_id: useId, p_ok: ok });
+  if (error) {
+    throw new DatabaseError(`Failed to finish AI use ${useId}`, 'finishAiUse', error);
   }
 }

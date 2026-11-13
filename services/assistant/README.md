@@ -112,6 +112,19 @@ From `package.json`:
 
 Responses carry an `X-Correlation-Id` header. Error bodies include the same value as `correlationId`.
 
+### AI allowance
+
+`POST /api/plans/generate`, `POST /api/plans/adjust` (counted as `new_plan`) and `POST /api/chat`
+(counted as `chat_message`) are counted against the user's allowance before the model is called
+(`reserve_ai_use` in `supabase/migrations/010_entitlements_and_ai_usage.sql`; rules in
+`../../docs/usage-limits-spec.md`). A request that fails is not counted.
+
+- Optional header `Idempotency-Key` (1-100 visible ASCII characters): a request already counted under
+  the same key is refused with 409 `DUPLICATE_REQUEST` and does not run again; one whose model call
+  failed may be retried with the same key. Without the header every request is counted.
+- Successful responses carry `usage: { tier, limit, remaining, resetsAt }`.
+- At the limit: 429 `USAGE_LIMIT` with the same object in `details`; the model is not called.
+
 ### GET /health
 
 No authentication.
@@ -230,6 +243,11 @@ From `describeError` in `src/api/server.ts`. Errors that are not listed fall int
 | 400 | `PLAN_GENERATION_FAILED` | `PlanGenerationError`: 2 attempts failed validation. `details.attempts` and `details.validation_errors`. |
 | 400 | `INVALID_JSON` | The request body is not valid JSON. |
 | 401 | `AUTHENTICATION_ERROR` | No Bearer token, or the token check failed or returned no user. |
+| 400 | `VALIDATION_ERROR` | `Idempotency-Key` is longer than 100 characters or has characters other than visible ASCII. |
+| 409 | `DUPLICATE_REQUEST` | The `Idempotency-Key` was already used for a request that was counted. The model is not called. |
+| 429 | `USAGE_LIMIT` | The AI allowance is used up. `details: { tier, limit, remaining, resetsAt }`. |
+| 429 | `TOO_MANY_REQUESTS` | More than 30 model requests in 10 minutes, or one still running for this user. |
+| 503 | `USAGE_UNAVAILABLE` | The allowance could not be checked (database unreachable). The model is not called. |
 | 504 | `GATEWAY_TIMEOUT` | Generation took longer than the limit (55 seconds for a new plan). |
 | 500 | `PLAN_SERVICE_UNAVAILABLE` | The OpenRouter call failed (`APIError`). Upstream text is logged only, not returned. |
 | 500 | `INTERNAL_SERVER_ERROR` | Anything else, including `DatabaseError` (for example a missing profile). |

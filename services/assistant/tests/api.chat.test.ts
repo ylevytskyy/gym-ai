@@ -56,6 +56,8 @@ function makeDeps(overrides: Partial<AppDeps> = {}): AppDeps {
     addInjuries: vi.fn(async (_userId: string, injuries: string[]) => ({ ...profile, injuries })),
     archivePlans: vi.fn(async () => undefined),
     deleteAccount: vi.fn(async () => undefined),
+    reserveUse: vi.fn(async () => ({ allowed: true, duplicate: false, useId: 'use-1', tier: 'free' as const, limit: 10, remaining: 9, resetsAt: '2026-11-13T22:00:00.000Z' })),
+    finishUse: vi.fn(async () => undefined),
     requestTimeoutMs: 1000,
     ...overrides,
   };
@@ -84,7 +86,7 @@ describe('POST /api/plans/adjust', () => {
     const res = await call('POST', '/api/plans/adjust', { feedback: '  Make it easier  ' });
 
     expect(res.status).toBe(201);
-    expect(await res.json()).toEqual({ id: 'plan-2', plan: adjusted });
+    expect(await res.json()).toEqual({ id: 'plan-2', plan: adjusted, usage: { tier: 'free', limit: 10, remaining: 9, resetsAt: '2026-11-13T22:00:00.000Z' } });
     expect(deps.assistant.adjustPlan).toHaveBeenCalledWith(profile, current, 'Make it easier', { health: null });
     expect(deps.storePlan).toHaveBeenCalledWith('user-1', adjusted, 'openrouter');
   });
@@ -140,7 +142,7 @@ describe('POST /api/chat', () => {
     const res = await call('POST', '/api/chat', { message: '  How am I doing?  ' });
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ reply: 'Hello!', plan: null, plan_removed: false, injuries_added: [] });
+    expect(await res.json()).toEqual({ reply: 'Hello!', plan: null, plan_removed: false, injuries_added: [], usage: { tier: 'free', limit: 10, remaining: 9, resetsAt: '2026-11-13T22:00:00.000Z' } });
     expect(deps.assistant.chat).toHaveBeenCalledWith({
       profile,
       message: 'How am I doing?',
@@ -158,7 +160,7 @@ describe('POST /api/chat', () => {
     (deps.assistant.chat as any).mockResolvedValueOnce({ reply: 'Lighter it is.', adjustPlan: 'Fewer sets' });
     const res = await call('POST', '/api/chat', { message: 'make it easier' });
 
-    expect(await res.json()).toEqual({ reply: 'Lighter it is.', plan: { id: 'plan-2', plan: adjusted }, plan_removed: false, injuries_added: [] });
+    expect(await res.json()).toEqual({ reply: 'Lighter it is.', plan: { id: 'plan-2', plan: adjusted }, plan_removed: false, injuries_added: [], usage: { tier: 'free', limit: 10, remaining: 9, resetsAt: '2026-11-13T22:00:00.000Z' } });
     expect(deps.assistant.adjustPlan).toHaveBeenCalledWith(profile, current, 'Fewer sets', { health: null });
     expect(deps.storePlan).toHaveBeenCalledWith('user-1', adjusted, 'openrouter');
   });
