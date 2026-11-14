@@ -16,6 +16,8 @@ import {
   ValidationErrorClass,
   type ChatTurn,
   type Profile,
+  type RevenueCatDbOutcome,
+  type RevenueCatEventInput,
   type UsageAction,
   type UsageDecision,
   type WorkoutLog,
@@ -260,4 +262,28 @@ export async function finishAiUse(useId: string, ok: boolean, db: SupabaseClient
   if (error) {
     throw new DatabaseError(`Failed to finish AI use ${useId}`, 'finishAiUse', error);
   }
+}
+
+/**
+ * Records one verified RevenueCat event and updates the user's entitlement in one database
+ * transaction. Any failure throws, so the webhook answers 500 and RevenueCat retries; the
+ * transaction leaves no event row behind in that case. The message carries no user data.
+ */
+export async function applyRevenueCatEvent(
+  input: RevenueCatEventInput,
+  db: SupabaseClient = getDatabaseClient(),
+): Promise<RevenueCatDbOutcome> {
+  const { data, error } = await db.rpc('apply_revenuecat_event', {
+    p_event_id: input.eventId,
+    p_event_type: input.eventType,
+    p_environment: input.environment,
+    p_user_id: input.userId,
+    p_event_ts: input.eventAt,
+    p_action: input.action,
+    p_expires_at: input.expiresAt,
+  });
+  if (error || (data !== 'applied' && data !== 'duplicate' && data !== 'stale' && data !== 'unknown_user')) {
+    throw new DatabaseError('Failed to apply a RevenueCat event', 'applyRevenueCatEvent', error);
+  }
+  return data;
 }

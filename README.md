@@ -385,7 +385,8 @@ One `pnpm` workspace for all JavaScript/TypeScript packages. Python only inside
 ## Configuration
 
 Each application has a `.env.example`. Copy it to `.env` next to it and fill it in. Real `.env`
-files are ignored by git.
+files are ignored by git. For where each secret comes from and how to rotate it, see
+[WALLET.md](WALLET.md).
 
 | Application | File | Secrets |
 |---|---|---|
