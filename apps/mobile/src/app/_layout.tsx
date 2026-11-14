@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { startBackgroundWork, watchStepsInBackground } from '@/background/task';
+import { configure as configureBilling } from '@/billing/purchases';
 import { HealthProvider, useHealth } from '@/health/HealthProvider';
 import { NudgeProvider } from '@/nudges/NudgeProvider';
 import { PlanProvider } from '@/plan/PlanProvider';
@@ -14,6 +15,8 @@ import { Body, Button, Screen, usePalette } from '@/ui/kit';
 
 // The phone can start the app only to run background work, so it is set up when the bundle loads.
 startBackgroundWork();
+// RevenueCat is set up once; it does nothing when no SDK key is set.
+configureBilling();
 
 /** Signed out → sign-in. Signed in without a profile → onboarding. Otherwise the tabs. */
 function Routes() {
