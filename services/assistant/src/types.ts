@@ -301,6 +301,22 @@ export interface UsageDecision {
   resetsAt: string;
 }
 
+/** What the database did with one RevenueCat event (see docs/revenuecat-webhook-spec.md). */
+export type RevenueCatDbOutcome = 'applied' | 'duplicate' | 'stale' | 'unknown_user';
+
+/** One verified RevenueCat event, ready for apply_revenuecat_event. */
+export interface RevenueCatEventInput {
+  eventId: string;
+  eventType: string;
+  environment: string;
+  userId: string;
+  /** ISO time of the event (event_timestamp_ms). */
+  eventAt: string;
+  action: 'set_expiry' | 'revoke' | 'none';
+  /** ISO time; set for 'set_expiry' only. */
+  expiresAt: string | null;
+}
+
 
 // ============================================================================
 // Custom Error Classes

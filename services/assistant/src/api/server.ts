@@ -9,6 +9,7 @@
 import { randomUUID } from 'node:crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { logger } from '../logger.js';
+import { MAX_EPOCH_MS, mapEvent, verifySignature } from '../revenuecat/index.js';
 import { loadCatalog } from '../tools/catalog.js';
 import { validatePlanSafety } from '../validator/index.js';
 import { validateAdjustRequest, validateChatRequest, validatePlanRequest } from './validation.js';
@@ -22,6 +23,8 @@ import {
   type ChatTurn,
   type HealthSummary,
   type Profile,
+  type RevenueCatDbOutcome,
+  type RevenueCatEventInput,
   type UsageAction,
   type UsageDecision,
   type WorkoutPlan,
@@ -63,6 +66,16 @@ export interface AppDeps {
   finishUse: (useId: string, ok: boolean) => Promise<void>;
   /** Deletes the user and, through the database, everything stored about them. */
   deleteAccount: (userId: string) => Promise<void>;
+  /**
+   * Records a verified RevenueCat event and updates the entitlement in one transaction; returns what
+   * happened. Throws when the database fails (the webhook then answers 500 and RevenueCat retries).
+   * Optional: without it the webhook answers 503.
+   */
+  applyRevenueCatEvent?: (input: RevenueCatEventInput) => Promise<RevenueCatDbOutcome>;
+  /** RevenueCat webhook settings. Without a webhookSecret the webhook answers 503. */
+  revenuecat?: { webhookSecret?: string | undefined; acceptSandbox: boolean; proEntitlement: string };
+  /** The clock, in milliseconds; for tests. */
+  now?: () => number;
   /** How long the health lookup may take before the plan is generated without it. */
   healthTimeoutMs?: number;
   requestTimeoutMs?: number;
@@ -89,6 +102,8 @@ const NO_SAFE_PLAN =
   'I have added that to your profile, but I could not make a safe plan right now, so I took the old plan away. Create a new one on the Today tab. Skip any exercise that hurts, and see a professional if the pain stays.';
 const NO_SAFE_PLAN_KEPT =
   'I have added that to your profile, but I could not change your plan right now. Skip any exercise that hurts, and see a professional if the pain stays.';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const DEFAULT_LIMITS = { max: 30, windowMs: 10 * 60_000 };
 
@@ -286,6 +301,79 @@ export function createApp(deps: AppDeps): express.Express {
   const generateTimeoutMs = deps.requestTimeoutMs ?? DEFAULT_GENERATE_TIMEOUT_MS;
   const admit = createGate(deps.limits ?? DEFAULT_LIMITS);
   const app = express();
+
+  // The RevenueCat signature covers the exact bytes sent, so this route reads the body raw. It must
+  // come before the global JSON parser, which would consume the stream.
+  app.post(
+    '/api/webhooks/revenuecat',
+    (req, res, next) => {
+      express.raw({ type: '*/*', limit: '64kb' })(req, res, (err?: unknown) => {
+        if (err) {
+          const status = (err as { status?: unknown }).status === 413 ? 413 : 400;
+          res.status(status).json({ error: 'INVALID_BODY', message: 'Request body could not be read' });
+          return;
+        }
+        next();
+      });
+    },
+    async (req, res, next) => {
+      try {
+        const settings = deps.revenuecat;
+        if (!settings?.webhookSecret || !deps.applyRevenueCatEvent) {
+          res.status(503).json({ error: 'WEBHOOK_DISABLED', message: 'The RevenueCat webhook is not configured' });
+          return;
+        }
+        const raw = Buffer.isBuffer(req.body) ? (req.body as Buffer) : Buffer.alloc(0);
+        const nowMs = (deps.now ?? Date.now)();
+        if (!verifySignature(raw, req.header('x-revenuecat-webhook-signature'), settings.webhookSecret, nowMs)) {
+          res.status(401).json({ error: 'INVALID_SIGNATURE', message: 'Signature check failed' });
+          return;
+        }
+
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(raw.toString('utf8'));
+        } catch {
+          res.status(400).json({ error: 'INVALID_JSON', message: 'Request body must be valid JSON' });
+          return;
+        }
+        const event = (parsed as { event?: unknown } | null)?.event;
+        const e = typeof event === 'object' && event !== null && !Array.isArray(event) ? (event as Record<string, unknown>) : null;
+        const eventMs = e?.['event_timestamp_ms'];
+        if (!e || typeof e['id'] !== 'string' || e['id'] === '' || typeof e['app_user_id'] !== 'string' || typeof eventMs !== 'number' || !Number.isFinite(eventMs) || Math.abs(eventMs) > MAX_EPOCH_MS) {
+          res.status(400).json({ error: 'INVALID_EVENT', message: 'Event is missing its id, user or time' });
+          return;
+        }
+
+        const eventId = e['id'];
+        const environment = typeof e['environment'] === 'string' ? e['environment'] : '';
+        const mapped = mapEvent(e, { acceptSandbox: settings.acceptSandbox, proEntitlement: settings.proEntitlement, nowMs });
+        let outcome: RevenueCatDbOutcome | 'ignored' | 'sandbox_ignored';
+        if (mapped.action === 'sandbox_ignored') {
+          outcome = 'sandbox_ignored';
+        } else if (!UUID_PATTERN.test(e['app_user_id'])) {
+          // RevenueCat's anonymous ids are not profile ids; the database would fail to cast them.
+          outcome = 'unknown_user';
+        } else {
+          const result = await deps.applyRevenueCatEvent({
+            eventId,
+            eventType: mapped.eventType,
+            environment,
+            userId: e['app_user_id'],
+            eventAt: new Date(eventMs).toISOString(),
+            action: mapped.action,
+            expiresAt: mapped.expiresAt,
+          });
+          outcome = result === 'applied' && mapped.action === 'none' ? 'ignored' : result;
+        }
+        // Never the body or the user id: the event id, type, environment and outcome only.
+        logger.info({ eventId, eventType: mapped.eventType, environment, outcome }, 'revenuecat webhook handled');
+        res.status(200).json({ outcome });
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   app.use(express.json());
 

@@ -10,6 +10,7 @@ import { createApp } from './api/server.js';
 import { OpenRouterAssistant } from './providers/openrouter.js';
 import {
   addInjuries,
+  applyRevenueCatEvent,
   archivePlans,
   deleteAccount,
   finishAiUse,
@@ -38,6 +39,12 @@ const app = createApp({
   deleteAccount: (userId) => deleteAccount(userId),
   reserveUse: (userId, action, requestId) => reserveAiUse(userId, action, requestId),
   finishUse: (useId, ok) => finishAiUse(useId, ok),
+  applyRevenueCatEvent: (input) => applyRevenueCatEvent(input),
+  revenuecat: {
+    webhookSecret: config.revenuecatWebhookSecret,
+    acceptSandbox: config.revenuecatAcceptSandbox,
+    proEntitlement: config.revenuecatProEntitlement,
+  },
 });
 
 const server = app.listen(config.port, () => {

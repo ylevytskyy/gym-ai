@@ -17,6 +17,12 @@ export interface Config {
   logLevel: string;
   nodeEnv: string;
   appUrl: string;
+  /** RevenueCat webhook signing secret. Absent: the webhook answers 503. */
+  revenuecatWebhookSecret?: string | undefined;
+  /** Apply SANDBOX events (dev and staging only). */
+  revenuecatAcceptSandbox: boolean;
+  /** The RevenueCat entitlement id that means Pro. */
+  revenuecatProEntitlement: string;
 }
 
 /**
@@ -68,6 +74,9 @@ export function validateConfig(): Config {
     logLevel: process.env.LOG_LEVEL || 'info',
     nodeEnv: process.env.NODE_ENV || 'development',
     appUrl: process.env.APP_URL || 'http://localhost:3000',
+    revenuecatWebhookSecret: process.env.REVENUECAT_WEBHOOK_SECRET || undefined,
+    revenuecatAcceptSandbox: process.env.REVENUECAT_ACCEPT_SANDBOX === 'true',
+    revenuecatProEntitlement: process.env.REVENUECAT_PRO_ENTITLEMENT || 'pro',
   };
 }
 
