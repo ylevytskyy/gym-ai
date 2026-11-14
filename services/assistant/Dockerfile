@@ -12,11 +12,10 @@ RUN npm ci --ignore-scripts
 COPY packages/health-core/ ./
 RUN npm run build
 
-# 2. The assistant. It has no package-lock.json in the repo, so npm ci is not possible;
-#    npm install is used without writing a lockfile.
+# 2. The assistant. npm ci installs exactly the versions in package-lock.json.
 WORKDIR /app/services/assistant
-COPY services/assistant/package.json ./
-RUN if [ -f package-lock.json ]; then npm ci --ignore-scripts; else npm install --ignore-scripts --no-package-lock; fi
+COPY services/assistant/package.json services/assistant/package-lock.json ./
+RUN npm ci --ignore-scripts
 COPY services/assistant/tsconfig.json ./
 COPY services/assistant/src ./src
 RUN npm run build
@@ -35,8 +34,8 @@ COPY schemas/ schemas/
 COPY catalog/exercises.json catalog/exercises.json
 
 WORKDIR /app/services/assistant
-COPY services/assistant/package.json ./
-RUN npm install --omit=dev --ignore-scripts --no-package-lock && npm cache clean --force
+COPY services/assistant/package.json services/assistant/package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY --from=build /app/services/assistant/dist ./dist
 
 USER node
