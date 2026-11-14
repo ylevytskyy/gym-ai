@@ -14,8 +14,8 @@ run < "$HERE/00_supabase_stub.sql" > /tmp/supa-stub.log 2>&1 || { echo "stub fai
 for f in "$SUPA"/migrations/*.sql "$SUPA"/seed.sql; do
   run < "$f" > /tmp/supa-step.log 2>&1 || { echo "failed: $(basename "$f")"; tail -n 20 /tmp/supa-step.log; docker rm -f "$CONTAINER" >/dev/null; exit 2; }
 done
-if cat "$HERE/rls_tests.sql" "$HERE/usage_tests.sql" | run > /tmp/supa-rls.log 2>&1; then e=0; else e=$?; fi
-grep -E "NOTICE:  ok|ERROR|FAIL|ALL (USAGE )?CHECKS" /tmp/supa-rls.log | sed -E 's/^.*NOTICE:  //' | cut -c1-160
+if cat "$HERE/rls_tests.sql" "$HERE/usage_tests.sql" "$HERE/revenuecat_tests.sql" | run > /tmp/supa-rls.log 2>&1; then e=0; else e=$?; fi
+grep -E "NOTICE:  ok|ERROR|FAIL|ALL (USAGE |REVENUECAT )?CHECKS" /tmp/supa-rls.log | sed -E 's/^.*NOTICE:  //' | cut -c1-160
 if [ "$e" = 0 ]; then
   # 20 requests at once from separate sessions for a free user with 10 messages a day: exactly 10 get in.
   C=cccccccc-0000-4000-8000-000000000020
