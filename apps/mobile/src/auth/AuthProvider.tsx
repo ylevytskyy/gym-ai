@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
+import { identify, logOut } from '@/billing/purchases';
 import { useServices } from '@/services';
 
 interface AuthValue {
@@ -27,6 +28,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data.subscription.unsubscribe();
     };
   }, [supabase]);
+
+  // RevenueCat must know the same id as the server (the Supabase user id), whichever way the
+  // session changes: sign-in, sign-out, or a session that expired.
+  const userId = session === undefined ? undefined : (session?.user.id ?? null);
+  const identified = useRef(false);
+  useEffect(() => {
+    if (userId === undefined) return;
+    if (userId) {
+      identified.current = true;
+      void identify(userId);
+    } else if (identified.current) {
+      identified.current = false;
+      void logOut();
+    }
+  }, [userId]);
 
   const value = useMemo<AuthValue>(
     () => ({
