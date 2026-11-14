@@ -22,3 +22,14 @@ Terms as this project uses them. No implementation detail here.
   store is called **writing**, not sync.
 - **Connect** — the user granting Aura Fit access to the health store.
   _Avoid:_ "link", "pair".
+
+## Subscriptions
+
+- **Pro** — a user with an entitlement whose end date is in the future. Only the server writes it.
+  _Avoid:_ "premium", "subscriber" (for the access itself), "paid user".
+- **Refund** — the store returning the price of the latest subscription period. Ends Pro at once.
+  _Avoid:_ "chargeback", "reversal" (a reversal undoes a refund).
+- **Cancel** — the user turning off renewal. Pro continues until the paid period ends.
+  _Avoid:_ "refund", "unsubscribe" (in code, use the RevenueCat event name).
+- **Sandbox event** — a RevenueCat event from a test purchase. Production ignores these.
+  _Avoid:_ "test event" (the TEST event type is a different thing).
