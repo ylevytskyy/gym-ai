@@ -9,6 +9,7 @@ import { useHealth } from '@/health/HealthProvider';
 import { endOfDay, localDayOf, startOfDay } from '@/health/local-day';
 import { adjustedToday } from '@/plan/adjusted-today';
 import { sessionOn, weekOf } from '@/plan/calendar';
+import { dayKcal, itemKcal, kcalLabel } from '@/plan/energy';
 import { dayTitle, WeekStrip } from '@/plan/WeekStrip';
 import { usePlan } from '@/plan/PlanProvider';
 import { useProfile } from '@/profile/ProfileProvider';
@@ -66,8 +67,15 @@ function useDayChanges(): void {
   }, [tick]);
 }
 
-/** The warm-up, main and cool-down of one day, exercise by exercise. */
-function SessionBlocks({ day }: { day: WorkoutDay }) {
+/** The day's kcal estimate as a hero pill; nothing when it cannot be estimated. */
+function KcalPill({ day, weightKg }: { day: WorkoutDay; weightKg: number | undefined }) {
+  const kcal = dayKcal(day, weightKg, exerciseById);
+  return kcal === undefined ? null : <Pill onHero icon="flame-outline" label={kcalLabel(kcal)} testID="session-kcal" />;
+}
+
+/** The warm-up, main and cool-down of one day, exercise by exercise, with a kcal estimate each when the weight is known. */
+function SessionBlocks({ day, weightKg }: { day: WorkoutDay; weightKg: number | undefined }) {
+  const estimated = dayKcal(day, weightKg, exerciseById) !== undefined;
   return (
     <>
       {day.blocks.map((block, index) => (
@@ -77,20 +85,24 @@ function SessionBlocks({ day }: { day: WorkoutDay }) {
             {block.items.map((item, itemIndex) => {
               const name = exerciseName(item.exercise_id);
               const size = amount(item.exercise_id, item.sets, item.amount);
+              const kcal = itemKcal(item, weightKg, exerciseById);
+              const burn = kcal === undefined ? undefined : kcalLabel(kcal);
               return (
                 <ListRow
                   key={`${item.exercise_id}-${itemIndex}`}
                   icon={BLOCK_ICONS[block.type]}
                   title={name}
+                  subtitle={burn}
                   right={size}
                   last={itemIndex === block.items.length - 1}
-                  accessibilityLabel={`${BLOCK_LABELS[block.type]}: ${name} ${size}`}
+                  accessibilityLabel={`${BLOCK_LABELS[block.type]}: ${name} ${size}${burn ? `, ${burn.replace('≈', 'about').replace('<', 'under')}` : ''}`}
                 />
               );
             })}
           </View>
         </Card>
       ))}
+      {estimated ? <Body muted>Calories are estimates from your weight and typical effort, not a measurement.</Body> : null}
     </>
   );
 }
@@ -101,6 +113,7 @@ export function TodayScreen() {
   const { days: healthDays } = useHealth();
   const profile = useProfile().state;
   const { today } = useServices();
+  const weightKg = profile.status === 'ready' ? profile.profile.weight_kg : undefined;
   useDayChanges();
   // One clock for the whole render: the strip and the session below always agree on today.
   const now = new Date();
@@ -189,6 +202,7 @@ export function TodayScreen() {
                         {other.kind === 'done' ? <Pill onHero icon="checkmark-circle" label="Done" /> : <Pill onHero icon="calendar-outline" label="Planned" />}
                         <Pill onHero icon="time-outline" label={`${shown.minutes} min`} />
                         <Pill onHero icon="list-outline" label={exercisesLabel(exerciseCount(shown))} />
+                        <KcalPill day={shown} weightKg={weightKg} />
                       </View>
                       {other.kind === 'upcoming' ? <HeroText>Upcoming if you train every day</HeroText> : null}
                       {backToToday}
@@ -210,7 +224,7 @@ export function TodayScreen() {
                   {shown ? (
                     <>
                       <SectionTitle>{other.kind === 'done' ? 'The session' : 'Planned session'}</SectionTitle>
-                      <SessionBlocks day={shown} />
+                      <SessionBlocks day={shown} weightKg={weightKg} />
                     </>
                   ) : null}
                 </>
@@ -244,6 +258,7 @@ export function TodayScreen() {
                   <View style={styles.pills}>
                     <Pill onHero icon="time-outline" label={`${day.minutes} min`} />
                     <Pill onHero icon="list-outline" label={exercisesLabel(exerciseCount(day))} />
+                    <KcalPill day={day} weightKg={weightKg} />
                     {doneToday ? <Pill onHero icon="checkmark-circle" label="Done today" /> : null}
                   </View>
                   {doneToday ? (
@@ -257,7 +272,7 @@ export function TodayScreen() {
                 </HeroCard>
 
                 <SectionTitle>Your session</SectionTitle>
-                <SessionBlocks day={day} />
+                <SessionBlocks day={day} weightKg={weightKg} />
 
                 <Button label="Make a new plan" kind="ghost" icon="refresh" busy={creating} onPress={confirmNewPlan} testID="new-plan" />
                 <UsageNotice usage={usage} kind="plan" />
