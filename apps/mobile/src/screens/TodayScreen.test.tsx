@@ -163,3 +163,65 @@ describe('TodayScreen: the allowance for new plans', () => {
     expect(plansReads).toBe(2);
   });
 });
+
+describe('TodayScreen: other days of the week', () => {
+  // Day 1 "Quick legs", day 2 "Core flow". Made Tuesday 10 Nov; day 1 was done Wednesday 11 Nov.
+  const twoDays = {
+    ...plan('Quick legs'),
+    created_at: '2026-11-10T08:00:00',
+    days: [plan('Quick legs').days[0], { day: 2, title: 'Core flow', minutes: 7, blocks: [{ type: 'main', items: [{ exercise_id: 'squat', sets: 2, amount: 10 }] }] }],
+  };
+  const week: HarnessOptions = {
+    profile,
+    rows: {
+      plans: { id: 'plan-1', plan_json: twoDays, created_at: '2026-11-10T08:00:00' },
+      workout_logs: [{ id: 'log-1', plan_id: 'plan-1', day_number: 1, completed_at: '2026-11-11T09:00:00', health_record_id: null }],
+    },
+  };
+
+  it('opens on today, with today chosen in the week strip', async () => {
+    await createHarness(week).renderScreen(<TodayScreen />);
+    expect(await screen.findByText('Core flow')).toBeTruthy();
+    expect(screen.getByTestId('week-day-2026-11-12').props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByTestId('start-workout')).toBeTruthy();
+  });
+
+  it('shows the session planned for an upcoming day, without starting it', async () => {
+    await createHarness(week).renderScreen(<TodayScreen />);
+    await screen.findByText('Core flow');
+    await user().press(screen.getByTestId('week-day-2026-11-13'));
+    expect(screen.getByText('Quick legs')).toBeTruthy();
+    expect(screen.getByText('Upcoming if you train every day')).toBeTruthy();
+    expect(screen.getByLabelText(/^Main: Plank 1 × 20/)).toBeTruthy();
+    expect(screen.queryByTestId('start-workout')).toBeNull();
+
+    await user().press(screen.getByTestId('back-to-today'));
+    expect(screen.getByText('Core flow')).toBeTruthy();
+    expect(screen.getByTestId('start-workout')).toBeTruthy();
+  });
+
+  it('shows a past day as done or as a rest day', async () => {
+    await createHarness(week).renderScreen(<TodayScreen />);
+    await screen.findByText('Core flow');
+    await user().press(screen.getByTestId('week-day-2026-11-11'));
+    expect(screen.getByText('Quick legs')).toBeTruthy();
+    expect(screen.getByText('Done')).toBeTruthy();
+
+    await user().press(screen.getByTestId('week-day-2026-11-10'));
+    expect(screen.getByTestId('day-rest')).toBeTruthy();
+    expect(screen.queryByText('Quick legs')).toBeNull();
+
+    await user().press(screen.getByTestId('week-day-2026-11-09'));
+    expect(screen.getByTestId('day-before-plan')).toBeTruthy();
+  });
+
+  it('moves to the next week and back', async () => {
+    await createHarness(week).renderScreen(<TodayScreen />);
+    await screen.findByText('Core flow');
+    await user().press(screen.getByTestId('week-next'));
+    expect(screen.getByTestId('week-day-2026-11-16')).toBeTruthy();
+    expect(screen.queryByTestId('week-day-2026-11-12')).toBeNull();
+    await user().press(screen.getByTestId('week-prev'));
+    expect(screen.getByTestId('week-day-2026-11-12')).toBeTruthy();
+  });
+});

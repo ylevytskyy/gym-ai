@@ -23,6 +23,8 @@ export interface WorkoutPlan {
 export interface StoredPlan {
   id: string;
   plan: WorkoutPlan;
+  /** When the plan was saved; absent when not known. */
+  storedAt?: string;
 }
 
 export interface WorkoutLogRow {

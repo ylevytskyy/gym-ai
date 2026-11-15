@@ -1,10 +1,15 @@
+import type { WorkoutDay } from '@aura-fit/health-core';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { UsageNotice } from '@/assistant/UsageNotice';
 import { exerciseById, exerciseName } from '@/catalog/catalog';
 import { useHealth } from '@/health/HealthProvider';
+import { localDayOf, startOfDay } from '@/health/local-day';
 import { adjustedToday } from '@/plan/adjusted-today';
+import { sessionOn, weekOf } from '@/plan/calendar';
+import { dayTitle, WeekStrip } from '@/plan/WeekStrip';
 import { usePlan } from '@/plan/PlanProvider';
 import { useProfile } from '@/profile/ProfileProvider';
 import { useServices } from '@/services';
@@ -35,6 +40,42 @@ const BLOCK_ICONS: Record<keyof typeof BLOCK_LABELS, IconName> = { warm_up: 'sun
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const longDate = (at: Date) => `${WEEKDAYS[at.getDay()]}, ${at.getDate()} ${MONTHS[at.getMonth()]}`;
+const exerciseCount = (day: WorkoutDay) => day.blocks.reduce((sum, block) => sum + block.items.length, 0);
+const exercisesLabel = (count: number) => `${count} ${count === 1 ? 'exercise' : 'exercises'}`;
+/** The same day of the week, `weeks` weeks later. */
+const shiftWeeks = (day: string, weeks: number) => {
+  const at = startOfDay(day);
+  return localDayOf(new Date(at.getFullYear(), at.getMonth(), at.getDate() + 7 * weeks));
+};
+
+/** The warm-up, main and cool-down of one day, exercise by exercise. */
+function SessionBlocks({ day }: { day: WorkoutDay }) {
+  return (
+    <>
+      {day.blocks.map((block, index) => (
+        <Card key={`${block.type}-${index}`} style={styles.blockCard}>
+          <Label>{BLOCK_LABELS[block.type]}</Label>
+          <View>
+            {block.items.map((item, itemIndex) => {
+              const name = exerciseName(item.exercise_id);
+              const size = amount(item.exercise_id, item.sets, item.amount);
+              return (
+                <ListRow
+                  key={`${item.exercise_id}-${itemIndex}`}
+                  icon={BLOCK_ICONS[block.type]}
+                  title={name}
+                  right={size}
+                  last={itemIndex === block.items.length - 1}
+                  accessibilityLabel={`${BLOCK_LABELS[block.type]}: ${name} ${size}`}
+                />
+              );
+            })}
+          </View>
+        </Card>
+      ))}
+    </>
+  );
+}
 
 export function TodayScreen() {
   const router = useRouter();
@@ -42,6 +83,9 @@ export function TodayScreen() {
   const { days: healthDays } = useHealth();
   const profile = useProfile().state;
   const { today } = useServices();
+  // The day chosen in the week strip and a day in the week shown; null means today.
+  const [chosen, setChosen] = useState<string | null>(null);
+  const [shownWeek, setShownWeek] = useState<string | null>(null);
 
   /** A new plan takes the place of the current one, so the user is asked first. */
   const confirmNewPlan = () =>
@@ -81,17 +125,91 @@ export function TodayScreen() {
 
       {state.status === 'ready'
         ? (() => {
+            const now = new Date();
+            const todayDay = localDayOf(now);
+            const selected = chosen ?? todayDay;
+            const sessionOf = (day: string) => sessionOn(state.stored.plan, state.logs, day, now, state.stored.storedAt);
+            const strip = (
+              <WeekStrip
+                days={weekOf(shownWeek ?? selected)}
+                today={todayDay}
+                selected={selected}
+                sessionOf={sessionOf}
+                onSelect={(day) => {
+                  setChosen(day === todayDay ? null : day);
+                  setShownWeek(null);
+                }}
+                onWeek={(step) => setShownWeek(shiftWeeks(shownWeek ?? selected, step))}
+              />
+            );
+            const backToToday = (
+              <Button
+                label="Back to today"
+                kind="inverse"
+                icon="today-outline"
+                onPress={() => {
+                  setChosen(null);
+                  setShownWeek(null);
+                }}
+                testID="back-to-today"
+              />
+            );
+
+            const other = selected === todayDay ? null : sessionOf(selected);
+            if (other && other.kind !== 'today') {
+              const shown = other.kind === 'upcoming' || other.kind === 'done' ? other.day : undefined;
+              return (
+                <>
+                  {strip}
+                  {shown ? (
+                    <HeroCard testID="day-plan">
+                      <HeroText kind="eyebrow">
+                        {dayTitle(selected)} · Day {shown.day}
+                      </HeroText>
+                      <HeroText kind="title">{shown.title}</HeroText>
+                      <View style={styles.pills}>
+                        {other.kind === 'done' ? <Pill onHero icon="checkmark-circle" label="Done" /> : <Pill onHero icon="calendar-outline" label="Planned" />}
+                        <Pill onHero icon="time-outline" label={`${shown.minutes} min`} />
+                        <Pill onHero icon="list-outline" label={exercisesLabel(exerciseCount(shown))} />
+                      </View>
+                      {other.kind === 'upcoming' ? <HeroText>Upcoming if you train every day</HeroText> : null}
+                      {backToToday}
+                    </HeroCard>
+                  ) : (
+                    <HeroCard testID={other.kind === 'done' ? 'day-done' : other.kind === 'rest' ? 'day-rest' : 'day-before-plan'}>
+                      <HeroText kind="eyebrow">{dayTitle(selected)}</HeroText>
+                      <HeroText kind="title">{other.kind === 'done' ? 'Workout done' : other.kind === 'rest' ? 'No workout' : 'Before this plan'}</HeroText>
+                      <HeroText>
+                        {other.kind === 'done'
+                          ? 'A session was finished on this day. Its day is no longer in this plan.'
+                          : other.kind === 'rest'
+                            ? 'No session was finished on this day.'
+                            : 'Your current plan started later than this day.'}
+                      </HeroText>
+                      {backToToday}
+                    </HeroCard>
+                  )}
+                  {shown ? (
+                    <>
+                      <SectionTitle>{other.kind === 'done' ? 'The session' : 'Planned session'}</SectionTitle>
+                      <SessionBlocks day={shown} />
+                    </>
+                  ) : null}
+                </>
+              );
+            }
+
             const { day, doneToday, adjustment } = adjustedToday(
               state.stored.plan,
               state.logs,
-              new Date(),
+              now,
               today(),
               healthDays,
               profile.status === 'ready' ? profile.profile : null,
             );
-            const exercises = day.blocks.reduce((sum, block) => sum + block.items.length, 0);
             return (
               <>
+                {strip}
                 {adjustment ? (
                   <Banner icon="moon" tone="warn" testID="adjustment">
                     <Label>Adjusted for today</Label>
@@ -107,7 +225,7 @@ export function TodayScreen() {
                   <HeroText kind="title">{day.title}</HeroText>
                   <View style={styles.pills}>
                     <Pill onHero icon="time-outline" label={`${day.minutes} min`} />
-                    <Pill onHero icon="list-outline" label={`${exercises} ${exercises === 1 ? 'exercise' : 'exercises'}`} />
+                    <Pill onHero icon="list-outline" label={exercisesLabel(exerciseCount(day))} />
                     {doneToday ? <Pill onHero icon="checkmark-circle" label="Done today" /> : null}
                   </View>
                   {doneToday ? (
@@ -121,27 +239,7 @@ export function TodayScreen() {
                 </HeroCard>
 
                 <SectionTitle>Your session</SectionTitle>
-                {day.blocks.map((block, index) => (
-                  <Card key={`${block.type}-${index}`} style={styles.blockCard}>
-                    <Label>{BLOCK_LABELS[block.type]}</Label>
-                    <View>
-                      {block.items.map((item, itemIndex) => {
-                        const name = exerciseName(item.exercise_id);
-                        const size = amount(item.exercise_id, item.sets, item.amount);
-                        return (
-                          <ListRow
-                            key={`${item.exercise_id}-${itemIndex}`}
-                            icon={BLOCK_ICONS[block.type]}
-                            title={name}
-                            right={size}
-                            last={itemIndex === block.items.length - 1}
-                            accessibilityLabel={`${BLOCK_LABELS[block.type]}: ${name} ${size}`}
-                          />
-                        );
-                      })}
-                    </View>
-                  </Card>
-                ))}
+                <SessionBlocks day={day} />
 
                 <Button label="Make a new plan" kind="ghost" icon="refresh" busy={creating} onPress={confirmNewPlan} testID="new-plan" />
                 <UsageNotice usage={usage} kind="plan" />

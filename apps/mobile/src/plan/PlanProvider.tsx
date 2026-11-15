@@ -76,7 +76,8 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       // One key per time the user asks: the service counts it once.
       const answer = await requestPlan(services.fetch, services.assistantUrl, token, { duration_days: PLAN_DAYS, focus_areas: [] }, services.newId());
       if (answer.usage && userId) setReported({ userId, usage: answer.usage });
-      setLoaded({ key, state: { status: 'ready', stored: answer.stored, logs: [] } });
+      // Just saved: the device clock is close enough to the row's date.
+      setLoaded({ key, state: { status: 'ready', stored: { storedAt: new Date().toISOString(), ...answer.stored }, logs: [] } });
     } catch (error) {
       if (error instanceof PlanError && error.usage) {
         // Said by the allowance notice instead of as an error.
@@ -101,7 +102,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
 
   const replace = useCallback(
     (stored: StoredPlan) => {
-      if (key !== null) setLoaded({ key, state: { status: 'ready', stored, logs: [] } });
+      if (key !== null) setLoaded({ key, state: { status: 'ready', stored: { storedAt: new Date().toISOString(), ...stored }, logs: [] } });
     },
     [key],
   );
