@@ -37,8 +37,16 @@ export function WeekStrip({
 }) {
   const palette = usePalette();
   return (
-    <View style={styles.row} testID="week-strip">
-      <IconButton icon="chevron-back" label="Previous week" onPress={() => onWeek(-1)} testID="week-prev" />
+    <View style={styles.strip} testID="week-strip">
+      <View style={styles.top}>
+        <Text style={[styles.range, { color: palette.muted }]} numberOfLines={1}>
+          {weekRange(days)}
+        </Text>
+        <View style={styles.arrows}>
+          <IconButton icon="chevron-back" label="Previous week" onPress={() => onWeek(-1)} testID="week-prev" />
+          <IconButton icon="chevron-forward" label="Next week" onPress={() => onWeek(1)} testID="week-next" />
+        </View>
+      </View>
       <View style={styles.days}>
         {days.map((day) => {
           const at = startOfDay(day);
@@ -53,7 +61,9 @@ export function WeekStrip({
               key={day}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
-              accessibilityLabel={`${LONG[at.getDay()]}, ${at.getDate()} ${MONTHS[at.getMonth()]}, ${done ? 'done' : STATUS[session.kind]}`}
+              accessibilityLabel={`${LONG[at.getDay()]}, ${at.getDate()} ${MONTHS[at.getMonth()]}, ${
+                session.kind === 'today' ? (session.doneToday ? 'today, done' : 'today') : STATUS[session.kind]
+              }`}
               onPress={() => {
                 haptic.select();
                 onSelect(day);
@@ -77,9 +87,17 @@ export function WeekStrip({
           );
         })}
       </View>
-      <IconButton icon="chevron-forward" label="Next week" onPress={() => onWeek(1)} testID="week-next" />
     </View>
   );
+}
+
+/** "9 – 15 November", or "30 November – 6 December" across a month end. */
+function weekRange(days: string[]): string {
+  const first = startOfDay(days[0] as string);
+  const last = startOfDay(days[days.length - 1] as string);
+  return first.getMonth() === last.getMonth()
+    ? `${first.getDate()} – ${last.getDate()} ${MONTHS[last.getMonth()]}`
+    : `${first.getDate()} ${MONTHS[first.getMonth()]} – ${last.getDate()} ${MONTHS[last.getMonth()]}`;
 }
 
 /** "Friday, 13 November" for a local day. */
@@ -89,9 +107,14 @@ export function dayTitle(day: string): string {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  days: { flex: 1, flexDirection: 'row', justifyContent: 'space-between' },
-  day: { alignItems: 'center', paddingVertical: 6, width: 38, borderRadius: 12, borderWidth: 1.5, borderColor: 'transparent', gap: 2 },
+  strip: { gap: 8 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  // Gives way to the arrows when large text makes it long.
+  range: { flexShrink: 1, fontSize: 15, fontWeight: '600' },
+  arrows: { flexDirection: 'row', gap: 8 },
+  days: { flexDirection: 'row', gap: 4 },
+  // At least 44 points each way: the smallest comfortable touch target.
+  day: { flex: 1, minWidth: 44, minHeight: 44, alignItems: 'center', paddingVertical: 6, borderRadius: 12, borderWidth: 1.5, borderColor: 'transparent', gap: 2 },
   weekday: { fontSize: 11, fontWeight: '600' },
   date: { fontSize: 16, fontWeight: '700' },
   mark: { height: 12, alignItems: 'center', justifyContent: 'center' },
