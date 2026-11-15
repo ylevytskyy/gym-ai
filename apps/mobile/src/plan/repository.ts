@@ -25,7 +25,7 @@ export class PlanError extends Error {
 export async function loadActivePlan(client: PlanClient, userId: string): Promise<StoredPlan | null> {
   const { data, error } = await client
     .from('plans')
-    .select('id, plan_json')
+    .select('id, plan_json, created_at')
     .eq('user_id', userId)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
@@ -33,9 +33,10 @@ export async function loadActivePlan(client: PlanClient, userId: string): Promis
     .maybeSingle();
   if (error) throw new PlanError('Could not load your plan. Check your connection and try again.');
   if (!data) return null;
-  const row = data as { id: string; plan_json: unknown };
+  const row = data as { id: string; plan_json: unknown; created_at?: unknown };
   if (!isWorkoutPlan(row.plan_json)) throw new PlanError('Your plan could not be read. Create a new one.');
-  return { id: row.id, plan: row.plan_json };
+  const storedAt = typeof row.created_at === 'string' && Number.isFinite(Date.parse(row.created_at)) ? row.created_at : undefined;
+  return storedAt === undefined ? { id: row.id, plan: row.plan_json } : { id: row.id, plan: row.plan_json, storedAt };
 }
 
 export async function loadPlanLogs(client: PlanClient, userId: string, planId: string): Promise<WorkoutLogRow[]> {
