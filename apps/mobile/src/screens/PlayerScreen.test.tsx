@@ -78,8 +78,8 @@ describe('TodayScreen', () => {
 
     expect(await screen.findByText('Quick legs')).toBeTruthy();
     expect(screen.getByText(/Day 1 · about 5 min/)).toBeTruthy();
-    expect(screen.getByLabelText('Warm-up: Plank 1 × 20 s')).toBeTruthy();
-    expect(screen.getByLabelText('Main: Squat 2 × 10')).toBeTruthy();
+    expect(screen.getByLabelText('Warm-up: Plank 1 × 20 s, about 1 kcal')).toBeTruthy();
+    expect(screen.getByLabelText('Main: Squat 2 × 10, about 5 kcal')).toBeTruthy();
 
     await user().press(screen.getByTestId('start-workout'));
     expect(mockRouter.push).toHaveBeenCalledWith('/player');
@@ -428,7 +428,7 @@ describe('health days: sync and adjustment', () => {
     await harness.renderScreen(<TodayScreen />);
 
     expect(await screen.findByText('A lighter session today: you slept less than 6 hours and you slept much less than usual.')).toBeTruthy();
-    expect(screen.getByLabelText('Main: Squat 1 × 10')).toBeTruthy();
+    expect(screen.getByLabelText('Main: Squat 1 × 10, about 2 kcal')).toBeTruthy();
     expect(screen.getByText(/not medical advice/)).toBeTruthy();
   });
 
@@ -475,7 +475,7 @@ describe('health days: sync and adjustment', () => {
     await waitFor(() => expect(harness.synced).toHaveLength(1));
 
     expect(screen.queryByTestId('adjustment')).toBeNull();
-    expect(screen.getByLabelText('Main: Squat 2 × 10')).toBeTruthy();
+    expect(screen.getByLabelText('Main: Squat 2 × 10, about 5 kcal')).toBeTruthy();
   });
 });
 

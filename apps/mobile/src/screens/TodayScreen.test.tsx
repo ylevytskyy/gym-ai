@@ -1,4 +1,4 @@
-import { act, screen, userEvent } from '@testing-library/react-native';
+import { act, screen, userEvent, within } from '@testing-library/react-native';
 import { Alert, Pressable, Text } from 'react-native';
 
 import { usePlan } from '@/plan/PlanProvider';
@@ -273,5 +273,49 @@ describe('TodayScreen: the week strip keeps up', () => {
     }).renderScreen(<TodayScreen />);
     await screen.findByTestId('done-today');
     expect(screen.getByTestId('week-day-2026-11-12').props.accessibilityLabel).toBe('Thursday, 12 November, today, done');
+  });
+});
+
+describe('TodayScreen: kilocalorie estimates', () => {
+  const workout = {
+    ...plan('Burn check'),
+    days: [
+      {
+        day: 1,
+        title: 'Burn check',
+        minutes: 10,
+        blocks: [
+          {
+            type: 'main',
+            items: [
+              { exercise_id: 'squat', sets: 3, amount: 12 },
+              { exercise_id: 'plank', sets: 2, amount: 30 },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  const rows = { plans: { id: 'plan-1', plan_json: workout }, workout_logs: [] };
+
+  it('shows an estimate for each exercise and for the whole session, marked as approximate', async () => {
+    const harness = createHarness({ ...base, rows });
+    await harness.renderScreen(<TodayScreen />);
+    await screen.findByText('Burn check');
+
+    // 72 kg: squats 3 x 12 reps of 3 s at MET 5 = 8.6 kcal; plank 60 s at MET 3.5 = 3 kcal
+    expect(await screen.findByText('≈ 9 kcal')).toBeTruthy();
+    expect(screen.getByText('≈ 3 kcal')).toBeTruthy();
+    expect(within(screen.getByTestId('session-kcal')).getByText('≈ 12 kcal')).toBeTruthy();
+    expect(screen.getByText(/Calories are estimates/)).toBeTruthy();
+  });
+
+  it('shows no calorie figures while the body weight is not known', async () => {
+    const harness = createHarness({ ...base, profile: null, rows });
+    await harness.renderScreen(<TodayScreen />);
+    await screen.findByText('Burn check');
+
+    expect(screen.queryByText(/kcal/)).toBeNull();
+    expect(screen.queryByText(/Calories are estimates/)).toBeNull();
   });
 });

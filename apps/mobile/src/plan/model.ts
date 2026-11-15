@@ -11,6 +11,8 @@ import type { Exercise } from '@/catalog/catalog';
 import { localDayOf } from '@/health/local-day';
 import type { WorkoutKind } from '@/health/types';
 
+import { activeKcal } from './energy';
+
 export interface WorkoutPlan {
   schema_version: string;
   id: string;
@@ -128,7 +130,7 @@ export function estimateEnergyKcal(
   let kcal = 0;
   for (const [id, ms] of Object.entries(workMsByExercise)) {
     const met = exercise(id)?.met;
-    if (met && met > 1 && ms > 0 && weightKg > 0) kcal += (met - 1) * weightKg * (ms / 3_600_000);
+    if (met) kcal += activeKcal(met, weightKg, ms);
   }
   return Math.round(kcal * 10) / 10;
 }
