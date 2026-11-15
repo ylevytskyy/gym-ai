@@ -7,7 +7,7 @@
 
 import type { WorkoutDay } from '@aura-fit/health-core';
 
-import { localDayOf, startOfDay } from '@/health/local-day';
+import { endOfDay, localDayOf, startOfDay } from '@/health/local-day';
 
 import { todayPlan, type WorkoutLogRow, type WorkoutPlan } from './model';
 
@@ -39,9 +39,14 @@ export function sessionOn(plan: WorkoutPlan, logs: WorkoutLogRow[], date: string
 
   if (offset > 0) {
     const current = todayPlan(plan, logs, now);
-    const position = Math.max(0, ordered.findIndex((day) => day.day === current.day.day));
-    // When today is still to do, tomorrow is the day after it; when it is done, too.
-    return { kind: 'upcoming', day: ordered[(position + offset) % ordered.length] as WorkoutDay };
+    const indexOf = (day: WorkoutDay) => Math.max(0, ordered.findIndex((d) => d.day === day.day));
+    if (current.doneToday) {
+      // Tomorrow is what Today will show tomorrow; this also starts over after a day the plan no longer has.
+      const tomorrow = todayPlan(plan, logs, endOfDay(today));
+      return { kind: 'upcoming', day: ordered[(indexOf(tomorrow.day) + offset - 1) % ordered.length] as WorkoutDay };
+    }
+    // Today is still to do: tomorrow is the day after it.
+    return { kind: 'upcoming', day: ordered[(indexOf(current.day) + offset) % ordered.length] as WorkoutDay };
   }
 
   const finished = logs

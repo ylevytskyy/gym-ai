@@ -26,6 +26,19 @@ describe('sessionOn', () => {
     expect(sessionOn(plan, logs, '2026-11-13', now)).toMatchObject({ kind: 'upcoming', day: { day: 3 } });
   });
 
+  it('projects from the first day after a session today of a day the plan no longer has', () => {
+    // Today then shows day 1 as done, and tomorrow the plan starts over at day 1.
+    const logs = [log(9, '2026-11-12T08:00:00')];
+    expect(sessionOn(plan, logs, '2026-11-13', now)).toMatchObject({ kind: 'upcoming', day: { day: 1 } });
+    expect(sessionOn(plan, logs, '2026-11-14', now)).toMatchObject({ kind: 'upcoming', day: { day: 2 } });
+  });
+
+  it('places a session on the local day it was finished, not the UTC day', () => {
+    // 2026-11-11T23:30 local, written as a UTC instant.
+    const late = new Date(2026, 10, 11, 23, 30).toISOString();
+    expect(sessionOn(plan, [log(1, late)], '2026-11-11', now)).toMatchObject({ kind: 'done', day: { day: 1 } });
+  });
+
   it('shows a past date with a finished session as done, with that plan day', () => {
     const logs = [log(2, '2026-11-11T09:00:00'), log(1, '2026-11-09T19:30:00')];
     expect(sessionOn(plan, logs, '2026-11-09', now)).toMatchObject({ kind: 'done', day: { day: 1 } });
