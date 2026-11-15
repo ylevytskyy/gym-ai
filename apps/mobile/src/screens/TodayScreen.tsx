@@ -1,12 +1,12 @@
 import type { WorkoutDay } from '@aura-fit/health-core';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, AppState, StyleSheet, View } from 'react-native';
 
 import { UsageNotice } from '@/assistant/UsageNotice';
 import { exerciseById, exerciseName } from '@/catalog/catalog';
 import { useHealth } from '@/health/HealthProvider';
-import { localDayOf, startOfDay } from '@/health/local-day';
+import { endOfDay, localDayOf, startOfDay } from '@/health/local-day';
 import { adjustedToday } from '@/plan/adjusted-today';
 import { sessionOn, weekOf } from '@/plan/calendar';
 import { dayTitle, WeekStrip } from '@/plan/WeekStrip';
@@ -48,6 +48,21 @@ const shiftWeeks = (day: string, weeks: number) => {
   return localDayOf(new Date(at.getFullYear(), at.getMonth(), at.getDate() + 7 * weeks));
 };
 
+/** The local day today, kept current: it moves on at midnight and when the app comes back to the front. */
+function useLocalToday(): string {
+  const [day, setDay] = useState(() => localDayOf(new Date()));
+  useEffect(() => {
+    const check = () => setDay(localDayOf(new Date()));
+    const timer = setTimeout(check, Math.max(1000, endOfDay(day).getTime() - Date.now() + 1000));
+    const subscription = AppState.addEventListener('change', (state) => state === 'active' && check());
+    return () => {
+      clearTimeout(timer);
+      subscription.remove();
+    };
+  }, [day]);
+  return day;
+}
+
 /** The warm-up, main and cool-down of one day, exercise by exercise. */
 function SessionBlocks({ day }: { day: WorkoutDay }) {
   return (
@@ -83,9 +98,14 @@ export function TodayScreen() {
   const { days: healthDays } = useHealth();
   const profile = useProfile().state;
   const { today } = useServices();
-  // The day chosen in the week strip and a day in the week shown; null means today.
-  const [chosen, setChosen] = useState<string | null>(null);
-  const [shownWeek, setShownWeek] = useState<string | null>(null);
+  const todayDay = useLocalToday();
+  // The day chosen in the week strip and a day in the week shown, for one plan; none means today.
+  const [picked, setPicked] = useState<{ planId: string; chosen: string | null; shownWeek: string | null } | null>(null);
+  const planId = state.status === 'ready' ? state.stored.id : null;
+  // A new plan starts on today again.
+  const chosen = picked && picked.planId === planId ? picked.chosen : null;
+  const shownWeek = picked && picked.planId === planId ? picked.shownWeek : null;
+  const pick = (next: { chosen: string | null; shownWeek: string | null }) => planId !== null && setPicked({ planId, ...next });
 
   /** A new plan takes the place of the current one, so the user is asked first. */
   const confirmNewPlan = () =>
@@ -126,7 +146,6 @@ export function TodayScreen() {
       {state.status === 'ready'
         ? (() => {
             const now = new Date();
-            const todayDay = localDayOf(now);
             const selected = chosen ?? todayDay;
             const sessionOf = (day: string) => sessionOn(state.stored.plan, state.logs, day, now, state.stored.storedAt);
             const strip = (
@@ -135,11 +154,8 @@ export function TodayScreen() {
                 today={todayDay}
                 selected={selected}
                 sessionOf={sessionOf}
-                onSelect={(day) => {
-                  setChosen(day === todayDay ? null : day);
-                  setShownWeek(null);
-                }}
-                onWeek={(step) => setShownWeek(shiftWeeks(shownWeek ?? selected, step))}
+                onSelect={(day) => pick({ chosen: day === todayDay ? null : day, shownWeek: null })}
+                onWeek={(step) => pick({ chosen, shownWeek: shiftWeeks(shownWeek ?? selected, step) })}
               />
             );
             const backToToday = (
@@ -147,10 +163,7 @@ export function TodayScreen() {
                 label="Back to today"
                 kind="inverse"
                 icon="today-outline"
-                onPress={() => {
-                  setChosen(null);
-                  setShownWeek(null);
-                }}
+                onPress={() => pick({ chosen: null, shownWeek: null })}
                 testID="back-to-today"
               />
             );

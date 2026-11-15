@@ -1,6 +1,7 @@
 import { act, screen, userEvent } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, Pressable, Text } from 'react-native';
 
+import { usePlan } from '@/plan/PlanProvider';
 import { createHarness, type HarnessOptions } from '@/testing/harness';
 
 import { TodayScreen } from './TodayScreen';
@@ -223,5 +224,54 @@ describe('TodayScreen: other days of the week', () => {
     expect(screen.queryByTestId('week-day-2026-11-12')).toBeNull();
     await user().press(screen.getByTestId('week-prev'));
     expect(screen.getByTestId('week-day-2026-11-12')).toBeTruthy();
+  });
+});
+
+describe('TodayScreen: the week strip keeps up', () => {
+  const week: HarnessOptions = {
+    profile,
+    rows: { plans: { id: 'plan-1', plan_json: plan('Quick legs'), created_at: '2026-11-10T08:00:00' }, workout_logs: [] },
+  };
+  const isSelected = (day: string) => screen.getByTestId(`week-day-${day}`).props.accessibilityState?.selected;
+
+  it('moves today to the next day at midnight', async () => {
+    await createHarness(week).renderScreen(<TodayScreen />);
+    await screen.findByText('Quick legs');
+    expect(isSelected('2026-11-12')).toBe(true);
+    await act(async () => jest.advanceTimersByTime(14 * 60 * 60 * 1000 + 1000));
+    expect(isSelected('2026-11-13')).toBe(true);
+  });
+
+  it('goes back to today when the plan is replaced', async () => {
+    function ReplacePlan() {
+      const { replace } = usePlan();
+      return (
+        <Pressable testID="replace" onPress={() => replace({ id: 'plan-2', plan: plan('Desk reset') as never })}>
+          <Text>Replace</Text>
+        </Pressable>
+      );
+    }
+    await createHarness(week).renderScreen(
+      <>
+        <TodayScreen />
+        <ReplacePlan />
+      </>,
+    );
+    await screen.findByText('Quick legs');
+    await user().press(screen.getByTestId('week-day-2026-11-13'));
+    expect(screen.queryByTestId('start-workout')).toBeNull();
+    await user().press(screen.getByTestId('replace'));
+    expect(screen.getByText('Desk reset')).toBeTruthy();
+    expect(screen.getByTestId('start-workout')).toBeTruthy();
+    expect(isSelected('2026-11-12')).toBe(true);
+  });
+
+  it('says today and done for a session already finished today', async () => {
+    await createHarness({
+      ...week,
+      rows: { ...week.rows, workout_logs: [{ id: 'log-1', plan_id: 'plan-1', day_number: 1, completed_at: '2026-11-12T08:00:00', health_record_id: null }] },
+    }).renderScreen(<TodayScreen />);
+    await screen.findByTestId('done-today');
+    expect(screen.getByTestId('week-day-2026-11-12').props.accessibilityLabel).toBe('Thursday, 12 November, today, done');
   });
 });
