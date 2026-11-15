@@ -48,19 +48,22 @@ const shiftWeeks = (day: string, weeks: number) => {
   return localDayOf(new Date(at.getFullYear(), at.getMonth(), at.getDate() + 7 * weeks));
 };
 
-/** The local day today, kept current: it moves on at midnight and when the app comes back to the front. */
-function useLocalToday(): string {
-  const [day, setDay] = useState(() => localDayOf(new Date()));
+/**
+ * Renders again just after local midnight and when the app comes back to the front, so the
+ * screen never keeps showing yesterday as today. The screen reads the clock itself on each render.
+ */
+function useDayChanges(): void {
+  const [tick, setTick] = useState(0);
   useEffect(() => {
-    const check = () => setDay(localDayOf(new Date()));
-    const timer = setTimeout(check, Math.max(1000, endOfDay(day).getTime() - Date.now() + 1000));
-    const subscription = AppState.addEventListener('change', (state) => state === 'active' && check());
+    const next = () => setTick((n) => n + 1);
+    // Armed again after every tick, also when the day turned out not to have changed.
+    const timer = setTimeout(next, Math.max(1000, endOfDay(localDayOf(new Date())).getTime() - Date.now() + 1000));
+    const subscription = AppState.addEventListener('change', (state) => state === 'active' && next());
     return () => {
       clearTimeout(timer);
       subscription.remove();
     };
-  }, [day]);
-  return day;
+  }, [tick]);
 }
 
 /** The warm-up, main and cool-down of one day, exercise by exercise. */
@@ -98,7 +101,10 @@ export function TodayScreen() {
   const { days: healthDays } = useHealth();
   const profile = useProfile().state;
   const { today } = useServices();
-  const todayDay = useLocalToday();
+  useDayChanges();
+  // One clock for the whole render: the strip and the session below always agree on today.
+  const now = new Date();
+  const todayDay = localDayOf(now);
   // The day chosen in the week strip and a day in the week shown, for one plan; none means today.
   const [picked, setPicked] = useState<{ planId: string; chosen: string | null; shownWeek: string | null } | null>(null);
   const planId = state.status === 'ready' ? state.stored.id : null;
@@ -145,7 +151,6 @@ export function TodayScreen() {
 
       {state.status === 'ready'
         ? (() => {
-            const now = new Date();
             const selected = chosen ?? todayDay;
             const sessionOf = (day: string) => sessionOn(state.stored.plan, state.logs, day, now, state.stored.storedAt);
             const strip = (

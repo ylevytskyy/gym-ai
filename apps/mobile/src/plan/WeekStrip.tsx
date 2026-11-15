@@ -39,7 +39,9 @@ export function WeekStrip({
   return (
     <View style={styles.strip} testID="week-strip">
       <View style={styles.top}>
-        <Text style={[styles.range, { color: palette.muted }]}>{weekRange(days)}</Text>
+        <Text style={[styles.range, { color: palette.muted }]} numberOfLines={1}>
+          {weekRange(days)}
+        </Text>
         <View style={styles.arrows}>
           <IconButton icon="chevron-back" label="Previous week" onPress={() => onWeek(-1)} testID="week-prev" />
           <IconButton icon="chevron-forward" label="Next week" onPress={() => onWeek(1)} testID="week-next" />
@@ -107,7 +109,8 @@ export function dayTitle(day: string): string {
 const styles = StyleSheet.create({
   strip: { gap: 8 },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  range: { fontSize: 15, fontWeight: '600' },
+  // Gives way to the arrows when large text makes it long.
+  range: { flexShrink: 1, fontSize: 15, fontWeight: '600' },
   arrows: { flexDirection: 'row', gap: 8 },
   days: { flexDirection: 'row', gap: 4 },
   // At least 44 points each way: the smallest comfortable touch target.
